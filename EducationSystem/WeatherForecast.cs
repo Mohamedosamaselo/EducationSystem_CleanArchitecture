@@ -1,4 +1,4 @@
-namespace EducationSystem;
+namespace EducationSystem.WebApi;
 
 public class WeatherForecast
 {

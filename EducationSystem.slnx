@@ -1,3 +1,14 @@
 <Solution>
-  <Project Path="EducationSystem/EducationSystem.csproj" />
+  <Folder Name="/Application/">
+    <Project Path="EducationSystem.Application/EducationSystem.Application.csproj" />
+  </Folder>
+  <Folder Name="/Domain/">
+    <Project Path="EducationSystem.Domain/EducationSystem.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Infrastructure/">
+    <Project Path="EducationSystem.Infrastructure/EducationSystem.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/Presentation/">
+    <Project Path="EducationSystem/EducationSystem.WebApi.csproj" />
+  </Folder>
 </Solution>
