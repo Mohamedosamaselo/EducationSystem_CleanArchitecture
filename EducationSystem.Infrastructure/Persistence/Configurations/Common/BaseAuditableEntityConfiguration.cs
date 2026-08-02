@@ -1,11 +1,13 @@
 ﻿using EducationSystem.Domain.Common;
+using EducationSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EducationSystem.Infrastructure.Persistence.Configurations.Common;
 
 public abstract class BaseAuditableEntityConfiguration<TEntity> :
-    IEntityTypeConfiguration<TEntity> where TEntity : BaseAuditableEntity
+                      IEntityTypeConfiguration<TEntity> where TEntity :
+                      BaseAuditableEntity
 {
     public virtual void Configure(EntityTypeBuilder<TEntity> builder)
     {
