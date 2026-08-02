@@ -1,21 +1,23 @@
-using EducationSystem.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
+using EducationSystem.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+#region Configure Services
 
+// Add services to the container.
 builder.Services.AddControllers();
+
+builder.Services.AddInfrastructure(builder.Configuration); // Add Configurations For Infrastructure Layer
 
 // Register Swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Register the DbContext with the connection string from appsettings.json
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+#endregion Configure Services
 
 var app = builder.Build();
+
+#region Middlewares
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -29,5 +31,7 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+#endregion Middlewares
 
 app.Run();
