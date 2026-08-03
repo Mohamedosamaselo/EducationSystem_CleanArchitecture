@@ -14,7 +14,6 @@
     <Folder Include="Abstarctions\Identity\" />
     <Folder Include="Abstarctions\Logging\" />
     <Folder Include="Abstarctions\Common\" />
-    <Folder Include="Abstarctions\UnitOfWork\" />
     <Folder Include="Abstarctions\Services\" />
     <Folder Include="Features\" />
     <Folder Include="Dtos\" />

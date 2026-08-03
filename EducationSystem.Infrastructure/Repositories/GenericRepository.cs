@@ -2,7 +2,6 @@
 using EducationSystem.Domain.Common;
 using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.Metadata.Ecma335;
 
 namespace EducationSystem.Infrastructure.Repositories;
 
@@ -11,10 +10,10 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     private readonly ApplicationDbContext _context;
     private readonly DbSet<TEntity> _dbset;
 
-    public GenericRepository(ApplicationDbContext context, DbSet<TEntity> dbset)
+    public GenericRepository(ApplicationDbContext context)
     {
         _context = context;
-        _dbset = dbset;
+        _dbset = _context.Set<TEntity>();
     }
 
     public async Task<IReadOnlyList<TEntity>> GetAllAsync() => await _dbset.AsNoTracking()
