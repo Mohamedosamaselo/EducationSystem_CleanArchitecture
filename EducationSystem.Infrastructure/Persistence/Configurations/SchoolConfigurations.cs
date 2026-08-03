@@ -18,6 +18,7 @@ public class SchoolConfigurations : BaseAuditableEntityConfiguration<School>
         builder.Property(s => s.Name)
             .HasMaxLength(100);
 
+        // School with organization relationship
         builder.HasOne(s => s.Organisation)
             .WithMany(o => o.Schools)
             .HasForeignKey(s => s.OrganisationId)

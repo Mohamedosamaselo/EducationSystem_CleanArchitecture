@@ -16,7 +16,6 @@
     <Folder Include="Abstarctions\Common\" />
     <Folder Include="Abstarctions\UnitOfWork\" />
     <Folder Include="Abstarctions\Services\" />
-    <Folder Include="Abstarctions\Persistence\" />
     <Folder Include="Features\" />
     <Folder Include="Dtos\" />
     <Folder Include="Mapping\" />

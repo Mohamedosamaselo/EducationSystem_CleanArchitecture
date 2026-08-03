@@ -1,5 +1,6 @@
 ﻿using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure.Persistence.Configurations.Common;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EducationSystem.Infrastructure.Persistence.Configurations;
@@ -14,9 +15,14 @@ public class GradeConfigurations : BaseAuditableEntityConfiguration<Grade>
             .IsRequired()
             .HasMaxLength(100);
 
+        // Configure the relationship between school & grade [1:M]
         builder.HasOne(x => x.School)
             .WithMany(x => x.Grades)
             .HasForeignKey(x => x.SchoolId)
-            .OnDelete(Microsoft.EntityFrameworkCore.DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Restrict);
+
+        // relationship between grade & subject[M:M]
+        builder.HasMany(x => x.Subjects)
+            .WithMany(x => x.Grades);
     }
 }

@@ -18,9 +18,14 @@ public class SubjectConfigurations : BaseAuditableEntityConfiguration<Subject>
         builder.Property(e => e.Code)
             .IsRequired();
 
+        // Configure the relationship between School and Subject entities [1:M]
         builder.HasOne(s => s.School)
                .WithMany(s => s.Subjects)
                .HasForeignKey(s => s.SchoolId)
-               .OnDelete(DeleteBehavior.Cascade);
+               .OnDelete(DeleteBehavior.Restrict);
+
+        // Configure the relationship between grade & subject[M:M]
+        builder.HasMany(s => s.Grades)
+               .WithMany(g => g.Subjects);
     }
 }
