@@ -16,7 +16,6 @@
     <Folder Include="Identity\" />
     <Folder Include="Services\" />
     <Folder Include="UnitOfWork\" />
-    <Folder Include="Repositories\" />
     <Folder Include="Persistence\Seed\" />
   </ItemGroup>
 

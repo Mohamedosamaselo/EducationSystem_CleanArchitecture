@@ -2,8 +2,7 @@
 
 namespace EducationSystem.Application.Abstarctions.Persistence.Repositories;
 
-public interface IGenericRepository<TEntity>
-                                            where TEntity : BaseAuditableEntity
+public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 {
     Task<TEntity?> GetByIdAsync(Guid Id);
 
@@ -11,7 +10,7 @@ public interface IGenericRepository<TEntity>
 
     Task AddAsync(TEntity entity);
 
-    Task UpdateAsync(TEntity entity);
+    void UpdateAsync(TEntity entity);
 
-    Task DeleteAsync(TEntity entity);
+    void DeleteAsync(TEntity entity);
 }
