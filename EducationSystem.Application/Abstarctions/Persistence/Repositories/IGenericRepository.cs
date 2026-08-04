@@ -10,7 +10,7 @@ public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 
     Task AddAsync(TEntity entity);
 
-    void UpdateAsync(TEntity entity);
+    void Update(TEntity entity);
 
-    void DeleteAsync(TEntity entity);
+    void Delete(TEntity entity);
 }
