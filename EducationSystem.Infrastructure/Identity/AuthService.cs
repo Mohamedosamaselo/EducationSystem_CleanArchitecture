@@ -47,10 +47,11 @@ public class AuthService : IAuthService
         // create user
         var User = new ApplicationUser
         {
+            Id = Guid.NewGuid(),
             UserName = request.Username,
             Name = request.Name,
-            Email = request.Email,
             Address = request.Address,
+            Email = request.Email,
             SchoolId = request.SchoolId,
             GradeId = request.GradeId
         };

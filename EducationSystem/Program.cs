@@ -1,6 +1,7 @@
 using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure;
-using EducationSystem.Infrastructure.Identity;
+using EducationSystem.Infrastructure.Persistence;
+using EducationSystem.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,9 +24,18 @@ var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
 {
-    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+    var services = scope.ServiceProvider;
 
-    await IdentitySeeder.SeedAsync(roleManager);
+    var context =
+        services.GetRequiredService<ApplicationDbContext>();
+
+    var roleManager =
+        services.GetRequiredService<RoleManager<Role>>();
+
+    var userManager =
+        services.GetRequiredService<UserManager<ApplicationUser>>();
+
+    await DataSeeder.SeedAsync(context, userManager, roleManager);
 }
 
 #region Middlewares
