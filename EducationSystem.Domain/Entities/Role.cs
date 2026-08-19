@@ -1,12 +1,20 @@
-﻿namespace EducationSystem.Domain.Entities;
+﻿using EducationSystem.Domain.Interfaces.Common;
+using Microsoft.AspNetCore.Identity;
 
-public class Role : BaseAuditableEntity
+namespace EducationSystem.Domain.Entities;
+
+public class Role : IdentityRole<Guid>, IBaseAuditableEntity
 {
-    public string Name { get; set; } = string.Empty;
+    //public string Name { get; set; } = string.Empty; // IdentityRole Has Already Name
     public string Description { get; set; } = string.Empty;
 
-    // naviigational property
-    public ICollection<User> Users { get; set; } = new HashSet<User>();
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
 
-    public ICollection<Permission> Permissions { get; set; } = new HashSet<Permission>();
+    // naviigational property
+    public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+
+    public ICollection<Permission> Permissions { get; set; } = new List<Permission>();
 }

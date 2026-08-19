@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EducationSystem.Infrastructure.Persistence.Configurations;
 
-public class UserConfigurations : BaseAuditableEntityConfiguration<User>
+public class UserConfigurations : BaseAuditableEntityConfiguration<ApplicationUser>
 {
-    public override void Configure(EntityTypeBuilder<User> builder)
+    public override void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
         base.Configure(builder);
 

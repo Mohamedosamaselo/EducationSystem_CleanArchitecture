@@ -1,4 +1,6 @@
-﻿namespace EducationSystem.Domain.Entities;
+﻿using EducationSystem.Domain.Interfaces;
+
+namespace EducationSystem.Domain.Entities;
 
 public class Grade : BaseAuditableEntity
 {
@@ -10,6 +12,6 @@ public class Grade : BaseAuditableEntity
     // navigational property
     public School School { get; set; } = null!;
 
-    public ICollection<Subject> Subjects { get; set; } = new HashSet<Subject>();
-    public ICollection<User> Users { get; set; } = new HashSet<User>();
+    public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+    public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
 }

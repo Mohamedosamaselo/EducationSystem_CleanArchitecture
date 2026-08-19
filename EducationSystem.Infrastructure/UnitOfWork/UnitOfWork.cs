@@ -1,6 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Domain.Common;
+using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure.Persistence;
 using EducationSystem.Infrastructure.Repositories;
 
@@ -8,29 +8,31 @@ namespace EducationSystem.Infrastructure.unitOfWork;
 
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly ApplicationDbContext _dbContext;
+    private readonly ApplicationDbContext _context;
 
-    private readonly Dictionary<Type, object> _repositories = new();
+    public IGenericRepository<Organisation> OrganisationRepo { get; }
+    public IGenericRepository<School> SchoolRepo { get; }
+    public IGenericRepository<Grade> GradeRepo { get; }
+    public IGenericRepository<Subject> SubjectRepo { get; }
+    public IGenericRepository<ApplicationUser> UserRepo { get; }
+    public IGenericRepository<Role> RoleRepo { get; }
+    public IGenericRepository<Permission> PermissionRepo { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
-        _dbContext = dbContext;
+        _context = dbContext;
+
+        OrganisationRepo = new GenericRepository<Organisation>(_context);
+        SchoolRepo = new GenericRepository<School>(_context);
+        GradeRepo = new GenericRepository<Grade>(_context);
+        SubjectRepo = new GenericRepository<Subject>(_context);
+        UserRepo = new GenericRepository<ApplicationUser>(_context);
+        RoleRepo = new GenericRepository<Role>(_context);
+        PermissionRepo = new GenericRepository<Permission>(_context);
     }
 
-    public IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseAuditableEntity
-    {
-        if (!_repositories.ContainsKey(typeof(TEntity)))
-        {
-            _repositories[typeof(TEntity)] = new GenericRepository<TEntity>(_dbContext);
-        }
+    public async Task<int> CompleteAsync(CancellationToken cancellationToken = default)
+        => await _context.SaveChangesAsync(cancellationToken);
 
-        return (IGenericRepository<TEntity>)_repositories[typeof(TEntity)];
-    }
-
-    public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) => _dbContext.SaveChangesAsync(cancellationToken);
-
-    public void Dispose()
-    {
-        _dbContext.Dispose();
-    }
+    public void Dispose() => _context.Dispose();
 }

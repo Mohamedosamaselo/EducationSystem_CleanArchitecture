@@ -1,6 +1,8 @@
-﻿namespace EducationSystem.Domain.Common;
+﻿using EducationSystem.Domain.Interfaces;
 
-public abstract class BaseEntity
+namespace EducationSystem.Domain.Common;
+
+public abstract class BaseEntity : IBaseEntity
 {
-    public Guid Id { get; protected set; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
 }

@@ -1,11 +1,24 @@
-﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
-using EducationSystem.Domain.Common;
+﻿//using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+//using EducationSystem.Domain.Entities;
+
+using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Abstarctions.UnitOfWork;
 
 public interface IUnitOfWork : IDisposable
 {
-    IGenericRepository<TEntity> GetRepository<TEntity>() where TEntity : BaseAuditableEntity;
+    #region Fields
 
-    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    IGenericRepository<Organisation> OrganisationRepo { get; }
+    IGenericRepository<School> SchoolRepo { get; }
+    IGenericRepository<Grade> GradeRepo { get; }
+    IGenericRepository<Subject> SubjectRepo { get; }
+    IGenericRepository<ApplicationUser> UserRepo { get; }
+    IGenericRepository<Role> RoleRepo { get; }
+    IGenericRepository<Permission> PermissionRepo { get; }
+
+    #endregion Fields
+
+    Task<int> CompleteAsync(CancellationToken cancellationToken = default); // save All changes in DB
 }

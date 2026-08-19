@@ -1,12 +1,11 @@
-﻿namespace EducationSystem.Domain.Common;
+﻿using EducationSystem.Domain.Interfaces.Common;
 
-public class BaseAuditableEntity : BaseEntity
+namespace EducationSystem.Domain.Common;
+
+public class BaseAuditableEntity : BaseEntity, IBaseAuditableEntity
 {
     public DateTime CreatedAt { get; set; }
-
     public Guid? CreatedBy { get; set; }
-
     public DateTime? ModifiedAt { get; set; }
-
     public Guid? LastModifiedBy { get; set; }
 }

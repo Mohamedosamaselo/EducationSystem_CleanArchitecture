@@ -1,11 +1,11 @@
 ﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
-using EducationSystem.Domain.Common;
+using EducationSystem.Domain.Interfaces.Common;
 using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
 namespace EducationSystem.Infrastructure.Repositories;
 
-public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
+public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, IBaseAuditableEntity
 {
     private readonly ApplicationDbContext _context;
     private readonly DbSet<TEntity> _dbset;
@@ -23,7 +23,15 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
 
     public async Task AddAsync(TEntity entity) => await _dbset.AddAsync(entity);
 
+    public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await _dbset.AddRangeAsync(entities);
+
     public void Delete(TEntity entity) => _dbset.Remove(entity);
 
+    public void DeleteRange(IEnumerable<TEntity> entities) => _dbset.RemoveRange(entities);
+
     public void Update(TEntity entity) => _dbset.Update(entity);
+
+    public void UpdateRange(IEnumerable<TEntity> entities) => _dbset.UpdateRange(entities);
+
+    public async Task<int> CountAsync() => await _dbset.CountAsync();
 }

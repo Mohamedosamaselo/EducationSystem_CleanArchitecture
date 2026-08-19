@@ -1,4 +1,7 @@
+using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure;
+using EducationSystem.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,12 +13,20 @@ builder.Services.AddControllers();
 builder.Services.AddInfrastructure(builder.Configuration); // Add Configurations For Infrastructure Layer
 
 // Register Swagger
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 #endregion Configure Services
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<Role>>();
+
+    await IdentitySeeder.SeedAsync(roleManager);
+}
 
 #region Middlewares
 
@@ -28,6 +39,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

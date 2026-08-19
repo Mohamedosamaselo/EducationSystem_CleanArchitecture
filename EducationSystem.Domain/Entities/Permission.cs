@@ -1,4 +1,6 @@
-﻿namespace EducationSystem.Domain.Entities;
+﻿using EducationSystem.Domain.Interfaces;
+
+namespace EducationSystem.Domain.Entities;
 
 public class Permission : BaseAuditableEntity
 {
@@ -10,4 +12,9 @@ public class Permission : BaseAuditableEntity
 
     // navigational property
     public Role Role { get; set; } = null!;
+
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
 }
