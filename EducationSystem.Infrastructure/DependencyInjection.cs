@@ -1,6 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
+using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure.Identity;
 using EducationSystem.Infrastructure.Persistence;
@@ -18,18 +19,29 @@ namespace EducationSystem.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection Services,
-                                                       IConfiguration Configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection Services, IConfiguration Configuration)
     {
-        // 1. Register the ConnnectionString
+        // connection Strings
         Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+           options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 
-        // 2. Register ASP.NET Core Identity
+        // Jwt configs
+        Services.Configure<JwtSetting>(Configuration.GetSection("Jwt"));
+
+        // Authentication , JWt
 
         Services.AddIdentity<ApplicationUser, Role>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
+
+        // LockOut Configs
+        Services.Configure<IdentityOptions>(options =>
+        {
+            // Default Lockout settings.
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
+        });
 
         Services.AddAuthentication(options =>
         {
@@ -52,11 +64,14 @@ public static class DependencyInjection
             };
         });
 
+        // Services
         Services.AddScoped<IAuthService, AuthService>();
 
-        // Register the GenericRepository and UnitOfWork
+        // Generic Repository
+
         Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 
+        // UnitOfWork
         Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return Services;

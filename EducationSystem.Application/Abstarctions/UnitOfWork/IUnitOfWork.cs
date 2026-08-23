@@ -1,7 +1,4 @@
-﻿//using EducationSystem.Application.Abstarctions.Persistence.Repositories;
-//using EducationSystem.Domain.Entities;
-
-using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Abstarctions.UnitOfWork;
@@ -20,5 +17,5 @@ public interface IUnitOfWork : IDisposable
 
     #endregion Fields
 
-    Task<int> CompleteAsync(CancellationToken cancellationToken = default); // save All changes in DB
+    Task<int> CompleteAsync(); // save All changes in DB
 }

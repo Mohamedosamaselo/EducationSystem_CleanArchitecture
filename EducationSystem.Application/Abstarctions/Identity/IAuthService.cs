@@ -4,9 +4,9 @@ namespace EducationSystem.Application.Abstarctions.Identity;
 
 public interface IAuthService
 {
-    Task<AuthModel> RegisterUserAsync(RegisterRequestDto request);
+    Task<AuthResponse?> RegisterUserAsync(RegisterRequestDto request, CancellationToken cancellationToken = default);
 
-    Task<AuthModel> LoginUserAsync(LoginRequestDto request);
+    Task<AuthResponse> LoginUserAsync(LoginRequestDto request, CancellationToken cancellationToken = default);
 
-    Task<string> AddRoleAsync(AddRoleModel model);
+    //Task<string> AddRoleAsync(AddRoleModel model);
 }

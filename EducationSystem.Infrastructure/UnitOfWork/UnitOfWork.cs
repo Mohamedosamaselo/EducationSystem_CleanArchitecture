@@ -31,8 +31,8 @@ public class UnitOfWork : IUnitOfWork
         PermissionRepo = new GenericRepository<Permission>(_context);
     }
 
-    public async Task<int> CompleteAsync(CancellationToken cancellationToken = default)
-        => await _context.SaveChangesAsync(cancellationToken);
+    public async Task<int> CompleteAsync()
+        => await _context.SaveChangesAsync();
 
     public void Dispose() => _context.Dispose();
 }

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.WebApi.Controllers;
 
-[Route("api/[controller]")]
+[Route("[controller]")]
 [ApiController]
 public class AuthController : ControllerBase
 {
@@ -50,19 +50,19 @@ public class AuthController : ControllerBase
     }
 
     //[Authorize] // to add Role you must be Authorized User
-    [HttpPost("AddRole")]
-    public async Task<IActionResult> AddRoleAsync([FromBody] AddRoleModel model)
-    {
-        // ckeck on modelState
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+    //[HttpPost("AddRole")]
+    //public async Task<IActionResult> AddRoleAsync([FromBody] AddRoleModel model)
+    //{
+    //    // ckeck on modelState
+    //    if (!ModelState.IsValid)
+    //        return BadRequest(ModelState);
 
-        // Check on login Result
-        var Result = await _authService.AddRoleAsync(model);
+    //    // Check on login Result
+    //    var Result = await _authService.AddRoleAsync(model);
 
-        if (!string.IsNullOrEmpty(Result))
-            return BadRequest(Result);
+    //    if (!string.IsNullOrEmpty(Result))
+    //        return BadRequest(Result);
 
-        return Ok(model);
-    }
+    //    return Ok(model);
+    //}
 }

@@ -1,6 +1,6 @@
 ﻿namespace EducationSystem.Application.Dtos.Auth;
 
-public class AuthModel
+public class AuthResponse
 {
     public string Message { get; set; } = string.Empty;
     public bool IsAuthenticated { get; set; }

@@ -22,6 +22,7 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// Seeding
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;

@@ -15,14 +15,14 @@ public class AuthService : IAuthService
     #region Fields
 
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly IOptions<Jwt> _jwt;
+    private readonly IOptions<JwtSetting> _jwt;
     private readonly RoleManager<Role> _roleManager;
 
     #endregion Fields
 
     #region Constructors
 
-    public AuthService(UserManager<ApplicationUser> userManager, IOptions<Jwt> jwt, RoleManager<Role> roleManager)
+    public AuthService(UserManager<ApplicationUser> userManager, IOptions<JwtSetting> jwt, RoleManager<Role> roleManager)
     {
         _userManager = userManager;
         _roleManager = roleManager;
@@ -33,16 +33,19 @@ public class AuthService : IAuthService
 
     #region Methods
 
-    public async Task<AuthModel> RegisterUserAsync(RegisterRequestDto request)
+    public async Task<AuthResponse?> RegisterUserAsync(
+                                                       RegisterRequestDto request,
+                                                       CancellationToken cancellationToken = default
+                                                       )
     {
-        // Check on Email
+        // Check on UserEmail
         var user = await _userManager.FindByEmailAsync(request.Email);
 
-        if (user is not null) return new AuthModel { Message = "Email is already Registered" };
+        if (user is not null) return new AuthResponse { Message = "Email is already Registered" };
 
-        // Check on Name
+        // Check on UserName
         var userName = await _userManager.FindByNameAsync(request.Username);
-        if (userName is not null) return new AuthModel { Message = "username is already exists" };
+        if (userName is not null) return new AuthResponse { Message = "username is already exists" };
 
         // create user
         var User = new ApplicationUser
@@ -67,7 +70,7 @@ public class AuthService : IAuthService
             {
                 errors += $"{Error.Description} , ";
             }
-            return new AuthModel { Message = errors };
+            return new AuthResponse { Message = errors };
         }
 
         // we can add user in any role like user [ b y defualt we add any new user to user Role ]
@@ -77,7 +80,7 @@ public class AuthService : IAuthService
         var jwtSecurityToken = await CreateJwtTokenAsync(User);
 
         // Return RegisterResonseDto
-        return new AuthModel()
+        return new AuthResponse()
         {
             Message = "User registered Successfuly ",
             IsAuthenticated = true,
@@ -89,13 +92,14 @@ public class AuthService : IAuthService
         };
     }
 
-    public async Task<AuthModel> LoginUserAsync(LoginRequestDto request)
+    public async Task<AuthResponse> LoginUserAsync(LoginRequestDto request, CancellationToken cancellationToken = default)
     {
-        var AuthModel = new AuthModel();
+        var AuthModel = new AuthResponse();
 
         // check email or username First
         var User = await _userManager.FindByEmailAsync(request.Email);
 
+        // check on  user & Password
         if (User is null || !await _userManager.CheckPasswordAsync(User, request.Password)) //CheckOn user then  password
         {
             AuthModel.Message = "Invalid Email or Password ";
@@ -107,7 +111,7 @@ public class AuthService : IAuthService
 
         var rolesList = await _userManager.GetRolesAsync(User);
 
-        var loginRespose = new AuthModel()
+        var loginRespose = new AuthResponse()
         {
             Message = "User login successfully",
             IsAuthenticated = true,
@@ -121,28 +125,28 @@ public class AuthService : IAuthService
         return loginRespose;
     }
 
-    public async Task<string> AddRoleAsync(AddRoleModel model)
-    {
-        // check on username in DB
-        var user = await _userManager.FindByIdAsync(model.UserId);
-        if (user is null)
-            return "Invalid UserId Or Role ";
+    //public async Task<string> AddRoleAsync(AddRoleModel model)
+    //{
+    //    // check on username in DB
+    //    var user = await _userManager.FindByIdAsync(model.UserId);
+    //    if (user is null)
+    //        return "Invalid UserId Or Role ";
 
-        // check on RoleName in DB
-        var Role = await _roleManager.RoleExistsAsync(model.RoleName);
-        if (!Role)
-            return "Invalid UserId Or Role ";
+    //    // check on RoleName in DB
+    //    var Role = await _roleManager.RoleExistsAsync(model.RoleName);
+    //    if (!Role)
+    //        return "Invalid UserId Or Role ";
 
-        // check is User Assigned to this Role Or Not
-        var isUserAssignedToRole = await _userManager.IsInRoleAsync(user, model.RoleName);
+    //    // check is User Assigned to this Role Or Not
+    //    var isUserAssignedToRole = await _userManager.IsInRoleAsync(user, model.RoleName);
 
-        if (isUserAssignedToRole) return "User Already Assigned to this Role ";
+    //    if (isUserAssignedToRole) return "User Already Assigned to this Role ";
 
-        // Add User to this Role
-        var result = await _userManager.AddToRoleAsync(user, model.RoleName);
+    //    // Add User to this Role
+    //    var result = await _userManager.AddToRoleAsync(user, model.RoleName);
 
-        return result.Succeeded ? string.Empty : "there is issue when you Adding User to this Role ";
-    }
+    //    return result.Succeeded ? string.Empty : "there is issue when you Adding User to this Role ";
+    //}
 
     #endregion Methods
 
@@ -168,26 +172,24 @@ public class AuthService : IAuthService
         // Create the main claims for the JWT
         var claims = new[]
         {
-        new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-        //new Claim("uid",(Guid) user.Id)
-    }
+            new Claim(JwtRegisteredClaimNames.Sub, user.UserName!),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
+            //new Claim("uid",(Guid) user.Id)
+        }
         .Union(userClaims)
         .Union(roleClaims);
 
-        // Create the secret key
+        // Create the secret key that responsible for encoding , decoding token 
         var symmetricSecurityKey =
             new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_jwt.Value.Key)
             );
 
-        // Create signing credentials
+        // Create Signing credentials
         var signingCredentials =
-            new SigningCredentials(
-                symmetricSecurityKey,
-                SecurityAlgorithms.HmacSha256
-            );
+            new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
+            
 
         // Create the JWT
         var jwtSecurityToken = new JwtSecurityToken(
@@ -198,7 +200,7 @@ public class AuthService : IAuthService
             signingCredentials: signingCredentials
         );
 
-        return jwtSecurityToken;
+         return jwtSecurityToken;
     }
 
     #endregion Helpers
