@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Consts;
-using EducationSystem.Application.Dtos.Auth;
+using EducationSystem.Application.Dtos.Request;
 using EducationSystem.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
@@ -21,6 +21,7 @@ public class LoginRequestDtoValidator : AbstractValidator<LoginRequestDto>
              .Matches(RegexPattern.Password)
              .WithMessage("Password must contain at least 6 characters, one uppercase letter, " +
                  "one lowercase letter, one digit, and one special character.");
-        this._userManager = userManager;
+
+        _userManager = userManager;
     }
 }

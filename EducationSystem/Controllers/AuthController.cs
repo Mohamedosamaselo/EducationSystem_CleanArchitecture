@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
-using EducationSystem.Application.Dtos.Auth;
+using EducationSystem.Application.Dtos.Request;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.WebApi.Controllers;

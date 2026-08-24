@@ -1,8 +1,13 @@
+using EducationSystem.Application;
 using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure;
 using EducationSystem.Infrastructure.Persistence;
 using EducationSystem.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Options;
+using Microsoft.OpenApi;
+using SurveyBasket.Swagger;
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,18 +16,41 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 
-builder.Services.AddInfrastructure(builder.Configuration); // Add Configurations For Infrastructure Layer
+builder.Services.AddApplicationServices(builder.Configuration);
+
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // Register Swagger
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Version = "v1",
+        Title = "EducationSystem API",
+        Description = "ASP.NET Core Web API for managing the Education System",
+        TermsOfService = new Uri("https://example.com/terms"),
+        //Contact = new OpenApiContact
+        //{
+        //    Name = "EducationSystem",
+        //    Url = new Uri("https://example.com/contact")
+        //},
+        //License = new OpenApiLicense
+        //{
+        //    Name = "Example License",
+        //    Url = new Uri("https://example.com/license")
+        //}
+    });
+});
+
+//builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
 #endregion Configure Services
 
 var app = builder.Build();
 
-// Seeding
+// Seeding configs
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -46,6 +74,15 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    //app.UseSwaggerUI(
+    //    options =>
+    //{
+    //    var descriptions = app.DescribeApiVersions();
+    //    foreach (var desc in descriptions)
+    //    {
+    //        options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json", desc.GroupName.ToUpperInvariant());
+    //    }
+    //});
 }
 
 app.UseHttpsRedirection();

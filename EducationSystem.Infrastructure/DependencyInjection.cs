@@ -1,7 +1,9 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Auth;
+using EducationSystem.Application.Services;
 using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure.Identity;
 using EducationSystem.Infrastructure.Persistence;
@@ -19,61 +21,142 @@ namespace EducationSystem.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection Services, IConfiguration Configuration)
+    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // connection Strings
-        Services.AddDbContext<ApplicationDbContext>(options =>
-           options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+        AddDatabase(services, configuration);
 
-        // Jwt configs
-        Services.Configure<JwtSetting>(Configuration.GetSection("Jwt"));
+        AddIdentity(services);
 
-        // Authentication , JWt
+        AddIdentityOptions(services);
 
-        Services.AddIdentity<ApplicationUser, Role>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+        AddJwtAuthentication(services, configuration);
 
-        // LockOut Configs
-        Services.Configure<IdentityOptions>(options =>
+        AddApplicationServices(services);
+
+        AddRepositories(services);
+
+        AddUnitOfWork(services);
+
+        return services;
+    }
+
+    // Database
+
+    private static void AddDatabase(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(
+                configuration.GetConnectionString("DefaultConnection")));
+    }
+
+    // Identity
+
+    private static void AddIdentity(IServiceCollection services)
+    {
+        services.AddIdentity<ApplicationUser, Role>()
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
+    }
+
+    // Identity Options
+    private static void AddIdentityOptions(IServiceCollection services)
+    {
+        services.Configure<IdentityOptions>(options =>
         {
-            // Default Lockout settings.
-            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            // Password
+            options.Password.RequiredLength = 8;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+
+            // User
+            options.User.RequireUniqueEmail = true;
+
+            // Sign In
+            options.SignIn.RequireConfirmedEmail = true;
+
+            // Lockout
+            options.Lockout.DefaultLockoutTimeSpan =
+                TimeSpan.FromMinutes(5);
+
             options.Lockout.MaxFailedAccessAttempts = 5;
+
             options.Lockout.AllowedForNewUsers = true;
         });
+    }
 
-        Services.AddAuthentication(options =>
+    // JWT Authentication
+    private static void AddJwtAuthentication(
+        IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.Configure<JwtSetting>(
+            configuration.GetSection("Jwt"));
+
+        services.AddAuthentication(options =>
         {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddJwtBearer(o =>
+            options.DefaultAuthenticateScheme =
+                JwtBearerDefaults.AuthenticationScheme;
+
+            options.DefaultChallengeScheme =
+                JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
         {
-            o.RequireHttpsMetadata = false;
-            o.SaveToken = false;
-            o.TokenValidationParameters = new TokenValidationParameters
-            {
-                ValidateIssuerSigningKey = true,
-                ValidateIssuer = true,
-                ValidateAudience = true,
-                ValidateLifetime = true,
-                ClockSkew = TimeSpan.Zero,
-                ValidIssuer = Configuration["JWT:Issuer"],
-                ValidAudience = Configuration["JWT:Audience"],
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JWT:Key"]))
-            };
+            options.RequireHttpsMetadata = false;
+            options.SaveToken = false;
+
+            options.TokenValidationParameters =
+                new TokenValidationParameters
+                {
+                    ValidateIssuerSigningKey = true,
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidateLifetime = true,
+
+                    ClockSkew = TimeSpan.Zero,
+
+                    ValidIssuer =
+                        configuration["JWT:Issuer"],
+
+                    ValidAudience =
+                        configuration["JWT:Audience"],
+
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(
+                                configuration["JWT:Key"]!))
+                };
         });
+    }
 
-        // Services
-        Services.AddScoped<IAuthService, AuthService>();
+    // Application / Infrastructure Services
 
-        // Generic Repository
+    private static void AddApplicationServices(
+        IServiceCollection services)
+    {
+        services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<ISchoolService, SchoolService>();
+    }
 
-        Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+    // Repositories
 
-        // UnitOfWork
-        Services.AddScoped<IUnitOfWork, UnitOfWork>();
+    private static void AddRepositories(
+        IServiceCollection services)
+    {
+        services.AddScoped(
+            typeof(IGenericRepository<>),
+            typeof(GenericRepository<>));
+    }
 
-        return Services;
+    // Unit Of Work
+
+    private static void AddUnitOfWork(
+        IServiceCollection services)
+    {
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }

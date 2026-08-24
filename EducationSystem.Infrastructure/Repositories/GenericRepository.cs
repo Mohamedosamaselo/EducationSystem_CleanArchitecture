@@ -2,6 +2,7 @@
 using EducationSystem.Domain.Interfaces.Common;
 using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace EducationSystem.Infrastructure.Repositories;
 
@@ -34,4 +35,26 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     public void UpdateRange(IEnumerable<TEntity> entities) => _dbset.UpdateRange(entities);
 
     public async Task<int> CountAsync() => await _dbset.CountAsync();
+
+    public async Task<IReadOnlyList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null)
+    {
+        IQueryable<TEntity> query = _dbset;
+
+        if (filter != null)
+        {
+            query = query.Where(filter);
+        }
+
+        return await query
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<TEntity?> GetByNameAsync(string name)
+    {
+        IQueryable<TEntity> query = _dbset;
+
+        return await query.AsNoTracking()
+                    .FirstOrDefaultAsync(x => EF.Property<string>(x, "Name").ToLower() == name.ToLower());
+    }
 }

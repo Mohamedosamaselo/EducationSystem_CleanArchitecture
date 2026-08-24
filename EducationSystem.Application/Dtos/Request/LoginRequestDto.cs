@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace EducationSystem.Application.Dtos.Auth;
+namespace EducationSystem.Application.Dtos.Request;
 
 public record LoginRequestDto
 (string Email,

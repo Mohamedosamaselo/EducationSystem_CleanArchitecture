@@ -1,4 +1,4 @@
-﻿namespace EducationSystem.Application.Dtos.Auth;
+﻿namespace EducationSystem.Application.Dtos.Request;
 
 public record RegisterRequestDto(
     string Name,

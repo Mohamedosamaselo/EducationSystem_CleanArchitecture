@@ -1,5 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Dtos.Auth;
+using EducationSystem.Application.Dtos.Request;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -33,10 +34,7 @@ public class AuthService : IAuthService
 
     #region Methods
 
-    public async Task<AuthResponse?> RegisterUserAsync(
-                                                       RegisterRequestDto request,
-                                                       CancellationToken cancellationToken = default
-                                                       )
+    public async Task<AuthResponse?> RegisterUserAsync(RegisterRequestDto request, CancellationToken cancellationToken = default)
     {
         // Check on UserEmail
         var user = await _userManager.FindByEmailAsync(request.Email);
@@ -180,7 +178,7 @@ public class AuthService : IAuthService
         .Union(userClaims)
         .Union(roleClaims);
 
-        // Create the secret key that responsible for encoding , decoding token 
+        // Create the secret key that responsible for encoding , decoding token
         var symmetricSecurityKey =
             new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(_jwt.Value.Key)
@@ -189,7 +187,6 @@ public class AuthService : IAuthService
         // Create Signing credentials
         var signingCredentials =
             new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
-            
 
         // Create the JWT
         var jwtSecurityToken = new JwtSecurityToken(
@@ -200,7 +197,7 @@ public class AuthService : IAuthService
             signingCredentials: signingCredentials
         );
 
-         return jwtSecurityToken;
+        return jwtSecurityToken;
     }
 
     #endregion Helpers
