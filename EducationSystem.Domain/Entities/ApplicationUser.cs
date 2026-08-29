@@ -5,7 +5,7 @@ namespace EducationSystem.Domain.Entities;
 
 public class ApplicationUser : IdentityUser<Guid>, IBaseAuditableEntity
 {
-    public string Name { get; set; } 
+    public string Name { get; set; }
     public string Address { get; set; }
     public DateTime DateOfBirth { get; set; }
 

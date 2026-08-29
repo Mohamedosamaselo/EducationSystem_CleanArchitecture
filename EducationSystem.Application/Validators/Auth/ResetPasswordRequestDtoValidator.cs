@@ -3,8 +3,7 @@ using FluentValidation;
 
 namespace EducationSystem.Application.Validators;
 
-public class ResetPasswordRequestDtoValidator
-    : AbstractValidator<ResetPasswordRequestDto>
+public class ResetPasswordRequestDtoValidator : AbstractValidator<ResetPasswordRequestDto>
 {
     public ResetPasswordRequestDtoValidator()
     {

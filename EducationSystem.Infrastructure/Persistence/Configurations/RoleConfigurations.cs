@@ -16,6 +16,6 @@ public class RoleConfigurations : BaseAuditableEntityConfiguration<Role>
 
         builder.Property(u => u.Description)
            .IsRequired()
-           .HasMaxLength(100);
+           .HasMaxLength(500);
     }
 }

@@ -1,6 +1,4 @@
-﻿using EducationSystem.Domain.Interfaces;
-
-namespace EducationSystem.Domain.Entities;
+﻿namespace EducationSystem.Domain.Entities;
 
 public class Organisation : BaseAuditableEntity
 {

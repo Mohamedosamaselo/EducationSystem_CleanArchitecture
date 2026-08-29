@@ -1,11 +1,12 @@
-﻿using EducationSystem.Domain.Interfaces;
-
-namespace EducationSystem.Domain.Entities;
+﻿namespace EducationSystem.Domain.Entities;
 
 public class School : BaseAuditableEntity
 {
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public bool IsActive { get; set; }
+    public string LogoUrl { get; set; } = string.Empty;
 
     // Foreign key
     public Guid OrganisationId { get; set; }

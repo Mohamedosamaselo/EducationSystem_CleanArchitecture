@@ -1,8 +1,8 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Dtos.Request;
 using EducationSystem.Application.Dtos.Response;
-using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics.CodeAnalysis;
 
 namespace EducationSystem.WebApi.Controllers;
 
@@ -16,7 +16,8 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     public async Task<ActionResult<IReadOnlyList<SchoolResponse>>> GetAllAsync()
     {
         var schools = await _schoolService.GetAllAsync();
-        return Ok(schools);
+
+        return schools is not null ? Ok(schools) : NotFound("Sorry this school not Found ");
     }
 
     [HttpGet("organisation/{organisationId:guid}")]
@@ -27,7 +28,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<ActionResult> GetByName([FromQuery] string schoolName)
+    public async Task<IActionResult> GetByName([FromQuery] string schoolName)
     {
         var school = await _schoolService.GetByNameAsync(schoolName);
         if (school != null)
@@ -37,7 +38,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult?> GetByIdAsync([FromQuery] Guid id)
+    public async Task<IActionResult?> GetByIdAsync([FromQuery] Guid id)
     {
         var school = await _schoolService.GetByIdAsync(id);
 
@@ -48,7 +49,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Application.Dtos.Response.SchoolResponse>> AddAsync([FromBody] CreateSchoolRequest request)
+    public async Task<IActionResult<Application.Dtos.Response.SchoolResponse>> AddAsync([FromBody] CreateSchoolRequest request)
     {
         var school = await _schoolService.AddAsync(request);
 
@@ -56,7 +57,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Application.Dtos.Response.SchoolResponse>> UpdateAsync(Guid id, [FromBody] UpdateSchoolRequest request)
+    public async Task<IActionResult<Application.Dtos.Response.SchoolResponse>> UpdateAsync(Guid id, [FromBody] UpdateSchoolRequest request)
     {
         var school = await _schoolService.UpdateAsync(id, request);
 
@@ -64,7 +65,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpDelete("Delete/{id:guid}")]
-    public async Task<ActionResult> DeleteAsync(Guid id)
+    public async Task<IActionResult> DeleteAsync(Guid id)
     {
         await _schoolService.DeleteAsync(id);
 

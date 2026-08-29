@@ -1,8 +1,6 @@
 ﻿using EducationSystem.Domain.Entities;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
 
 namespace EducationSystem.Infrastructure.Persistence.Seed;
 
@@ -13,6 +11,7 @@ public static class DataSeeder
         RoleManager<Role> roleManager)
     {
         await SeedOrganizationAsync(context);
+
         await SeedSchoolAsync(context);
 
         await SeedGradeAsync(context);
@@ -153,32 +152,35 @@ public static class DataSeeder
     private static async Task SeedRolesAsync(RoleManager<Role> roleManager)
     {
         var roles = new Role[]
-        {
-             new Role
-             {
-                 Name = "User",
-                 Description = "Default user role." ,
-                 CreatedAt =  DateTime.UtcNow,
-             },
-            new Role
-             {
-                 Name = "Admin",
-                 Description = "Has full access to the system."  ,
-                  CreatedAt = DateTime.UtcNow,
-             } ,
-             new Role
-            {
-                Name = "Teacher",
-                Description = "Can manage students, grades, and subjects.",
-                 CreatedAt = DateTime.UtcNow,
-            },
-            new Role
-            {
-                Name = "Student",
-                Description = "Can view their grades, subjects, and school information." ,
-                  CreatedAt = DateTime.UtcNow,
-            }
-        };
+{
+    new Role
+    {
+        Name = "OrganisationAdmin",
+        Description = "Has full Access on  organisation. Can manage schools, grades, subjects, users, teachers, and students in the school .",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Role
+    {
+        Name = "SchoolAdmin",
+        Description = "Manages a specific school, including its grades, subjects, teachers, students, and users. Access is limited to their assigned school.",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Role
+    {
+        Name = "Teacher",
+        Description = "Manages assigned classes and subjects, views assigned students, records attendance, manages student marks, and accesses relevant academic information.",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Role
+    {
+        Name = "Student",
+        Description = "Can view their profile, school, grade, subjects, teachers, attendance, and academic results.",
+        CreatedAt = DateTime.UtcNow,
+    }
+};
 
         foreach (var roledata in roles)
         {

@@ -4,10 +4,7 @@ using EducationSystem.Infrastructure;
 using EducationSystem.Infrastructure.Persistence;
 using EducationSystem.Infrastructure.Persistence.Seed;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using Microsoft.OpenApi;
-using SurveyBasket.Swagger;
-using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,15 +71,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    //app.UseSwaggerUI(
-    //    options =>
-    //{
-    //    var descriptions = app.DescribeApiVersions();
-    //    foreach (var desc in descriptions)
-    //    {
-    //        options.SwaggerEndpoint($"/swagger/{desc.GroupName}/swagger.json", desc.GroupName.ToUpperInvariant());
-    //    }
-    //});
 }
 
 app.UseHttpsRedirection();
