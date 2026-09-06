@@ -9,11 +9,13 @@ public class SubjectConfigurations : BaseAuditableEntityConfiguration<Subject>
 {
     public override void Configure(EntityTypeBuilder<Subject> builder)
     {
-        base.Configure(builder);
-
         builder.Property(e => e.Name)
                .IsRequired()
                .HasMaxLength(100);
+
+        builder.Property(e => e.Description)
+               .HasMaxLength(500)
+               .IsRequired(false);
 
         // Configure the relationship between School and Subject entities [1:M]
         builder.HasOne(s => s.School)

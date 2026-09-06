@@ -17,7 +17,7 @@ public static class DataSeeder
 
         await SeedGradeAsync(context);
 
-        //await SeedSubjectsAsync(context);
+        await SeedSubjectsAsync(context);
 
         //await SeedRolesAsync(roleManager);
 
@@ -212,33 +212,91 @@ public static class DataSeeder
             return;
 
         var school = await context.Schools.FirstOrDefaultAsync();
+        if (school == null)
+            throw new InvalidOperationException
+                ("School not found. Please seed the school first.");
 
         var subjects = new List<Subject>
     {
-        new Subject
-        {
-            Name = "Mathematics",
-            SchoolId = school.Id ,
-             CreatedAt = DateTime.UtcNow,
-        },
-        new Subject
-        {
-            Name = "English",
-            SchoolId = school.Id ,
-             CreatedAt = DateTime.UtcNow,
-        },
-        new Subject
-        {
-            Name = "Science",
-            SchoolId = school.Id ,
-             CreatedAt = DateTime.UtcNow,
-        },
-        new Subject
-        {
-            Name = "Arabic",
-            SchoolId = school.Id ,
-             CreatedAt = DateTime.UtcNow,
-        }
+          new Subject
+    {
+        Name = "Mathematics",
+        SchoolId = school.Id,
+        Description = "Mathematics subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "English",
+        SchoolId = school.Id,
+        Description = "English language and literature subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Arabic",
+        SchoolId = school.Id,
+        Description = "Arabic language and literature subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Science",
+        SchoolId = school.Id,
+        Description = "General science subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Physics",
+        SchoolId = school.Id,
+        Description = "Physics and physical science subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Chemistry",
+        SchoolId = school.Id,
+        Description = "Chemistry and laboratory science subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Biology",
+        SchoolId = school.Id,
+        Description = "Biology and life science subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "History",
+        SchoolId = school.Id,
+        Description = "History and historical studies subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Geography",
+        SchoolId = school.Id,
+        Description = "Geography and earth studies subject",
+        CreatedAt = DateTime.UtcNow,
+    },
+
+    new Subject
+    {
+        Name = "Computer Science",
+        SchoolId = school.Id,
+        Description = "Computer science and programming subject",
+        CreatedAt = DateTime.UtcNow,
+    }
     };
 
         await context.Subjects.AddRangeAsync(subjects);
