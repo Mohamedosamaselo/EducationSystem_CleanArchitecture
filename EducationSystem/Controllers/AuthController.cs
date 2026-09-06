@@ -10,39 +10,39 @@ public class AuthController(IAuthService authService) : ControllerBase
 {
     private readonly IAuthService _authService = authService;
 
-    [HttpPost("Register")]
-    public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto registerdata)
-    {
-        // ckeck on modelState
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+    //[HttpPost("Register")]
+    //public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto registerdata)
+    //{
+    //    // ckeck on modelState
+    //    if (!ModelState.IsValid)
+    //        return BadRequest(ModelState);
 
-        // Check on Register Result
-        var Result = await _authService.RegisterUserAsync(registerdata);
+    //    // Check on Register Result
+    //    var Result = await _authService.RegisterUserAsync(registerdata);
 
-        if (!Result.IsAuthenticated) // if user Not Authenticated [not have email , username , ]
-            return BadRequest(Result.Message);
+    //    if (!Result.IsAuthenticated) // if user Not Authenticated [not have email , username , ]
+    //        return BadRequest(Result.Message);
 
-        return Ok(Result);
-        //return Ok(new { token = Result.UserToken, expireIn = Result.ExpiresAt });
-    }
+    //    return Ok(Result);
+    //    //return Ok(new { token = Result.UserToken, expireIn = Result.ExpiresAt });
+    //}
 
-    [HttpPost("Login")]
-    public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto logindata)
-    {
-        // ckeck on modelState
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+    //[HttpPost("Login")]
+    //public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto logindata)
+    //{
+    //    // ckeck on modelState
+    //    if (!ModelState.IsValid)
+    //        return BadRequest(ModelState);
 
-        // Check on login Result
-        var Result = await _authService.LoginUserAsync(logindata);
+    //    // Check on login Result
+    //    var Result = await _authService.LoginUserAsync(logindata);
 
-        if (!Result.IsAuthenticated) // if user Not Authenticated [not have email , username , ]
-            return BadRequest(Result.Message);
+    //    if (!Result.IsAuthenticated) // if user Not Authenticated [not have email , username , ]
+    //        return BadRequest(Result.Message);
 
-        return Ok(Result);
-        //return Ok(new { token = Result.UserToken, expireIn = Result.ExpiresAt });
-    }
+    //    return Ok(Result);
+    //    //return Ok(new { token = Result.UserToken, expireIn = Result.ExpiresAt });
+    //}
 
     //[Authorize] // to add Role you must be Authorized User
     //[HttpPost("AddRole")]

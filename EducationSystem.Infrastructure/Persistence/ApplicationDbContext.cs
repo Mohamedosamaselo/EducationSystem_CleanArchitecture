@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EducationSystem.Infrastructure.Persistence;
 
-public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Role, Guid>
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -24,8 +24,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Role, Gui
     public DbSet<School> Schools { get; set; }
     public DbSet<Subject> Subjects { get; set; }
     public DbSet<Grade> Grades { get; set; }
-
-    public DbSet<ApplicationUser> Users { get; set; }
-    public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
 }

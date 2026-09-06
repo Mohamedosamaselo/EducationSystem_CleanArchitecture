@@ -11,9 +11,19 @@ public class OrganisationConfigurations : BaseAuditableEntityConfiguration<Organ
     {
         base.Configure(builder);
 
+        builder.HasKey(e => e.Id);
+
         builder.Property(o => o.Name)
               .IsRequired()
+              .HasMaxLength(150);
+
+        builder.Property(o => o.Email)
+              .IsRequired()
               .HasMaxLength(100);
+
+        builder.Property(o => o.Phone)
+              .IsRequired()
+              .HasMaxLength(30);
 
         builder.HasMany(o => o.Schools)
                .WithOne(s => s.Organisation)

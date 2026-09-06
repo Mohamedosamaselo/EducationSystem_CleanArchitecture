@@ -2,7 +2,6 @@
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Request;
 using EducationSystem.Application.Dtos.Response;
-using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace EducationSystem.Application.Services;
 
@@ -45,6 +44,9 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         {
             Name = s.Name,
             Address = s.Address,
+            Email = s.Email,
+            PhoneNumber = s.PhoneNumber,
+            Status = s.Status,
             OrganisationId = s.OrganisationId
         }).ToList();
     }
@@ -57,6 +59,9 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         {
             Name = s.Name,
             Address = s.Address,
+            Email = s.Email,
+            PhoneNumber = s.PhoneNumber,
+            Status = s.Status,
             OrganisationId = s.OrganisationId
         }).ToList();
     }
@@ -67,7 +72,10 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         {
             Name = createDto.Name,
             Address = createDto.Address,
-            OrganisationId = createDto.OrganisationId,
+            Email = createDto.Email,
+            PhoneNumber = createDto.PhoneNumber,
+            Status = createDto.Status,
+            OrganisationId = createDto.OrganisationId
         };
 
         await _unitOfWork.SchoolRepo.AddAsync(school);
@@ -78,6 +86,9 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         {
             Name = school.Name,
             Address = school.Address,
+            Email = school.Email,
+            PhoneNumber = school.PhoneNumber,
+            Status = school.Status,
             OrganisationId = school.OrganisationId
         };
     }
@@ -93,16 +104,22 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
         UpdatedSchool.Name = updateDto.Name;
         UpdatedSchool.Address = updateDto.Address;
+        UpdatedSchool.Email = updateDto.Email;
+        UpdatedSchool.PhoneNumber = updateDto.PhoneNumber;
+        UpdatedSchool.Status = updateDto.Status;
         UpdatedSchool.OrganisationId = updateDto.OrganisationId;
 
         _unitOfWork.SchoolRepo.Update(UpdatedSchool);
 
         await _unitOfWork.CompleteAsync();
 
-        return new Dtos.Response.SchoolResponse
+        return new SchoolResponse
         {
             Name = UpdatedSchool.Name,
             Address = UpdatedSchool.Address,
+            Email = UpdatedSchool.Email,
+            PhoneNumber = UpdatedSchool.PhoneNumber,
+            Status = UpdatedSchool.Status,
             OrganisationId = UpdatedSchool.OrganisationId
         };
     }

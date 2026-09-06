@@ -15,7 +15,7 @@ public class UnitOfWork : IUnitOfWork
     public IGenericRepository<Grade> GradeRepo { get; }
     public IGenericRepository<Subject> SubjectRepo { get; }
     public IGenericRepository<ApplicationUser> UserRepo { get; }
-    public IGenericRepository<Role> RoleRepo { get; }
+    public IGenericRepository<ApplicationRole> RoleRepo { get; }
     public IGenericRepository<Permission> PermissionRepo { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext)
@@ -27,7 +27,7 @@ public class UnitOfWork : IUnitOfWork
         GradeRepo = new GenericRepository<Grade>(_context);
         SubjectRepo = new GenericRepository<Subject>(_context);
         UserRepo = new GenericRepository<ApplicationUser>(_context);
-        RoleRepo = new GenericRepository<Role>(_context);
+        RoleRepo = new GenericRepository<ApplicationRole>(_context);
         PermissionRepo = new GenericRepository<Permission>(_context);
     }
 

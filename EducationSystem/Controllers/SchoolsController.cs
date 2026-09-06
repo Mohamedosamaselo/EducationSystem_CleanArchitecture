@@ -2,6 +2,7 @@
 using EducationSystem.Application.Dtos.Request;
 using EducationSystem.Application.Dtos.Response;
 using Microsoft.AspNetCore.Mvc;
+
 using System.Diagnostics.CodeAnalysis;
 
 namespace EducationSystem.WebApi.Controllers;
@@ -49,7 +50,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult<Application.Dtos.Response.SchoolResponse>> AddAsync([FromBody] CreateSchoolRequest request)
+    public async Task<ActionResult<SchoolResponse>> AddAsync([FromBody] CreateSchoolRequest request)
     {
         var school = await _schoolService.AddAsync(request);
 
@@ -57,7 +58,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult<Application.Dtos.Response.SchoolResponse>> UpdateAsync(Guid id, [FromBody] UpdateSchoolRequest request)
+    public async Task<ActionResult<Application.Dtos.Response.SchoolResponse>> UpdateAsync(Guid id, [FromBody] UpdateSchoolRequest request)
     {
         var school = await _schoolService.UpdateAsync(id, request);
 

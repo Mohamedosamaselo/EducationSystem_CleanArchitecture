@@ -52,14 +52,11 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
 
-    var context =
-        services.GetRequiredService<ApplicationDbContext>();
+    var context = services.GetRequiredService<ApplicationDbContext>();
 
-    var roleManager =
-        services.GetRequiredService<RoleManager<Role>>();
+    var roleManager = services.GetRequiredService<RoleManager<ApplicationRole>>();
 
-    var userManager =
-        services.GetRequiredService<UserManager<ApplicationUser>>();
+    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
     await DataSeeder.SeedAsync(context, userManager, roleManager);
 }

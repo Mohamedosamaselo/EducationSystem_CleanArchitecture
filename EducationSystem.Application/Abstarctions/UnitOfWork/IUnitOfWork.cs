@@ -12,7 +12,7 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<Grade> GradeRepo { get; }
     IGenericRepository<Subject> SubjectRepo { get; }
     IGenericRepository<ApplicationUser> UserRepo { get; }
-    IGenericRepository<Role> RoleRepo { get; }
+    IGenericRepository<ApplicationRole> RoleRepo { get; }
     IGenericRepository<Permission> PermissionRepo { get; }
 
     #endregion Fields

@@ -19,6 +19,8 @@
     <Folder Include="Exceptions\" />
     <Folder Include="Common\" />
     <Folder Include="Specifications\" />
+    <Folder Include="Validators\School\" />
+    <Folder Include="Validators\Organisation\" />
   </ItemGroup>
 
   <ItemGroup>

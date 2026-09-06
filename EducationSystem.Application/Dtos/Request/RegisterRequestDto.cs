@@ -1,11 +1,12 @@
 ﻿namespace EducationSystem.Application.Dtos.Request;
 
 public record RegisterRequestDto(
-    string Name,
+    string FirstName,
+    string LastName,
     string Username,
     string Address,
     string Email,
     string Password,
-    Guid SchoolId,
-    Guid GradeId
+    Guid? SchoolId,
+    Guid? GradeId
 );

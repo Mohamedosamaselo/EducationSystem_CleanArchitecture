@@ -1,4 +1,5 @@
 ﻿using EducationSystem.Domain.Entities;
+using EducationSystem.Domain.Enums;
 using EducationSystem.Infrastructure.Persistence.Configurations.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,13 +16,13 @@ internal class PermissionConfigurations : BaseAuditableEntityConfiguration<Permi
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(u => u.Status)
+            .IsRequired()
+            .HasConversion<string>()  // Convert enum to string
+            .HasDefaultValue(PermissionStatus.Active);  // UserStatus.Active
+
         builder.Property(p => p.Description)
            .IsRequired()
            .HasMaxLength(100);
-
-        builder.HasOne(p => p.Role)
-            .WithMany(p => p.Permissions)
-            .HasForeignKey(p => p.RoleId)
-            .OnDelete(DeleteBehavior.Restrict);
     }
 }

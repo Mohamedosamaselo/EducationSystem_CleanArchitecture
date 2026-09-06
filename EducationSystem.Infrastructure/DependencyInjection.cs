@@ -42,9 +42,7 @@ public static class DependencyInjection
 
     // Database
 
-    private static void AddDatabase(
-        IServiceCollection services,
-        IConfiguration configuration)
+    private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(
@@ -55,7 +53,7 @@ public static class DependencyInjection
 
     private static void AddIdentity(IServiceCollection services)
     {
-        services.AddIdentity<ApplicationUser, Role>()
+        services.AddIdentity<ApplicationUser, ApplicationRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
     }
@@ -148,7 +146,7 @@ public static class DependencyInjection
         IServiceCollection services)
     {
         services.AddScoped(
-            typeof(IGenericRepository<>),
+     typeof(IGenericRepository<>),
             typeof(GenericRepository<>));
     }
 

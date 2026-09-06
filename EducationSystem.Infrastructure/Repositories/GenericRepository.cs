@@ -6,7 +6,8 @@ using System.Linq.Expressions;
 
 namespace EducationSystem.Infrastructure.Repositories;
 
-public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class, IBaseAuditableEntity
+public class GenericRepository<TEntity> : IGenericRepository<TEntity>
+    where TEntity : class, IBaseAuditableEntity
 {
     private readonly ApplicationDbContext _context;
     private readonly DbSet<TEntity> _dbset;
@@ -27,6 +28,8 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     public async Task AddRangeAsync(IEnumerable<TEntity> entities) => await _dbset.AddRangeAsync(entities);
 
     public void Delete(TEntity entity) => _dbset.Remove(entity);
+
+    //public void Delete(TEntity entity) => _dbset.Where(x => x.Id == id).ExecuteDelete();
 
     public void DeleteRange(IEnumerable<TEntity> entities) => _dbset.RemoveRange(entities);
 

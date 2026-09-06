@@ -15,9 +15,6 @@ public class SubjectConfigurations : BaseAuditableEntityConfiguration<Subject>
                .IsRequired()
                .HasMaxLength(100);
 
-        //builder.Property(e => e.Code)
-        //    .IsRequired();
-
         // Configure the relationship between School and Subject entities [1:M]
         builder.HasOne(s => s.School)
                .WithMany(s => s.Subjects)

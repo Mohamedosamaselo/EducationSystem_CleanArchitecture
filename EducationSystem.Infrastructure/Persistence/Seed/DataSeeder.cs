@@ -1,4 +1,5 @@
 ﻿using EducationSystem.Domain.Entities;
+using EducationSystem.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,7 +9,7 @@ public static class DataSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext context,
         UserManager<ApplicationUser> userManager,
-        RoleManager<Role> roleManager)
+        RoleManager<ApplicationRole> roleManager)
     {
         await SeedOrganizationAsync(context);
 
@@ -16,13 +17,13 @@ public static class DataSeeder
 
         await SeedGradeAsync(context);
 
-        await SeedSubjectsAsync(context);
+        //await SeedSubjectsAsync(context);
 
-        await SeedRolesAsync(roleManager);
+        //await SeedRolesAsync(roleManager);
 
-        await SeedPermissionsAsync(context);
+        //await SeedPermissionsAsync(context);
 
-        await SeedUsersAsync(userManager, context);
+        //await SeedUsersAsync(userManager, context);
     }
 
     private static async Task SeedOrganizationAsync(ApplicationDbContext context)
@@ -36,6 +37,8 @@ public static class DataSeeder
             {
                 Id = Guid.NewGuid(),
                 Name = "Ministery of Education " ,
+                Email="MinisteryOfEducation@gmail.com",
+                Phone="1552",
                 CreatedAt = DateTime.UtcNow,
             }
         };
@@ -47,26 +50,94 @@ public static class DataSeeder
 
     private static async Task SeedSchoolAsync(ApplicationDbContext context)
     {
+        // Check if there are any schools in the database
         if (await context.Schools.AnyAsync())
             return;
 
-        var organization = await context.Organisations.FirstOrDefaultAsync();
+        var organisation = await context.Organisations.FirstOrDefaultAsync();
+        if (organisation == null)
+            throw new InvalidOperationException("Organisation not found. Please seed the organisation first.");
 
         var schools = new List<School>
     {
-        new School
+     new School
         {
             Name = "Cairo International School",
-            Address = "Cairo",
-            OrganisationId = organization.Id ,
-             CreatedAt = DateTime.UtcNow,
+            Address = "123 Nile St, Cairo, 11111, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
         },
+
         new School
         {
             Name = "Giza Modern School",
-            Address = "Giza",
-            OrganisationId = organization.Id ,
-             CreatedAt = DateTime.UtcNow,
+            Address = "456 Pyramid Ave, Giza, 12222, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "Alexandria Future School",
+            Address = "15 Corniche Road, Alexandria, 21500, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "New Cairo International Academy",
+            Address = "25 Teseen Street, New Cairo, 11835, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "October Modern Academy",
+            Address = "10 Central Avenue, 6th of October, 12566, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "Mansoura Excellence School",
+            Address = "78 El Gomhoria Street, Mansoura, 35511, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "Aswan Nile Valley School",
+            Address = "32 Corniche El Nile, Aswan, 81511, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "Luxor International Academy",
+            Address = "21 Karnak Road, Luxor, 85951, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "Port Said Advanced School",
+            Address = "55 El Nasr Street, Port Said, 42511, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new School
+        {
+            Name = "Tanta Modern Education School",
+            Address = "40 Saad Zaghloul Street, Tanta, 31511, Egypt",
+            OrganisationId = organisation.Id,
+            CreatedAt = DateTime.UtcNow
         }
     };
 
@@ -82,26 +153,52 @@ public static class DataSeeder
 
         var school = await context.Schools.FirstOrDefaultAsync();
 
+        if (school == null)
+            throw new InvalidOperationException
+                ("School not found. Please seed the school first.");
+
         var grades = new List<Grade>
        {
         new Grade
         {
             Name = "Grade 1",
             SchoolId =school.Id ,
-             CreatedAt = DateTime.UtcNow,
+            Description = "First grade of primary school",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
         },
         new Grade
         {
             Name = "Grade 2",
             SchoolId = school.Id,
-             CreatedAt = DateTime.UtcNow,
+             Description = "Second grade of primary school",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow,
         },
         new Grade
         {
             Name = "Grade 3",
             SchoolId = school.Id,
+             Description = "third grade of primary school",
+            IsActive = true,
              CreatedAt = DateTime.UtcNow,
-        }
+        },
+        new Grade
+        {
+            Name = "Grade 4",
+            SchoolId = school.Id,
+             Description = "fourth grade of primary school",
+            IsActive = true,
+             CreatedAt = DateTime.UtcNow,
+        },
+        new Grade
+        {
+            Name = "Grade 5",
+            SchoolId = school.Id,
+             Description = "fifth grade of primary school",
+            IsActive = true,
+             CreatedAt = DateTime.UtcNow,
+        },
     };
 
         await context.Grades.AddRangeAsync(grades);
@@ -149,37 +246,44 @@ public static class DataSeeder
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedRolesAsync(RoleManager<Role> roleManager)
+    private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
     {
-        var roles = new Role[]
-{
-    new Role
-    {
-        Name = "OrganisationAdmin",
-        Description = "Has full Access on  organisation. Can manage schools, grades, subjects, users, teachers, and students in the school .",
-        CreatedAt = DateTime.UtcNow,
-    },
+        var roles = new[]
+     {
+     new ApplicationRole
+        {
+            Name = "OrganizationAdmin",
+            Description = "Manages the organization and all schools.",
+            Status = RoleStatus.Active
+        },
 
-    new Role
-    {
-        Name = "SchoolAdmin",
-        Description = "Manages a specific school, including its grades, subjects, teachers, students, and users. Access is limited to their assigned school.",
-        CreatedAt = DateTime.UtcNow,
-    },
+        new ApplicationRole
+        {
+            Name = "SchoolAdmin",
+            Description = "Manages a school, teachers and students.",
+            Status = RoleStatus.Active
+        },
 
-    new Role
-    {
-        Name = "Teacher",
-        Description = "Manages assigned classes and subjects, views assigned students, records attendance, manages student marks, and accesses relevant academic information.",
-        CreatedAt = DateTime.UtcNow,
-    },
+        new ApplicationRole
+        {
+            Name = "Teacher",
+            Description = "Manages classes",
+            Status = RoleStatus.Active
+        },
 
-    new Role
-    {
-        Name = "Student",
-        Description = "Can view their profile, school, grade, subjects, teachers, attendance, and academic results.",
-        CreatedAt = DateTime.UtcNow,
-    }
+        new ApplicationRole
+        {
+            Name = "Parent",
+            Description = "Can view children information",
+            Status = RoleStatus.Active
+        },
+
+        new ApplicationRole
+        {
+            Name = "Student",
+            Description = "Can view profile, subjects, attendance and results.",
+            Status = RoleStatus.Active
+        }
 };
 
         foreach (var roledata in roles)
@@ -187,7 +291,7 @@ public static class DataSeeder
             if (!await roleManager.RoleExistsAsync(roledata.Name!))
             {
                 // Create Role
-                var role = new Role
+                var role = new ApplicationRole
                 {
                     Id = Guid.NewGuid(),
                     Name = roledata.Name,
@@ -222,28 +326,24 @@ public static class DataSeeder
         {
             Name = "School.Read",
             Description = "View schools",
-            RoleId = role!.Id ,
              CreatedAt = DateTime.UtcNow,
         },
         new Permission
         {
             Name = "School.Create",
             Description = "Create schools",
-            RoleId = role.Id ,
              CreatedAt = DateTime.UtcNow,
         },
         new Permission
         {
             Name = "School.Update",
             Description = "Update schools",
-            RoleId = role.Id,
              CreatedAt = DateTime.UtcNow,
         },
         new Permission
         {
             Name = "School.Delete",
             Description = "Delete schools",
-            RoleId = role.Id ,
              CreatedAt = DateTime.UtcNow,
         },
 
@@ -251,7 +351,6 @@ public static class DataSeeder
         {
             Name = "Student.Read",
             Description = "View students" ,
-             RoleId = role.Id ,
              CreatedAt = DateTime.UtcNow,
         },
 
@@ -259,7 +358,6 @@ public static class DataSeeder
         {
             Name = "Student.Create",
             Description = "Create students" ,
-             RoleId = role.Id ,
              CreatedAt = DateTime.UtcNow,
         }
     };
@@ -272,8 +370,7 @@ public static class DataSeeder
     private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager,
                                              ApplicationDbContext context)
     {
-        var existingUser = await userManager
-            .FindByEmailAsync("admin@education.com");
+        var existingUser = await userManager.FindByEmailAsync("admin@education.com");
 
         if (existingUser != null)
             return;
@@ -286,8 +383,9 @@ public static class DataSeeder
         {
             Id = Guid.NewGuid(),
 
-            Name = "System Administrator",
-            Address = "Cairo",
+            FirstName = "System ",
+            LastName = "Administrator",
+            Address = "1 Admin St, Cairo, 11111, Egypt",
             DateOfBirth = new DateTime(1990, 1, 1),
 
             CreatedAt = DateTime.UtcNow,
@@ -314,6 +412,6 @@ public static class DataSeeder
 
         await userManager.AddToRoleAsync(
             admin,
-            "Admin");
+            "OrganisationAdmin");
     }
 }

@@ -15,6 +15,14 @@ public class GradeConfigurations : BaseAuditableEntityConfiguration<Grade>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(x => x.Description)
+            .HasMaxLength(250)
+            .IsRequired(false);
+
+        builder.Property(x => x.IsActive)
+            .IsRequired()
+            .HasDefaultValue(true);
+
         // Configure the relationship between school & grade [1:M]
         builder.HasOne(x => x.School)
             .WithMany(x => x.Grades)
@@ -24,5 +32,11 @@ public class GradeConfigurations : BaseAuditableEntityConfiguration<Grade>
         // relationship between grade & subject[M:M]
         builder.HasMany(x => x.Subjects)
             .WithMany(x => x.Grades);
+
+        // relationship between grade & user[M:M]
+        builder.HasMany(x => x.Users)
+            .WithOne(x => x.Grade)
+            .HasForeignKey(x => x.GradeId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

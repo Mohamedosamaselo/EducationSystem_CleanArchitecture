@@ -1,20 +1,16 @@
-﻿using EducationSystem.Domain.Interfaces;
+using EducationSystem.Domain.Interfaces;
 
 namespace EducationSystem.Domain.Entities;
 
 public class Subject : BaseAuditableEntity
 {
-    public string Name { get; set; }
-
-    public DateTime CreatedAt { get; set; }
-    public Guid? CreatedBy { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public Guid? LastModifiedBy { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 
     // Foreign key
     public Guid SchoolId { get; set; }
 
-    // navigational property
+    // Navigational property
     public School School { get; set; } = null!;
 
     public ICollection<Grade> Grades { get; set; } = new List<Grade>();
