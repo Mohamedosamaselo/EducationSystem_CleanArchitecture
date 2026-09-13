@@ -1,5 +1,8 @@
-﻿namespace EducationSystem.Domain.Enums;
+﻿using System.Text.Json.Serialization;
 
+namespace EducationSystem.Domain.Enums;
+
+//[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum SchoolStatus
 {
     Active = 1,

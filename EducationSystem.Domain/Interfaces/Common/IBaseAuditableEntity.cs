@@ -1,6 +1,6 @@
 ﻿namespace EducationSystem.Domain.Interfaces.Common;
 
-public interface IBaseAuditableEntity : IBaseEntity
+public interface IBaseAuditableEntity
 
 {
     DateTime CreatedAt { get; set; }

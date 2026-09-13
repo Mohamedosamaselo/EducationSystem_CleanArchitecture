@@ -1,11 +1,16 @@
-﻿using EducationSystem.Domain.Interfaces.Common;
+﻿using EducationSystem.Domain.Entities.Common;
 using System.Linq.Expressions;
 
 namespace EducationSystem.Application.Abstarctions.Persistence.Repositories;
 
-public interface IGenericRepository<TEntity> where TEntity : class, IBaseAuditableEntity
+public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 {
     Task<TEntity?> GetByIdAsync(Guid Id);
+
+    Task<TEntity?> GetByIdWithIncludeAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
+
+    Task<IReadOnlyList<TEntity>?> GetAllWithIncludesAsync(Expression<Func<TEntity, bool>>? filter = null,
+                                                          params Expression<Func<TEntity, object>>[] includes);
 
     Task<TEntity?> GetByNameAsync(string Name); // Search
 

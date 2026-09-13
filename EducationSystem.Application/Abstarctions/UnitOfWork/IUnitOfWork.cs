@@ -5,17 +5,15 @@ namespace EducationSystem.Application.Abstarctions.UnitOfWork;
 
 public interface IUnitOfWork : IDisposable
 {
-    #region Fields
+    IGenericRepository<Organisation> OrganisationRepository { get; }
+    IGenericRepository<School> SchoolRepository { get; }
+    IGenericRepository<Grade> GradeRepository { get; }
+    IGenericRepository<Subject> SubjectRepository { get; }
+    IGenericRepository<Permission> PermissionRepository { get; }
 
-    IGenericRepository<Organisation> OrganisationRepo { get; }
-    IGenericRepository<School> SchoolRepo { get; }
-    IGenericRepository<Grade> GradeRepo { get; }
-    IGenericRepository<Subject> SubjectRepo { get; }
-    IGenericRepository<ApplicationUser> UserRepo { get; }
-    IGenericRepository<ApplicationRole> RoleRepo { get; }
-    IGenericRepository<Permission> PermissionRepo { get; }
-
-    #endregion Fields
+    // I Commented it as we have UserManager  , RoleManager in Identity Package
+    // IGenericRepository<ApplicationUser> UserRepo { get; }
+    // IGenericRepository<ApplicationRole> RoleRepo { get; }
 
     Task<int> CompleteAsync(); // save All changes in DB
 }

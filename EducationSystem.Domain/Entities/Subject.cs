@@ -1,3 +1,5 @@
+using EducationSystem.Domain.Entities.Common;
+
 namespace EducationSystem.Domain.Entities;
 
 public class Subject : BaseAuditableEntity
@@ -9,8 +11,8 @@ public class Subject : BaseAuditableEntity
     public Guid SchoolId { get; set; }
 
     // Navigational property
-    public School School { get; set; } = null!;
+    public virtual School School { get; set; } = null!;
 
-    // M : M[Subject , Grade]
-    public ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    // M : M [Subject , Grade]
+    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
 }

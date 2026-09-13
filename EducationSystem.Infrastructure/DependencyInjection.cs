@@ -1,11 +1,7 @@
-﻿using EducationSystem.Application.Abstarctions.Identity;
-using EducationSystem.Application.Abstarctions.Persistence.Repositories;
-using EducationSystem.Application.Abstarctions.Services;
+﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Auth;
-using EducationSystem.Application.Services;
 using EducationSystem.Domain.Entities;
-using EducationSystem.Infrastructure.Identity;
 using EducationSystem.Infrastructure.Persistence;
 using EducationSystem.Infrastructure.Repositories;
 using EducationSystem.Infrastructure.unitOfWork;
@@ -31,11 +27,7 @@ public static class DependencyInjection
 
         AddJwtAuthentication(services, configuration);
 
-        AddApplicationServices(services);
-
-        AddRepositories(services);
-
-        AddUnitOfWork(services);
+        AddApplicationAndInfrastructureServices(services);
 
         return services;
     }
@@ -45,8 +37,9 @@ public static class DependencyInjection
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(
-                configuration.GetConnectionString("DefaultConnection")));
+            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
+                   .UseLazyLoadingProxies()
+                   );
     }
 
     // Identity
@@ -133,28 +126,12 @@ public static class DependencyInjection
 
     // Application / Infrastructure Services
 
-    private static void AddApplicationServices(
+    private static void AddApplicationAndInfrastructureServices(
         IServiceCollection services)
     {
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<ISchoolService, SchoolService>();
-    }
-
-    // Repositories
-
-    private static void AddRepositories(
-        IServiceCollection services)
-    {
-        services.AddScoped(
-     typeof(IGenericRepository<>),
-            typeof(GenericRepository<>));
-    }
-
-    // Unit Of Work
-
-    private static void AddUnitOfWork(
-        IServiceCollection services)
-    {
+        //services.AddScoped<IAuthService, AuthService>();
+        //services.AddScoped<ISchoolService, SchoolService>();
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }
 }

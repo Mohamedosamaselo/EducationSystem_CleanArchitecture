@@ -1,5 +1,6 @@
 namespace EducationSystem.Domain.Entities;
 
+using EducationSystem.Domain.Entities.Common;
 using EducationSystem.Domain.Enums;
 
 public class School : BaseAuditableEntity
@@ -15,9 +16,9 @@ public class School : BaseAuditableEntity
     public Guid OrganisationId { get; set; }
 
     // Navigational property
-    public Organisation Organisation { get; set; } = null!;
+    public virtual Organisation Organisation { get; set; } = null!;
 
-    public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
-    public ICollection<Grade> Grades { get; set; } = new List<Grade>();
-    public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+    public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
 }

@@ -20,6 +20,14 @@ public class SchoolConfigurations : BaseAuditableEntityConfiguration<School>
             .IsRequired()
             .HasMaxLength(256);
 
+        builder.Property(s => s.Address)
+         .IsRequired()
+         .HasMaxLength(500);
+
+        builder.Property(s => s.PhoneNumber)
+            .IsRequired()
+            .HasMaxLength(20);
+
         builder.Property(s => s.LogoUrl)
             .HasMaxLength(500);
 
@@ -27,14 +35,6 @@ public class SchoolConfigurations : BaseAuditableEntityConfiguration<School>
             .IsRequired()
             .HasConversion<string>()  // Convert enum to string
             .HasDefaultValue(SchoolStatus.Active);  // SchoolStatus.Active
-
-        builder.Property(s => s.Address)
-            .IsRequired()
-            .HasMaxLength(500);
-
-        builder.Property(s => s.PhoneNumber)
-            .IsRequired()
-            .HasMaxLength(20);
 
         // School with organization relationship
         builder.HasOne(s => s.Organisation)

@@ -1,3 +1,5 @@
+using EducationSystem.Domain.Entities.Common;
+
 namespace EducationSystem.Domain.Entities;
 
 public class Organisation : BaseAuditableEntity
@@ -7,5 +9,5 @@ public class Organisation : BaseAuditableEntity
     public string Phone { get; set; } = string.Empty;
 
     // Navigational property
-    public ICollection<School> Schools { get; set; } = new List<School>();
+    public virtual ICollection<School> Schools { get; set; } = new List<School>();
 }

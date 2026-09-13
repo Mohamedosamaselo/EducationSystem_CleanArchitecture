@@ -16,10 +16,13 @@ public static class DependencyInjection
     {
         services.AddScoped<IAuthService, AuthService>();
 
+        services.AddScoped<IOrganisationService, OrganisationService>();
+
         services.AddScoped<ISchoolService, SchoolService>();
 
+        // Add FluentValidation
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
-            .AddFluentValidationAutoValidation();
+                .AddFluentValidationAutoValidation();
 
         return services;
     }

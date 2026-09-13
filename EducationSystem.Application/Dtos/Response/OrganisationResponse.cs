@@ -1,6 +1,11 @@
-﻿namespace EducationSystem.Application.Dtos.Response;
+﻿using EducationSystem.Domain.Entities;
+
+namespace EducationSystem.Application.Dtos.Response;
 
 public class OrganisationResponse
 {
     public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Phone { get; set; } = string.Empty;
+    public virtual ICollection<SchoolResponse> Schools { get; set; } = new List<SchoolResponse>();
 }

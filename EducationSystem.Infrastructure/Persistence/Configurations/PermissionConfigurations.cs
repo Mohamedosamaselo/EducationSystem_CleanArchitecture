@@ -16,13 +16,13 @@ internal class PermissionConfigurations : BaseAuditableEntityConfiguration<Permi
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(p => p.Description)
+        .IsRequired()
+        .HasMaxLength(100);
+
         builder.Property(u => u.Status)
             .IsRequired()
             .HasConversion<string>()  // Convert enum to string
             .HasDefaultValue(PermissionStatus.Active);  // UserStatus.Active
-
-        builder.Property(p => p.Description)
-           .IsRequired()
-           .HasMaxLength(100);
     }
 }

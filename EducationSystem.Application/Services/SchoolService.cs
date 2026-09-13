@@ -11,19 +11,20 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
     public async Task<SchoolResponse?> GetByIdAsync(Guid Id)
     {
-        var school = await _unitOfWork.SchoolRepo.GetByIdAsync(Id);
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
 
         return new SchoolResponse
         {
             Name = school!.Name,
             Address = school.Address,
-            OrganisationId = school.OrganisationId
+            OrganisationId = school.OrganisationId,
+            
         };
     }
 
     public async Task<SchoolResponse?> GetByNameAsync(string schoolName)
     {
-        var school = await _unitOfWork.SchoolRepo.GetByNameAsync(schoolName);
+        var school = await _unitOfWork.SchoolRepository.GetByNameAsync(schoolName);
 
         if (school is not null)
             return new SchoolResponse
@@ -38,7 +39,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
     public async Task<IReadOnlyList<SchoolResponse>> GetAllAsync()
     {
-        var schools = await _unitOfWork.SchoolRepo.GetAllAsync();
+        var schools = await _unitOfWork.SchoolRepository.GetAllAsync();
 
         return schools.Select(s => new SchoolResponse
         {
@@ -53,7 +54,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
     public async Task<IReadOnlyList<SchoolResponse>> GetAllByOrganisationIdAsync(Guid organizationId)
     {
-        var schools = await _unitOfWork.SchoolRepo.GetAllAsync(s => s.OrganisationId == organizationId);
+        var schools = await _unitOfWork.SchoolRepository.GetAllAsync(s => s.OrganisationId == organizationId);
 
         return schools.Select(s => new SchoolResponse
         {
@@ -78,7 +79,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             OrganisationId = createDto.OrganisationId
         };
 
-        await _unitOfWork.SchoolRepo.AddAsync(school);
+        await _unitOfWork.SchoolRepository.AddAsync(school);
 
         await _unitOfWork.CompleteAsync();
 
@@ -95,7 +96,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
     public async Task<SchoolResponse> UpdateAsync(Guid Id, UpdateSchoolRequest updateDto)
     {
-        var UpdatedSchool = await _unitOfWork.SchoolRepo.GetByIdAsync(Id);
+        var UpdatedSchool = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
 
         if (UpdatedSchool is null)
         {
@@ -109,7 +110,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         UpdatedSchool.Status = updateDto.Status;
         UpdatedSchool.OrganisationId = updateDto.OrganisationId;
 
-        _unitOfWork.SchoolRepo.Update(UpdatedSchool);
+        _unitOfWork.SchoolRepository.Update(UpdatedSchool);
 
         await _unitOfWork.CompleteAsync();
 
@@ -126,14 +127,14 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
     public async Task DeleteAsync(Guid Id)
     {
-        var school = await _unitOfWork.SchoolRepo.GetByIdAsync(Id);
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
 
         if (school is null)
         {
             throw new Exception($"School with ID {Id} was not found.");
         }
 
-        _unitOfWork.SchoolRepo.Delete(school!);
+        _unitOfWork.SchoolRepository.Delete(school!);
 
         await _unitOfWork.CompleteAsync();
     }

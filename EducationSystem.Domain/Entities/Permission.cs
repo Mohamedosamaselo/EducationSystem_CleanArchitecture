@@ -1,3 +1,4 @@
+using EducationSystem.Domain.Entities.Common;
 using EducationSystem.Domain.Enums;
 
 namespace EducationSystem.Domain.Entities;
@@ -9,5 +10,5 @@ public class Permission : BaseAuditableEntity
     public PermissionStatus Status { get; set; } = PermissionStatus.Active;
 
     // Navigational property
-    public ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
+    public virtual ICollection<RolePermission> RolePermissions { get; set; } = new List<RolePermission>();
 }

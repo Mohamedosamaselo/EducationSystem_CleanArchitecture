@@ -19,11 +19,9 @@ public static class DataSeeder
 
         await SeedSubjectsAsync(context);
 
-        //await SeedRolesAsync(roleManager);
-
-        //await SeedPermissionsAsync(context);
-
-        //await SeedUsersAsync(userManager, context);
+        // await SeedRolesAsync(roleManager);
+        // await SeedPermissionsAsync(context);
+        // await SeedUsersAsync(userManager, context);
     }
 
     private static async Task SeedOrganizationAsync(ApplicationDbContext context)
@@ -60,86 +58,94 @@ public static class DataSeeder
 
         var schools = new List<School>
     {
-     new School
-        {
-            Name = "Cairo International School",
-            Address = "123 Nile St, Cairo, 11111, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Giza Modern School",
-            Address = "456 Pyramid Ave, Giza, 12222, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Alexandria Future School",
-            Address = "15 Corniche Road, Alexandria, 21500, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "New Cairo International Academy",
-            Address = "25 Teseen Street, New Cairo, 11835, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "October Modern Academy",
-            Address = "10 Central Avenue, 6th of October, 12566, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Mansoura Excellence School",
-            Address = "78 El Gomhoria Street, Mansoura, 35511, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Aswan Nile Valley School",
-            Address = "32 Corniche El Nile, Aswan, 81511, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Luxor International Academy",
-            Address = "21 Karnak Road, Luxor, 85951, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Port Said Advanced School",
-            Address = "55 El Nasr Street, Port Said, 42511, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        },
-
-        new School
-        {
-            Name = "Tanta Modern Education School",
-            Address = "40 Saad Zaghloul Street, Tanta, 31511, Egypt",
-            OrganisationId = organisation.Id,
-            CreatedAt = DateTime.UtcNow
-        }
-    };
+   new School
+{
+    Name = "Cairo International School",
+    Address = "123 Nile St, Cairo, 11511, Egypt",
+    Email = "info@cairointernational.edu.eg",
+    PhoneNumber = "+20 2 2735 1122",
+    Status = SchoolStatus.Active,
+    LogoUrl = "https://example.com/logos/cairo_international.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Alexandria Modern School",
+    Address = "45 Corniche Road, Alexandria, 21500, Egypt",
+    Email = "contact@alexmodern.edu.eg",
+    PhoneNumber = "+20 3 4871 5566",
+    Status = SchoolStatus.Active,
+    LogoUrl = "https://example.com/logos/alexandria_modern.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Giza Excellence Academy",
+    Address = "78 Pyramids Road, Giza, 12511, Egypt",
+    Email = "admin@gizaexcellence.edu.eg",
+    PhoneNumber = "+20 2 3377 8899",
+    Status = SchoolStatus.Active,
+    LogoUrl = "https://example.com/logos/giza_excellence.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Mansoura National School",
+    Address = "32 El Gomhoria St, Mansoura, 35511, Egypt",
+    Email = "info@mansouranational.edu.eg",
+    PhoneNumber = "+20 50 223 4477",
+    Status = SchoolStatus.Inactive,
+    LogoUrl = "https://example.com/logos/mansoura_national.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Aswan Heritage School",
+    Address = "12 Corniche El Nil, Aswan, 81511, Egypt",
+    Email = "contact@aswanheritage.edu.eg",
+    PhoneNumber = "+20 97 231 6688",
+    Status = SchoolStatus.Active,
+    LogoUrl = "https://example.com/logos/aswan_heritage.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Luxor Advanced Academy",
+    Address = "9 Karnak St, Luxor, 85951, Egypt",
+    Email = "info@luxoradvanced.edu.eg",
+    PhoneNumber = "+20 95 237 9911",
+    Status = SchoolStatus.Active,
+    LogoUrl = "https://example.com/logos/luxor_advanced.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Ismailia Future School",
+    Address = "56 Suez Canal St, Ismailia, 41511, Egypt",
+    Email = "admin@ismailiafuture.edu.eg",
+    PhoneNumber = "+20 64 391 2244",
+    Status = SchoolStatus.Closed,
+    LogoUrl = "https://example.com/logos/ismailia_future.png",
+    OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+},
+new School
+{
+    Name = "Tanta Modern Education School",
+    Address = "21 El Bahr St, Tanta, 31511, Egypt",
+    Email = "contact@tantamodern.edu.eg",
+    PhoneNumber = "+20 40 331 5577",
+    Status = SchoolStatus.Active,
+    LogoUrl = "https://example.com/logos/tanta_modern.png",
+      OrganisationId = organisation.Id,
+    CreatedAt = DateTime.UtcNow
+    } };
 
         await context.Schools.AddRangeAsync(schools);
 
@@ -307,53 +313,55 @@ public static class DataSeeder
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
     {
         var roles = new[]
-     {
-     new ApplicationRole
-        {
-            Name = "OrganizationAdmin",
-            Description = "Manages the organization and all schools.",
-            Status = RoleStatus.Active
-        },
-
-        new ApplicationRole
-        {
-            Name = "SchoolAdmin",
-            Description = "Manages a school, teachers and students.",
-            Status = RoleStatus.Active
-        },
-
-        new ApplicationRole
-        {
-            Name = "Teacher",
-            Description = "Manages classes",
-            Status = RoleStatus.Active
-        },
-
-        new ApplicationRole
-        {
-            Name = "Parent",
-            Description = "Can view children information",
-            Status = RoleStatus.Active
-        },
-
-        new ApplicationRole
-        {
-            Name = "Student",
-            Description = "Can view profile, subjects, attendance and results.",
-            Status = RoleStatus.Active
-        }
+     {  new ApplicationRole
+            {
+                Name = "OrganizationAdmin",
+                Description = "Can manage the organization and all schools.",
+                Status = RoleStatus.Active,
+                 CreatedAt = DateTime.UtcNow,
+            },
+            new ApplicationRole
+            {
+                Name = "SchoolAdmin",
+                Description = "Can manage a school, teachers and students.",
+                Status = RoleStatus.Active,
+                 CreatedAt = DateTime.UtcNow,
+            },
+            new ApplicationRole
+            {
+                Name = "Teacher",
+                Description = "Can manage students, grades, and subjects.",
+                Status = RoleStatus.Active,
+                 CreatedAt = DateTime.UtcNow,
+            },
+            new ApplicationRole
+            {
+                Name = "Student",
+                Description = "Can view their grades, subjects, and school information." ,
+                Status = RoleStatus.Active,
+                  CreatedAt = DateTime.UtcNow,
+            },
+            new ApplicationRole
+            {
+                Name = "Parent",
+                Description = "Can view their children's grades, subjects, and school information.",
+                Status = RoleStatus.Active,
+                 CreatedAt = DateTime.UtcNow,
+            }
 };
 
         foreach (var roledata in roles)
         {
-            if (!await roleManager.RoleExistsAsync(roledata.Name!))
+            // IF ROLE NOT EXIST CREATE IT
+            if (!await roleManager.RoleExistsAsync(roledata.Name))
             {
                 // Create Role
                 var role = new ApplicationRole
                 {
-                    Id = Guid.NewGuid(),
                     Name = roledata.Name,
-                    Description = roledata.Description
+                    Status = RoleStatus.Active,
+                    Description = roledata.Description,
+                    CreatedAt = roledata.CreatedAt
                 };
 
                 // Add Role

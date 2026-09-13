@@ -1,4 +1,6 @@
-﻿namespace EducationSystem.Domain.Entities;
+﻿using EducationSystem.Domain.Entities.Common;
+
+namespace EducationSystem.Domain.Entities;
 
 public class Grade : BaseAuditableEntity
 {
@@ -10,8 +12,8 @@ public class Grade : BaseAuditableEntity
     public Guid SchoolId { get; set; }
 
     // navigational property
-    public School School { get; set; } = null!;
+    public virtual School School { get; set; } = null!;
 
-    public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
-    public ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+    public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+    public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
 }

@@ -1,56 +1,70 @@
 ﻿using EducationSystem.Domain.Entities;
 using EducationSystem.Domain.Enums;
-using EducationSystem.Infrastructure.Persistence.Configurations.Common;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EducationSystem.Infrastructure.Persistence.Configurations;
 
-public class ApplicationUserConfigurations : BaseAuditableEntityConfiguration<ApplicationUser>
+public class ApplicationUserConfigurations : IEntityTypeConfiguration<ApplicationUser>
 {
-    public override void Configure(EntityTypeBuilder<ApplicationUser> builder)
+    public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        base.Configure(builder);
+        // Custom properties[FirstName , LAstName , Address, Status , DateOfBirth]
 
-        builder.Property(u => u.FirstName)
+        builder.Property(e => e.FirstName)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(u => u.LastName)
+        builder.Property(e => e.LastName)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(u => u.Email)
+        builder.Property(e => e.Address)
+           .IsRequired()
+           .HasMaxLength(500);
+
+        builder.Property(e => e.Status)
+             .IsRequired()
+             .HasConversion<string>()  // Convert enum to string
+             .HasDefaultValue(UserStatus.Active);  // UserStatus.Active
+
+        builder.Property(e => e.Email)
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(u => u.UserName)
+        builder.Property(e => e.UserName)
             .IsRequired()
             .HasMaxLength(50);
 
-        builder.Property(u => u.PasswordHash)
+        builder.Property(e => e.PasswordHash)
             .IsRequired();
 
-        builder.Property(u => u.PhoneNumber)
+        builder.Property(e => e.PhoneNumber)
             .HasMaxLength(20);
 
-        builder.Property(u => u.Status)
-            .IsRequired()
-            .HasConversion<string>()  // Convert enum to string
-            .HasDefaultValue(UserStatus.Active);  // UserStatus.Active
-
-        builder.Property(u => u.Address)
-            .IsRequired()
-            .HasMaxLength(500);
-
-        builder.HasOne(u => u.School)
+        builder.HasOne(e => e.School)
               .WithMany(s => s.Users)
               .HasForeignKey(u => u.SchoolId)
               .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasOne(u => u.Grade)
+        builder.HasOne(e => e.Grade)
                .WithMany(g => g.Users)
                .HasForeignKey(u => u.GradeId)
                .OnDelete(DeleteBehavior.Restrict);
+
+        // Auditing
+        builder.Property(e => e.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("GETUTCDATE()")
+            .ValueGeneratedOnAdd();
+
+        builder.Property(e => e.CreatedBy)
+            .IsRequired(false);
+
+        builder.Property(e => e.ModifiedAt)
+            .IsRequired(false);
+
+        builder.Property(e => e.LastModifiedBy)
+            .IsRequired(false);
     }
 }
