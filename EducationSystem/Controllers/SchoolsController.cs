@@ -11,7 +11,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 {
     private readonly ISchoolService _schoolService = schoolService;
 
-    [HttpGet]
+    [HttpGet("GetAll")]
     public async Task<ActionResult<IReadOnlyList<SchoolResponse>>> GetAllAsync()
     {
         var schools = await _schoolService.GetAllAsync();
