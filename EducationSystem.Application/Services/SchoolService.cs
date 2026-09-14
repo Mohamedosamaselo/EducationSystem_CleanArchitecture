@@ -104,7 +104,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         };
 
         await _unitOfWork.SchoolRepository.AddAsync(school);
-        await _unitOfWork.CompleteAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         // Map school to ResponseDTO
         var schoolResponse = new SchoolResponse
@@ -139,7 +139,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
         _unitOfWork.SchoolRepository.Update(UpdatedSchool);
 
-        await _unitOfWork.CompleteAsync();
+        await _unitOfWork.SaveChangesAsync();
 
         return new SchoolResponse
         {
@@ -163,6 +163,6 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 
         _unitOfWork.SchoolRepository.Delete(school!);
 
-        await _unitOfWork.CompleteAsync();
+        await _unitOfWork.SaveChangesAsync();
     }
 }

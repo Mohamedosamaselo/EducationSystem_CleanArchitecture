@@ -15,5 +15,5 @@ public interface IUnitOfWork : IDisposable
     // IGenericRepository<ApplicationUser> UserRepo { get; }
     // IGenericRepository<ApplicationRole> RoleRepo { get; }
 
-    Task<int> CompleteAsync(); // save All changes in DB
+    Task<int> SaveChangesAsync(); // save All changes in DB
 }
