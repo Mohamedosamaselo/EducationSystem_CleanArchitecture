@@ -1,7 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Services;
-using EducationSystem.Application.Services.Identity;
 using EducationSystem.Infrastructure.Identity;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
@@ -22,6 +21,8 @@ public static class DependencyInjection
         services.AddScoped<IGradeService, GradeServices>();
 
         services.AddScoped<ISchoolService, SchoolService>();
+
+        services.AddScoped<ISubjectService, SubjectService>();
 
         // Add Fluent Validation
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())

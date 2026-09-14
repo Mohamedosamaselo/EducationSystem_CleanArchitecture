@@ -17,5 +17,5 @@ public interface ISchoolService
 
     Task<SchoolResponse> UpdateAsync(Guid Id, UpdateSchoolRequest updateDto);
 
-    Task DeleteAsync(Guid Id);
+    Task<bool> DeleteAsync(Guid Id);
 }

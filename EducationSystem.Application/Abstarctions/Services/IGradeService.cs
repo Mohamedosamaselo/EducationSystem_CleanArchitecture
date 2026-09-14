@@ -15,5 +15,5 @@ public interface IGradeService
 
     Task<GradeResponseDto?> UpdateAsync(Guid Id, UpdateGradeRequest updateRequestDto);
 
-    Task<GradeResponseDto?> DeleteAsync(Guid Id);
+    Task<bool> DeleteAsync(Guid Id);
 }

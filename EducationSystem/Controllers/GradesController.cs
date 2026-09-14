@@ -53,8 +53,8 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteGradeAsync(Guid id)
     {
-        var deletedGrade = await _gradeService.DeleteAsync(id);
+        var deleted = await _gradeService.DeleteAsync(id);
 
-        return deletedGrade is null ? NotFound() : NoContent();
+        return deleted ? NoContent() : NotFound();
     }
 }

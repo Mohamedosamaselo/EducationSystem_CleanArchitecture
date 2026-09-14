@@ -66,8 +66,8 @@ public class GenericRepository<TEntity>
 
     // get all entities with related entities using include [ Eager Laoding ]
     public async Task<IReadOnlyList<TEntity>> GetAllWithIncludesAsync(
-    Expression<Func<TEntity, bool>>? filter = null,
-    params Expression<Func<TEntity, object>>[] includes)
+                                                Expression<Func<TEntity, bool>>? filter = null,
+                                                params Expression<Func<TEntity, object>>[] includes)
     {
         IQueryable<TEntity> query = _dbset;
 

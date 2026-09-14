@@ -152,17 +152,16 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         };
     }
 
-    public async Task DeleteAsync(Guid Id)
+    public async Task<bool> DeleteAsync(Guid Id)
     {
         var school = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
 
         if (school is null)
-        {
-            throw new Exception($"School with ID {Id} was not found.");
-        }
+            return false;
 
         _unitOfWork.SchoolRepository.Delete(school!);
 
         await _unitOfWork.SaveChangesAsync();
+        return true;
     }
 }

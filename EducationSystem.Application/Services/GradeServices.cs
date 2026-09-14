@@ -5,7 +5,7 @@ using EducationSystem.Application.Dtos.Response.Grade;
 using EducationSystem.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Storage.Internal;
 
-namespace EducationSystem.Application.Services.Identity;
+namespace EducationSystem.Application.Services;
 
 public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
 {
@@ -116,15 +116,19 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         return gradeResponseDto;
     }
 
-    public async Task<GradeResponseDto?> UpdateAsync(Guid Id, UpdateGradeRequest updateRequestDto)
+    public async Task<GradeResponseDto?> UpdateAsync(Guid Id,
+        UpdateGradeRequest updateRequestDto)
     {
         var grade = await _unitOfWork.GradeRepository.GetByIdAsync(Id);
+
         if (grade == null)
             throw new Exception("Grade not found.");
 
         grade.Name = updateRequestDto.Name;
         grade.Description = updateRequestDto.Description;
         grade.IsActive = updateRequestDto.IsActive;
+
+        _unitOfWork.GradeRepository.Update(grade);
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -140,25 +144,18 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         return gradeResponseDto;
     }
 
-    public async Task<GradeResponseDto?> DeleteAsync(Guid Id)
+    public async Task<bool> DeleteAsync(Guid Id)
     {
         var grade = await _unitOfWork.GradeRepository.GetByIdAsync(Id);
+
         if (grade == null)
-            throw new Exception("Grade not found.");
+
+            return false;
 
         _unitOfWork.GradeRepository.Delete(grade);
 
         await _unitOfWork.SaveChangesAsync();
 
-        var gradeResponseDto = new GradeResponseDto
-        {
-            Id = grade.Id,
-            Name = grade.Name,
-            Description = grade.Description,
-            IsActive = grade.IsActive,
-            SchoolId = grade.SchoolId,
-            SchoolName = (await _unitOfWork.SchoolRepository.GetByIdAsync(grade.SchoolId))?.Name ?? string.Empty
-        };
-        return gradeResponseDto;
+        return true;
     }
 }
