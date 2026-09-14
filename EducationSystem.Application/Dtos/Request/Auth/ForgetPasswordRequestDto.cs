@@ -1,4 +1,4 @@
-﻿namespace EducationSystem.Application.Dtos.Request;
+﻿namespace EducationSystem.Application.Dtos.Request.Auth;
 
 public class ForgetPasswordRequestDto
 {

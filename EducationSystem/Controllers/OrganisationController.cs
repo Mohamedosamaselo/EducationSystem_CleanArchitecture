@@ -5,9 +5,9 @@ namespace EducationSystem.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class OrganisationController(IOrganisationService organisationService) : ControllerBase
+public class OrganisationController(IOrganisationService _organisationService) : ControllerBase
 {
-    private readonly IOrganisationService organisationService = organisationService;
+    private readonly IOrganisationService organisationService = _organisationService;
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult> GetByIdAsync(Guid id)

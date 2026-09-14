@@ -10,29 +10,27 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly ApplicationDbContext _context;
 
-    public IGenericRepository<Organisation> OrganisationRepo { get; }
-    public IGenericRepository<School> SchoolRepo { get; }
-    public IGenericRepository<Grade> GradeRepo { get; }
-    public IGenericRepository<Subject> SubjectRepo { get; }
-    public IGenericRepository<ApplicationUser> UserRepo { get; }
-    public IGenericRepository<ApplicationRole> RoleRepo { get; }
-    public IGenericRepository<Permission> PermissionRepo { get; }
+    public IGenericRepository<Organisation> OrganisationRepository { get; }
+    public IGenericRepository<School> SchoolRepository { get; }
+    public IGenericRepository<Grade> GradeRepository { get; }
+    public IGenericRepository<Subject> SubjectRepository { get; }
+    public IGenericRepository<Permission> PermissionRepository { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
         _context = dbContext;
 
-        OrganisationRepo = new GenericRepository<Organisation>(_context);
-        SchoolRepo = new GenericRepository<School>(_context);
-        GradeRepo = new GenericRepository<Grade>(_context);
-        SubjectRepo = new GenericRepository<Subject>(_context);
-        UserRepo = new GenericRepository<ApplicationUser>(_context);
-        RoleRepo = new GenericRepository<ApplicationRole>(_context);
-        PermissionRepo = new GenericRepository<Permission>(_context);
+        OrganisationRepository = new GenericRepository<Organisation>(_context);
+        SchoolRepository = new GenericRepository<School>(_context);
+        GradeRepository = new GenericRepository<Grade>(_context);
+        SubjectRepository = new GenericRepository<Subject>(_context);
+        PermissionRepository = new GenericRepository<Permission>(_context);
+
+        //UserRepo = new GenericRepository<ApplicationUser>(_context);
+        //RoleRepo = new GenericRepository<ApplicationRole>(_context);
     }
 
-    public async Task<int> CompleteAsync()
-        => await _context.SaveChangesAsync();
+    public async Task<int> CompleteAsync() => await _context.SaveChangesAsync();
 
     public void Dispose() => _context.Dispose();
 }

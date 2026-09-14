@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Consts;
-using EducationSystem.Application.Dtos.Request;
+using EducationSystem.Application.Dtos.Request.Auth;
 using FluentValidation;
 
 namespace EducationSystem.Application.Validators.Auth;

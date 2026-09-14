@@ -1,7 +1,8 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos.Request;
+using EducationSystem.Application.Dtos.Request.School;
 using EducationSystem.Application.Dtos.Response;
+using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;
 
@@ -9,34 +10,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<SchoolResponse?> GetByIdAsync(Guid Id)
-    {
-        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
-
-        return new SchoolResponse
-        {
-            Name = school!.Name,
-            Address = school.Address,
-            OrganisationId = school.OrganisationId,
-            
-        };
-    }
-
-    public async Task<SchoolResponse?> GetByNameAsync(string schoolName)
-    {
-        var school = await _unitOfWork.SchoolRepository.GetByNameAsync(schoolName);
-
-        if (school is not null)
-            return new SchoolResponse
-            {
-                Name = school!.Name,
-                Address = school.Address,
-                OrganisationId = school.OrganisationId
-            };
-
-        return null;
-    }
-
+    // getAll
     public async Task<IReadOnlyList<SchoolResponse>> GetAllAsync()
     {
         var schools = await _unitOfWork.SchoolRepository.GetAllAsync();
@@ -47,51 +21,105 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             Address = s.Address,
             Email = s.Email,
             PhoneNumber = s.PhoneNumber,
+            LogoUrl = s.LogoUrl,
             Status = s.Status,
-            OrganisationId = s.OrganisationId
+            OrganisationId = s.OrganisationId,
+            OrganisationName = s.Organisation?.Name ?? string.Empty
         }).ToList();
+    }
+
+    //getById
+    public async Task<SchoolResponse?> GetByIdAsync(Guid Id)
+    {
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
+
+        return new SchoolResponse
+        {
+            Name = school!.Name,
+            Address = school.Address,
+            Email = school.Email,
+            PhoneNumber = school.PhoneNumber,
+            Status = school.Status,
+            OrganisationId = school.OrganisationId,
+            OrganisationName = school.Organisation?.Name ?? string.Empty
+        };
+    }
+
+    // search school by name
+    public async Task<SchoolResponse?> GetByNameAsync(string schoolName)
+    {
+        var school = await _unitOfWork.SchoolRepository.GetByNameAsync(schoolName);
+
+        if (school is not null)
+            return new SchoolResponse
+            {
+                Name = school.Name,
+                Address = school.Address,
+                Email = school.Email,
+                PhoneNumber = school.PhoneNumber,
+                Status = school.Status,
+                LogoUrl = school.LogoUrl,
+                OrganisationId = school.OrganisationId,
+                OrganisationName = school.Organisation?.Name ?? string.Empty,
+            };
+
+        return null;
     }
 
     public async Task<IReadOnlyList<SchoolResponse>> GetAllByOrganisationIdAsync(Guid organizationId)
     {
         var schools = await _unitOfWork.SchoolRepository.GetAllAsync(s => s.OrganisationId == organizationId);
 
-        return schools.Select(s => new SchoolResponse
-        {
-            Name = s.Name,
-            Address = s.Address,
-            Email = s.Email,
-            PhoneNumber = s.PhoneNumber,
-            Status = s.Status,
-            OrganisationId = s.OrganisationId
-        }).ToList();
-    }
-
-    public async Task<SchoolResponse> AddAsync(CreateSchoolRequest createDto)
-    {
-        var school = new Domain.Entities.School()
-        {
-            Name = createDto.Name,
-            Address = createDto.Address,
-            Email = createDto.Email,
-            PhoneNumber = createDto.PhoneNumber,
-            Status = createDto.Status,
-            OrganisationId = createDto.OrganisationId
-        };
-
-        await _unitOfWork.SchoolRepository.AddAsync(school);
-
-        await _unitOfWork.CompleteAsync();
-
-        return new Dtos.Response.SchoolResponse
+        return schools.Select(school => new SchoolResponse
         {
             Name = school.Name,
             Address = school.Address,
             Email = school.Email,
             PhoneNumber = school.PhoneNumber,
             Status = school.Status,
-            OrganisationId = school.OrganisationId
+            LogoUrl = school.LogoUrl,
+            OrganisationId = school.OrganisationId,
+            OrganisationName = school.Organisation?.Name ?? string.Empty,
+        }).ToList();
+    }
+
+    public async Task<SchoolResponse> AddAsync(CreateSchoolRequest createSchoolDto)
+    {
+        // load the organisation by id
+        var organisation = await _unitOfWork.OrganisationRepository.GetByIdAsync(createSchoolDto.OrganisationId);
+        if (organisation == null)
+            throw new Exception($"Organisation with ID {createSchoolDto.OrganisationId} was not found.");
+
+        // map from createDto to School
+        var school = new School
+        {
+            Name = createSchoolDto.Name,
+            Address = createSchoolDto.Address,
+            Email = createSchoolDto.Email,
+            LogoUrl = createSchoolDto.LogoUrl,
+            PhoneNumber = createSchoolDto.PhoneNumber,
+            Status = createSchoolDto.Status,
+            OrganisationId = createSchoolDto.OrganisationId,
+            Organisation = organisation // attach Navigational property
         };
+
+        await _unitOfWork.SchoolRepository.AddAsync(school);
+        await _unitOfWork.CompleteAsync();
+
+        // Map school to ResponseDTO
+        var schoolResponse = new SchoolResponse
+        {
+            Name = school.Name,
+            Address = school.Address,
+            Email = school.Email,
+            LogoUrl = school.LogoUrl,
+            PhoneNumber = school.PhoneNumber,
+            Status = school.Status,
+            OrganisationId = school.OrganisationId,
+            OrganisationName = school.Organisation?.Name!
+        };
+
+        return schoolResponse;
     }
 
     public async Task<SchoolResponse> UpdateAsync(Guid Id, UpdateSchoolRequest updateDto)
@@ -99,13 +127,12 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         var UpdatedSchool = await _unitOfWork.SchoolRepository.GetByIdAsync(Id);
 
         if (UpdatedSchool is null)
-        {
             throw new Exception($"School with ID {Id} was not found.");
-        }
 
         UpdatedSchool.Name = updateDto.Name;
         UpdatedSchool.Address = updateDto.Address;
         UpdatedSchool.Email = updateDto.Email;
+        UpdatedSchool.LogoUrl = updateDto.LogoUrl;
         UpdatedSchool.PhoneNumber = updateDto.PhoneNumber;
         UpdatedSchool.Status = updateDto.Status;
         UpdatedSchool.OrganisationId = updateDto.OrganisationId;

@@ -1,4 +1,4 @@
-﻿namespace EducationSystem.Application.Dtos.Response;
+﻿namespace EducationSystem.Application.Dtos.Response.Grade;
 
 public class GradeResponse
 {

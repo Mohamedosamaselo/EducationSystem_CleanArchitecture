@@ -1,8 +1,8 @@
 ﻿using EducationSystem.Domain.Enums;
 
-namespace EducationSystem.Application.Dtos.Request;
+namespace EducationSystem.Application.Dtos.Request.School;
 
-public class UpdateSchoolRequest
+public class CreateSchoolRequest
 {
     public string Name { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
@@ -11,4 +11,6 @@ public class UpdateSchoolRequest
     public SchoolStatus Status { get; set; } = SchoolStatus.Active;
     public string LogoUrl { get; set; } = string.Empty;
     public Guid OrganisationId { get; set; }
+
+    //public string OrganisationName { get; set; } = string.Empty;
 }

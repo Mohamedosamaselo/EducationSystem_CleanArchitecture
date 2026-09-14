@@ -1,4 +1,4 @@
-﻿using EducationSystem.Application.Dtos.Request;
+﻿using EducationSystem.Application.Dtos.Request.School;
 using EducationSystem.Application.Dtos.Response;
 
 namespace EducationSystem.Application.Abstarctions.Services;

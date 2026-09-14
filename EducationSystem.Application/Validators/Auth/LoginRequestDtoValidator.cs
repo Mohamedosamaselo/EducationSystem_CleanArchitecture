@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Consts;
-using EducationSystem.Application.Dtos.Request;
+using EducationSystem.Application.Dtos.Request.Auth;
 using EducationSystem.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;

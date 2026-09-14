@@ -1,4 +1,4 @@
-﻿namespace EducationSystem.Application.Dtos.Auth;
+﻿namespace EducationSystem.Application.Dtos.Response.Auth;
 
 public class AuthResponse
 {

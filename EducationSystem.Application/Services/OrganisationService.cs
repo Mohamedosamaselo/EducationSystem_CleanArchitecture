@@ -1,6 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Response;
+using EducationSystem.Application.Dtos.Response.Organisation;
 
 namespace EducationSystem.Application.Services;
 

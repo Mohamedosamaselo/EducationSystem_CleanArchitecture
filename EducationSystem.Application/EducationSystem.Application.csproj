@@ -14,8 +14,8 @@
     <Folder Include="Mapping\" />
     <Folder Include="Specifications\Organisation\" />
     <Folder Include="Specifications\School\" />
-    <Folder Include="Validators\School\" />
     <Folder Include="Validators\Organisation\" />
+    <Folder Include="Validators\School\" />
   </ItemGroup>
 
   <ItemGroup>

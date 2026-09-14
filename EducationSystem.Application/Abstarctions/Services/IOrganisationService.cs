@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Dtos.Request;
-using EducationSystem.Application.Dtos.Response;
+using EducationSystem.Application.Dtos.Response.Organisation;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 
