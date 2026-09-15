@@ -38,8 +38,6 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     {
         var grade = await _gradeService.CreateAsync(createRequestDto);
 
-        //return CreatedAtAction(nameof(GetGradeByIdAsync), new { id = grade.Id }, grade);
-
         return Ok(grade);
     }
 

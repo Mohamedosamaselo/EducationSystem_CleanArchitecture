@@ -34,6 +34,13 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return subject is null ? NotFound() : Ok(subject);
     }
 
+    [HttpPost]
+    public async Task<ActionResult> AddAsync(CreateSubjectRequest subjectRequest)
+    {
+        var subject = await _subjectService.CreateSubjectAsync(subjectRequest);
+        return subject is null ? NotFound() : Ok(subject);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> updateAsync(Guid id,
         [FromBody] UpdateSubjectRequest subjectReq)

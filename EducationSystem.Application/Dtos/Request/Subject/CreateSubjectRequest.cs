@@ -6,5 +6,6 @@ public class CreateSubjectRequest
 
     public string? Description { get; set; }
 
+    public Guid GradeId { get; set; }
     public Guid SchoolId { get; set; }
 }

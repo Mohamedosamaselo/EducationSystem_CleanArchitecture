@@ -3,6 +3,7 @@ using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Request.Subject;
 using EducationSystem.Application.Dtos.Response.Grade;
 using EducationSystem.Application.Dtos.Response.Subject;
+using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;
 
@@ -101,9 +102,41 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         };
     }
 
-    public Task<SubjectResponseDto> CreateSubjectAsync(CreateSubjectRequest subjectRequest)
+    public async Task<SubjectResponseDto> CreateSubjectAsync(CreateSubjectRequest subjectRequest)
     {
-        throw new NotImplementedException();
+        var newSubject = new Subject
+        {
+            Name = subjectRequest.Name,
+            Description = subjectRequest.Description,
+            SchoolId = subjectRequest.SchoolId,
+        };
+
+        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(subjectRequest.GradeId);
+
+        if (grade == null)
+            throw new Exception("Grade not found");
+
+        newSubject.Grades.Add(grade);
+
+        await _unitOfWork.SubjectRepository.AddAsync(newSubject);
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return new SubjectResponseDto
+        {
+            Name = newSubject.Name,
+            Description = newSubject.Description,
+            SchoolId = newSubject.SchoolId,
+            Grades = newSubject.Grades.Select(g => new GradeResponseDto
+            {
+                //Id = g.Id,
+                Name = g.Name,
+                //Description = g.Description,
+                //IsActive = g.IsActive,
+                //SchoolId = g.SchoolId,
+                SchoolName = g.School?.Name ?? string.Empty
+            }).ToList()
+        };
     }
 
     public async Task<SubjectResponseDto?> UpdateSubjectAsync(Guid id,
