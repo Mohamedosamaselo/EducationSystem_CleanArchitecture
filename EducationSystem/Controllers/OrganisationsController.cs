@@ -5,7 +5,7 @@ namespace EducationSystem.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class OrganisationController(IOrganisationService _organisationService) : ControllerBase
+public class OrganisationsController(IOrganisationService _organisationService) : ControllerBase
 {
     private readonly IOrganisationService organisationService = _organisationService;
 

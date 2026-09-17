@@ -84,8 +84,7 @@ public static class DependencyInjection
         IServiceCollection services,
         IConfiguration configuration)
     {
-        services.Configure<JwtSetting>(
-            configuration.GetSection("Jwt"));
+        services.Configure<JwtSetting>(configuration.GetSection("Jwt"));
 
         services.AddAuthentication(options =>
         {
@@ -95,7 +94,7 @@ public static class DependencyInjection
             options.DefaultChallengeScheme =
                 JwtBearerDefaults.AuthenticationScheme;
         })
-        .AddJwtBearer(options =>
+         .AddJwtBearer(options =>
         {
             options.RequireHttpsMetadata = false;
             options.SaveToken = false;
@@ -110,18 +109,18 @@ public static class DependencyInjection
 
                     ClockSkew = TimeSpan.Zero,
 
-                    ValidIssuer =
-                        configuration["JWT:Issuer"],
-
-                    ValidAudience =
-                        configuration["JWT:Audience"],
-
-                    IssuerSigningKey =
-                        new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(
-                                configuration["JWT:Key"]!))
+                    ValidIssuer = configuration["JWT:Issuer"],
+                    ValidAudience = configuration["JWT:Audience"],
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!))
                 };
         });
+
+        services.Configure<IdentityOptions>(options =>
+         {
+             options.Password.RequiredLength = 8;
+             //options.SignIn.RequireConfirmedEmail = false; // require confirm email
+             options.User.RequireUniqueEmail = true;// require unique email
+         });
     }
 
     // Application / Infrastructure Services

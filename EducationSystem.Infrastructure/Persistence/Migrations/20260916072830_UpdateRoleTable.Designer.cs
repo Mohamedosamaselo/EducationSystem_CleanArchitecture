@@ -4,6 +4,7 @@ using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EducationSystem.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260916072830_UpdateRoleTable")]
+    partial class UpdateRoleTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,10 +45,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDefault")
                         .HasColumnType("bit");
@@ -287,16 +286,34 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValue("Active");
 
                     b.HasKey("Id");
 
@@ -565,7 +582,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EducationSystem.Domain.Entities.RolePermission", b =>
                 {
                     b.HasOne("EducationSystem.Domain.Entities.Permission", "Permission")
-                        .WithMany()
+                        .WithMany("RolePermissions")
                         .HasForeignKey("PermissionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -677,6 +694,11 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("EducationSystem.Domain.Entities.Organisation", b =>
                 {
                     b.Navigation("Schools");
+                });
+
+            modelBuilder.Entity("EducationSystem.Domain.Entities.Permission", b =>
+                {
+                    b.Navigation("RolePermissions");
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.School", b =>

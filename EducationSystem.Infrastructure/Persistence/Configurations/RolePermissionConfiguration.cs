@@ -21,10 +21,10 @@ namespace EducationSystem.Infrastructure.Persistence.Configurations
                    .OnDelete(DeleteBehavior.Cascade);
 
             // Relationship to Permission (Permission has RolePermissions collection)
-            builder.HasOne(rp => rp.Permission)
-                   .WithMany(p => p.RolePermissions)
-                   .HasForeignKey(rp => rp.PermissionId)
-                   .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasOne(rp => rp.Permission)
+            //       .WithMany(p => p.RolePermissions)
+            //       .HasForeignKey(rp => rp.PermissionId)
+            //       .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

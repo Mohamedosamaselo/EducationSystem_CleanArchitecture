@@ -16,13 +16,6 @@ public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
           .NotEmpty()
           .MaximumLength(100);
 
-        RuleFor(x => x.Username)
-            .NotEmpty()
-            .MaximumLength(100);
-
-        RuleFor(x => x.Address)
-            .NotEmpty();
-
         RuleFor(x => x.Email)
             .NotEmpty()
             .EmailAddress();
@@ -30,13 +23,8 @@ public class RegisterRequestDtoValidator : AbstractValidator<RegisterRequestDto>
         RuleFor(x => x.Password)
             .NotEmpty()
             .Matches(RegexPattern.Password)
-            .WithMessage("Password must contain at least 6 characters, one uppercase letter, " +
+            .WithMessage("Password must contain at least 8  characters, one uppercase letter, " +
                          "one lowercase letter, one digit, and one special character.");
-
-        RuleFor(x => x.SchoolId)
-            .NotEmpty();
-
-        RuleFor(x => x.GradeId)
-            .NotEmpty();
+        ;
     }
 }

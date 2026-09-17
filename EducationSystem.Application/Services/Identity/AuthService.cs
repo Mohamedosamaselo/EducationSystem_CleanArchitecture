@@ -1,6 +1,8 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Application.Dtos.Request;
+using EducationSystem.Application.Dtos.Request.Auth;
+using EducationSystem.Application.Dtos.Response.Auth;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -17,16 +19,21 @@ public class AuthService : IAuthService
 
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IOptions<JwtSetting> _jwt;
+    private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly RoleManager<ApplicationRole> _roleManager;
 
     #endregion Fields
 
     #region Constructors
 
-    public AuthService(UserManager<ApplicationUser> userManager, IOptions<JwtSetting> jwt, RoleManager<ApplicationRole> roleManager)
+    public AuthService(UserManager<ApplicationUser> userManager,
+        IOptions<JwtSetting> jwt,
+        SignInManager<ApplicationUser> signInManager,
+        RoleManager<ApplicationRole> roleManager)
     {
         _userManager = userManager;
         _roleManager = roleManager;
+        _signInManager = signInManager;
         _jwt = jwt;
     }
 
@@ -34,95 +41,97 @@ public class AuthService : IAuthService
 
     #region Methods
 
-    //public async Task<AuthResponse?> RegisterUserAsync(RegisterRequestDto request, CancellationToken cancellationToken = default)
-    //{
-    //    // Check on UserEmail
-    //    var user = await _userManager.FindByEmailAsync(request.Email);
+    public async Task<AuthResponse?> RegisterAsync(RegisterRequestDto request,
+        CancellationToken cancellationToken = default)
+    {
+        // Check on UserEmail
+        var IsEmailExists = await _userManager.FindByEmailAsync(request.Email);
 
-    //    if (user is not null) return new AuthResponse { Message = "Email is already Registered" };
+        if (IsEmailExists is not null)
+            return new AuthResponse { Message = "Email is already Registered" };
 
-    //    // Check on UserName
-    //    var userName = await _userManager.FindByNameAsync(request.Username);
-    //    if (userName is not null) return new AuthResponse { Message = "username is already exists" };
+        // create user
+        var User = new ApplicationUser
+        {
+            Email = request.Email,
+            UserName = request.Email,
+            FirstName = request.FirstName,
+            LastName = request.LastName,
+        };
 
-    //    // create user
-    //    var User = new ApplicationUser
-    //    {
-    //        Id = Guid.NewGuid(),
-    //        FirstName = request.FirstName,
-    //        LastName = request.LastName,
-    //        UserName = request.Username,
-    //        Address = request.Address,
-    //        Email = request.Email,
-    //        SchoolId = request.SchoolId,
-    //        GradeId = request.GradeId
-    //    };
+        // set user in DB
+        var result = await _userManager.CreateAsync(User, request.Password);
 
-    //    // save user inside database and hash Password
-    //    var result = await _userManager.CreateAsync(User, request.Password);
+        if (!result.Succeeded)// if Result Failed
+        {
+            var errors = string.Empty;
 
-    //    if (!result.Succeeded)// if Result Failed set Error in message [ IsAuthenticated = false  ]
-    //    {
-    //        var errors = string.Empty;
+            foreach (var Error in result.Errors)
+            {
+                errors += $" {Error.Code} , {Error.Description} ";
+            }
+            return new AuthResponse { Message = errors };
+        }
 
-    //        foreach (var Error in result.Errors)
-    //        {
-    //            errors += $"{Error.Description} , ";
-    //        }
-    //        return new AuthResponse { Message = errors };
-    //    }
+        // we can add user in any role like user [ b y defualt we add any new user to user Role ]
+        await _userManager.AddToRoleAsync(User, "User");
 
-    //    // we can add user in any role like user [ b y defualt we add any new user to user Role ]
-    //    await _userManager.AddToRoleAsync(User, "User");
+        // the last step to generate userToken
+        var jwtSecurityToken = await CreateJwtTokenAsync(User);
 
-    //    // the last step to generate userToken
-    //    var jwtSecurityToken = await CreateJwtTokenAsync(User);
+        // Return RegisterResonseDto
+        return new AuthResponse()
+        {
+            Message = "User registered Successfuly ",
+            IsAuthenticated = true,
+            ExpiresAt = jwtSecurityToken.ValidTo,
+            Email = request.Email,
+            Roles = new List<string> { "User" },
+            UserToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+            Username = request.Email,
+        };
+    }
 
-    //    // Return RegisterResonseDto
-    //    return new AuthResponse()
-    //    {
-    //        Message = "User registered Successfuly ",
-    //        IsAuthenticated = true,
-    //        ExpiresAt = jwtSecurityToken.ValidTo,
-    //        Email = request.Email,
-    //        Roles = new List<string> { "User" },
-    //        UserToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-    //        Username = request.Username,
-    //    };
-    //}
+    public async Task<AuthResponse> LoginAsync(LoginRequestDto request, CancellationToken cancellationToken = default)
+    {
+        var authModel = new AuthResponse();
 
-    //public async Task<AuthResponse> LoginUserAsync(LoginRequestDto request, CancellationToken cancellationToken = default)
-    //{
-    //    var AuthModel = new AuthResponse();
+        //1. check email or username First
+        var user = await _userManager.FindByEmailAsync(request.Email);
 
-    //    // check email or username First
-    //    var User = await _userManager.FindByEmailAsync(request.Email);
+        //2. check on  user & Password
+        if (user is null || !await _userManager.CheckPasswordAsync(user, request.Password)) //CheckOn user then  password
+        {
+            authModel.Message = "Invalid Email or Password ";
+            return authModel;
+        }
 
-    //    // check on  user & Password
-    //    if (User is null || !await _userManager.CheckPasswordAsync(User, request.Password)) //CheckOn user then  password
-    //    {
-    //        AuthModel.Message = "Invalid Email or Password ";
-    //        return AuthModel;
-    //    }
+        //3. check email Confirmation
+        if (!await _userManager.IsEmailConfirmedAsync(user))
+        {
+            authModel.Message = "Please confirm your email before logging in.";
+            return authModel;
+        }
 
-    //    // the last step to generate userToken
-    //    var jwtSecurityToken = await CreateJwtTokenAsync(User);
+        //4. Generate Jwt token
+        var jwtSecurityToken = await CreateJwtTokenAsync(user);
 
-    //    var rolesList = await _userManager.GetRolesAsync(User);
+        //5.Get user roles
+        var rolesList = await _userManager.GetRolesAsync(user);
 
-    //    var loginRespose = new AuthResponse()
-    //    {
-    //        Message = "User login successfully",
-    //        IsAuthenticated = true,
-    //        UserToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-    //        Email = User.Email!,
-    //        Username = User.UserName!,
-    //        ExpiresAt = jwtSecurityToken.ValidTo,
-    //        Roles = rolesList.ToList()
-    //    };
+        var loginRespose = new AuthResponse()
+        {
+            Message = "User login successfully",
+            IsAuthenticated = true,
+            UserToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+            Email = user.Email!,
+            Username = user.Email!,
+            ExpiresAt = jwtSecurityToken.ValidTo,
+            Roles = rolesList.ToList()
+        };
 
-    //    return loginRespose;
-    //}
+        return loginRespose;
+    }
 
     //public async Task<string> AddRoleAsync(AddRoleModel model)
     //{

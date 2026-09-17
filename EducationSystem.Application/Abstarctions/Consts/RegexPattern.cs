@@ -2,5 +2,6 @@
 
 public static class RegexPattern
 {
-    public const String Password = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{6,}$";
+    public const String Password
+        = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{8,}$";
 }

@@ -6,5 +6,5 @@ public class RolePermission
     public Guid PermissionId { get; set; }
 
     public virtual ApplicationRole Role { get; set; } = null!;
-    public virtual Permission Permission { get; set; } = null!;
+    public virtual Permissions Permission { get; set; } = null!;
 }

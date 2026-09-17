@@ -2,6 +2,7 @@
 using EducationSystem.Domain.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace EducationSystem.Infrastructure.Persistence.Seed;
 
@@ -19,9 +20,13 @@ public static class DataSeeder
 
         await SeedSubjectsAsync(context);
 
-        // await SeedRolesAsync(roleManager);
-        // await SeedPermissionsAsync(context);
-        // await SeedUsersAsync(userManager, context);
+        await SeedRolesAsync(roleManager);
+
+        await SeedUsersAsync(userManager, roleManager);
+
+        await SeedUserRoleAsync(userManager, roleManager);
+
+        await SeedRoleClaimsAsync(roleManager);
     }
 
     private static async Task SeedOrganizationAsync(ApplicationDbContext context)
@@ -33,7 +38,7 @@ public static class DataSeeder
         {
             new Organisation
             {
-                Id = Guid.NewGuid(),
+                //Id = Guid.NewGuid(),
                 Name = "Ministery of Education " ,
                 Email="MinisteryOfEducation@gmail.com",
                 Phone="1552",
@@ -310,64 +315,156 @@ new School
         await context.SaveChangesAsync();
     }
 
+    private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager,
+                                            RoleManager<ApplicationRole> roleManager)
+    {
+        if (await userManager.Users.AnyAsync())
+            return;
+
+        var users = new List<(string UserName, string Email, string Password, string Role, string FirstName, string LastName, string Address, Guid? SchoolId, Guid? GradeId)>
+    {
+        ("orgadmin", "orgadmin@example.com", "OrgAdmin@123", "OrganisationAdmin", "Ali", "Hassan","Cairo" ,null, null),
+        ("schooladmin", "schooladmin@example.com", "SchoolAdmin@123", "SchoolAdmin", "Sara", "Mahmoud","ElRehab", Guid.Parse("31464c0b-4b25-4d99-a80d-23add5f25565"), null),
+        ("teacher", "teacher@example.com", "Teacher@123", "Teacher", "Omar", "Khaled","Nasr city ", Guid.Parse("005ac0e9-5468-4a77-aecc-741c85a4e7b9"), Guid.Parse("65f3d6d6-754a-4e03-b6c2-700782aa8050")),
+        ("student", "student@example.com", "Student@123", "Student", "Mona", "Ibrahim", "Helioplis",Guid.Parse("e41b0fdf-11ea-4453-9358-b66c3f452844"), Guid.Parse("844d8e13-75f8-45da-b3bc-a3203f8d2cd1")),
+        ("parent", "parent@example.com", "Parent@123", "Parent", "Hussein", "Ali","Alx" ,null, null)
+    };
+
+        foreach (var (userName, email, password, roleName, firstName, lastName, address, schoolId, gradeId) in users)
+        {
+            var existingUser = await userManager.FindByEmailAsync(email);
+            if (existingUser != null)
+                continue;
+
+            var newUser = new ApplicationUser
+            {
+                UserName = userName,
+                Email = email,
+                EmailConfirmed = true,
+                FirstName = firstName,
+                LastName = lastName,
+                Address = address,
+                DateOfBirth = DateTime.UtcNow.AddYears(-20), // dummy DOB
+                Status = UserStatus.Active,
+                CreatedAt = DateTime.UtcNow,
+                SchoolId = schoolId,
+                GradeId = gradeId
+            };
+
+            var result = await userManager.CreateAsync(newUser, password);
+            if (!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine($"{error.Code}: {error.Description}");
+                }
+                continue;
+            }
+
+            if (await roleManager.RoleExistsAsync(roleName))
+            {
+                await userManager.AddToRoleAsync(newUser, roleName);
+            }
+        }
+    }
+
     private static async Task SeedRolesAsync(RoleManager<ApplicationRole> roleManager)
     {
-        var roles = new[]
-     {  new ApplicationRole
-            {
-                Name = "OrganizationAdmin",
-                Description = "Can manage the organization and all schools.",
-                Status = RoleStatus.Active,
-                 CreatedAt = DateTime.UtcNow,
-            },
-            new ApplicationRole
-            {
-                Name = "SchoolAdmin",
-                Description = "Can manage a school, teachers and students.",
-                Status = RoleStatus.Active,
-                 CreatedAt = DateTime.UtcNow,
-            },
-            new ApplicationRole
-            {
-                Name = "Teacher",
-                Description = "Can manage students, grades, and subjects.",
-                Status = RoleStatus.Active,
-                 CreatedAt = DateTime.UtcNow,
-            },
-            new ApplicationRole
-            {
-                Name = "Student",
-                Description = "Can view their grades, subjects, and school information." ,
-                Status = RoleStatus.Active,
-                  CreatedAt = DateTime.UtcNow,
-            },
-            new ApplicationRole
-            {
-                Name = "Parent",
-                Description = "Can view their children's grades, subjects, and school information.",
-                Status = RoleStatus.Active,
-                 CreatedAt = DateTime.UtcNow,
-            }
-};
+        if (await roleManager.Roles.AnyAsync())
+            return;
 
-        foreach (var roledata in roles)
+        var roles = new List<ApplicationRole>
+    {
+        new ApplicationRole
         {
-            // IF ROLE NOT EXIST CREATE IT
-            if (!await roleManager.RoleExistsAsync(roledata.Name))
+            Name = "OrganisationAdmin",
+            IsDefault = false,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new ApplicationRole
+        {
+            Name = "SchoolAdmin",
+            IsDefault = false,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new ApplicationRole
+        {
+            Name = "Teacher",
+            IsDefault = false,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        },
+
+        new ApplicationRole
+        {
+            Name = "Student",
+            IsDefault = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        },
+
+         new ApplicationRole
+        {
+            Name = "Parent",
+            IsDefault = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        }
+    };
+
+        foreach (var role in roles)
+        {
+            if (string.IsNullOrWhiteSpace(role.Name))
+                continue;
+
+            var existingRole = await roleManager.FindByNameAsync(role.Name);
+
+            if (existingRole != null)
+                continue;
+
+            var result = await roleManager.CreateAsync(role);
+
+            if (!result.Succeeded)
             {
-                // Create Role
-                var role = new ApplicationRole
+                foreach (var error in result.Errors)
                 {
-                    Name = roledata.Name,
-                    Status = RoleStatus.Active,
-                    Description = roledata.Description,
-                    CreatedAt = roledata.CreatedAt
-                };
+                    Console.WriteLine(
+                        $"{error.Code}: {error.Description}");
+                }
+            }
+        }
+    }
 
-                // Add Role
-                var result = await roleManager.CreateAsync(role);
+    private static async Task SeedUserRoleAsync(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
+    {
+        var userRoles = new List<(string Email, string Role)>
+        {
+                ("orgadmin@example.com", "OrganisationAdmin"),
+                 ("schooladmin@example.com", "SchoolAdmin"),
+                 ("teacher@example.com", "Teacher"),
+                 ("student@example.com", "Student"),
+                 ("parent@example.com", "Parent")
+        };
 
-                // if faild
+        foreach (var (email, roleName) in userRoles)
+        {
+            // find user by email and check on user
+            var user = await userManager.FindByEmailAsync(email);
+            if (user is null)
+                continue;
+
+            var role = await roleManager.RoleExistsAsync(roleName);
+            if (!role) // if role not found
+                continue;
+
+            // check if user is already in role or not
+            if (!await userManager.IsInRoleAsync(user, roleName))
+            {
+                var result = await userManager.AddToRoleAsync(user, roleName);
                 if (!result.Succeeded)
                 {
                     foreach (var error in result.Errors)
@@ -379,105 +476,123 @@ new School
         }
     }
 
-    private static async Task SeedPermissionsAsync(ApplicationDbContext context)
+    private static async Task SeedRoleClaimsAsync(
+        RoleManager<ApplicationRole> roleManager)
     {
-        if (await context.Permissions.AnyAsync())
-            return;
+        var organisationAdmin =
+            await roleManager.FindByNameAsync("OrganisationAdmin");
 
-        var role = await context.Roles.FirstOrDefaultAsync();
+        if (organisationAdmin is not null)
+        {
+            await AddPermissionsToRoleAsync(
+                roleManager,
+                organisationAdmin,
+                new[]
+                {
+                Permissions.GetSchools,
+                Permissions.AddSchools,
+                Permissions.UpdateSchools,
+                Permissions.DeleteSchools,
 
-        var permissions = new List<Permission>
-    {
-        new Permission
-        {
-            Name = "School.Read",
-            Description = "View schools",
-             CreatedAt = DateTime.UtcNow,
-        },
-        new Permission
-        {
-            Name = "School.Create",
-            Description = "Create schools",
-             CreatedAt = DateTime.UtcNow,
-        },
-        new Permission
-        {
-            Name = "School.Update",
-            Description = "Update schools",
-             CreatedAt = DateTime.UtcNow,
-        },
-        new Permission
-        {
-            Name = "School.Delete",
-            Description = "Delete schools",
-             CreatedAt = DateTime.UtcNow,
-        },
+                Permissions.GetGrades,
+                Permissions.AddGrades,
+                Permissions.UpdateGrades,
+                Permissions.DeleteGrades,
 
-        new Permission
-        {
-            Name = "Student.Read",
-            Description = "View students" ,
-             CreatedAt = DateTime.UtcNow,
-        },
-
-        new Permission
-        {
-            Name = "Student.Create",
-            Description = "Create students" ,
-             CreatedAt = DateTime.UtcNow,
+                Permissions.GetSubjects,
+                Permissions.AddSubjects,
+                Permissions.UpdateSubjects,
+                Permissions.DeleteSubjects
+                });
         }
-    };
 
-        await context.Permissions.AddRangeAsync(permissions);
+        var schoolAdmin =
+            await roleManager.FindByNameAsync("SchoolAdmin");
 
-        await context.SaveChangesAsync();
+        if (schoolAdmin is not null)
+        {
+            await AddPermissionsToRoleAsync(
+                roleManager,
+                schoolAdmin,
+                new[]
+                {
+                Permissions.GetSchools,
+                Permissions.UpdateSchools,
+
+                Permissions.GetGrades,
+                Permissions.AddGrades,
+                Permissions.UpdateGrades,
+                Permissions.DeleteGrades,
+
+                Permissions.GetSubjects,
+                Permissions.AddSubjects,
+                Permissions.UpdateSubjects,
+                Permissions.DeleteSubjects
+                });
+        }
+
+        var teacher =
+            await roleManager.FindByNameAsync("Teacher");
+
+        if (teacher is not null)
+        {
+            await AddPermissionsToRoleAsync(
+                roleManager,
+                teacher,
+                new[]
+                {
+                Permissions.GetSchools,
+                Permissions.GetGrades,
+                Permissions.GetSubjects
+                });
+        }
+
+        var student =
+            await roleManager.FindByNameAsync("Student");
+
+        if (student is not null)
+        {
+            await AddPermissionsToRoleAsync(
+                roleManager,
+                student,
+                new[]
+                {
+                Permissions.GetSchools,
+                Permissions.GetGrades,
+                Permissions.GetSubjects
+                });
+        }
     }
 
-    private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager,
-                                             ApplicationDbContext context)
+    // helper Method
+    private static async Task AddPermissionsToRoleAsync(
+        RoleManager<ApplicationRole> roleManager,
+        ApplicationRole role,
+        IEnumerable<string> permissions)
     {
-        var existingUser = await userManager.FindByEmailAsync("admin@education.com");
+        var existingClaims = await roleManager.GetClaimsAsync(role);
 
-        if (existingUser != null)
-            return;
-
-        var school = await context.Schools.FirstOrDefaultAsync();
-
-        var grade = await context.Grades.FirstOrDefaultAsync();
-
-        var admin = new ApplicationUser
+        foreach (var permission in permissions)
         {
-            Id = Guid.NewGuid(),
+            var alreadyExists = existingClaims.Any(c =>
+                c.Type == "permission" &&
+                c.Value == permission);
 
-            FirstName = "System ",
-            LastName = "Administrator",
-            Address = "1 Admin St, Cairo, 11111, Egypt",
-            DateOfBirth = new DateTime(1990, 1, 1),
+            if (alreadyExists)
+                continue;
 
-            CreatedAt = DateTime.UtcNow,
+            var result = await roleManager.AddClaimAsync(
+                role,
+                new Claim("permission", permission));
 
-            UserName = "admin",
-            Email = "admin@education.com",
-
-            SchoolId = school!.Id,
-            GradeId = grade!.Id,
-        };
-
-        var result = await userManager.CreateAsync(admin, "Admin@12345");
-
-        if (!result.Succeeded) // if not succeed
-        {
-            foreach (var error in result.Errors)
+            if (!result.Succeeded)
             {
-                Console.WriteLine(
-                    $"{error.Code}: {error.Description}");
+                foreach (var error in result.Errors)
+                {
+                    Console.WriteLine(
+                        $"{error.Code}: {error.Description}");
+                }
             }
-
-            return;
         }
-
-        await userManager.AddToRoleAsync(
-            admin,
-            "OrganisationAdmin");
     }
 }

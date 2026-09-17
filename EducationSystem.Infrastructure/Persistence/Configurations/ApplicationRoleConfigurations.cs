@@ -18,15 +18,15 @@ public class ApplicationRoleConfigurations : IEntityTypeConfiguration<Applicatio
             .HasMaxLength(100);
 
         // Custom properties
-        builder.Property(r => r.Description)
-            .IsRequired()
-            .HasMaxLength(500);
+        //builder.Property(r => r.Description)
+        //    .IsRequired()
+        //    .HasMaxLength(500);
 
-        builder.Property(r => r.Status)
-            .IsRequired()
-            .HasConversion<string>()
-            .HasMaxLength(50)
-            .HasDefaultValue(RoleStatus.Active);
+        //builder.Property(r => r.Status)
+        //    .IsRequired()
+        //    .HasConversion<string>()
+        //    .HasMaxLength(50)
+        //    .HasDefaultValue(RoleStatus.Active);
 
         // Auditing
         builder.Property(r => r.CreatedAt)
@@ -43,9 +43,9 @@ public class ApplicationRoleConfigurations : IEntityTypeConfiguration<Applicatio
         builder.Property(r => r.LastModifiedBy)
             .IsRequired(false);
 
-        builder.HasMany(x => x.RolePermissions)
-          .WithOne(x => x.Role)
-          .HasForeignKey(x => x.RoleId)
-          .OnDelete(DeleteBehavior.Cascade);
+        //builder.HasMany(x => x.RolePermissions)
+        //  .WithOne(x => x.Role)
+        //  .HasForeignKey(x => x.RoleId)
+        //  .OnDelete(DeleteBehavior.Cascade);
     }
 }

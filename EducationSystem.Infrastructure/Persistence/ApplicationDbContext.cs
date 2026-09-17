@@ -24,5 +24,5 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<School> Schools { get; set; }
     public DbSet<Subject> Subjects { get; set; }
     public DbSet<Grade> Grades { get; set; }
-    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<Permissions> Permissions { get; set; }
 }
