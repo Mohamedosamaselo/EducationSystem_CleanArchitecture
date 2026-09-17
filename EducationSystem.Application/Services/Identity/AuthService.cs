@@ -73,8 +73,19 @@ public class AuthService : IAuthService
             return new AuthResponse { Message = errors };
         }
 
-        // we can add user in any role like user [ b y defualt we add any new user to user Role ]
-        await _userManager.AddToRoleAsync(User, "User");
+        // we can add user in any role like user [ b y defualt we add any new user to Student Role ]
+        var roleResult = await _userManager.AddToRoleAsync(User, "Student");
+        if (!roleResult.Succeeded)
+        {
+            var errors = string.Join(
+       ", ",
+            roleResult.Errors.Select(e => e.Description));
+
+            return new AuthResponse
+            {
+                Message = errors
+            };
+        }
 
         // the last step to generate userToken
         var jwtSecurityToken = await CreateJwtTokenAsync(User);
@@ -82,11 +93,11 @@ public class AuthService : IAuthService
         // Return RegisterResonseDto
         return new AuthResponse()
         {
-            Message = "User registered Successfuly ",
+            Message = "Student registered Successfuly ",
             IsAuthenticated = true,
             ExpiresAt = jwtSecurityToken.ValidTo,
             Email = request.Email,
-            Roles = new List<string> { "User" },
+            Roles = new List<string> { "Student" },
             UserToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
             Username = request.Email,
         };
@@ -133,28 +144,28 @@ public class AuthService : IAuthService
         return loginRespose;
     }
 
-    //public async Task<string> AddRoleAsync(AddRoleModel model)
-    //{
-    //    // check on username in DB
-    //    var user = await _userManager.FindByIdAsync(model.UserId);
-    //    if (user is null)
-    //        return "Invalid UserId Or Role ";
-
-    //    // check on RoleName in DB
-    //    var Role = await _roleManager.RoleExistsAsync(model.RoleName);
-    //    if (!Role)
-    //        return "Invalid UserId Or Role ";
-
-    //    // check is User Assigned to this Role Or Not
-    //    var isUserAssignedToRole = await _userManager.IsInRoleAsync(user, model.RoleName);
-
-    //    if (isUserAssignedToRole) return "User Already Assigned to this Role ";
-
-    //    // Add User to this Role
-    //    var result = await _userManager.AddToRoleAsync(user, model.RoleName);
-
-    //    return result.Succeeded ? string.Empty : "there is issue when you Adding User to this Role ";
-    //}
+    ///public async Task<string> AddRoleAsync(AddRoleModel model)
+    ///{
+    ///    // check on username in DB
+    ///    var user = await _userManager.FindByIdAsync(model.UserId);
+    ///    if (user is null)
+    ///        return "Invalid UserId Or Role ";
+    ///
+    ///    // check on RoleName in DB
+    ///    var Role = await _roleManager.RoleExistsAsync(model.RoleName);
+    ///    if (!Role)
+    ///        return "Invalid UserId Or Role ";
+    ///
+    ///    // check is User Assigned to this Role Or Not
+    ///    var isUserAssignedToRole = await _userManager.IsInRoleAsync(user, model.RoleName);
+    ///
+    ///    if (isUserAssignedToRole) return "User Already Assigned to this Role ";
+    ///
+    ///    // Add User to this Role
+    ///    var result = await _userManager.AddToRoleAsync(user, model.RoleName);
+    ///
+    ///    return result.Succeeded ? string.Empty : "there is issue when you Adding User to this Role ";
+    ///}
 
     #endregion Methods
 
@@ -162,7 +173,7 @@ public class AuthService : IAuthService
 
     private async Task<JwtSecurityToken> CreateJwtTokenAsync(ApplicationUser user)
     {
-        // Get custom claims already assigned to the user
+        // Get  claims already assigned to the user
         var userClaims = await _userManager.GetClaimsAsync(user);
 
         // Get roles assigned to the user
@@ -191,8 +202,7 @@ public class AuthService : IAuthService
         // Create the secret key that responsible for encoding , decoding token
         var symmetricSecurityKey =
             new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(_jwt.Value.Key)
-            );
+                Encoding.UTF8.GetBytes(_jwt.Value.Key));
 
         // Create Signing credentials
         var signingCredentials =

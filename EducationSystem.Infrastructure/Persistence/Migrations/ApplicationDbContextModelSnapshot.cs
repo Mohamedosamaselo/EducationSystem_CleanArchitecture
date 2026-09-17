@@ -237,7 +237,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Grades");
+                    b.ToTable("Grades", (string)null);
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.Organisation", b =>
@@ -277,7 +277,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Organisations");
+                    b.ToTable("Organisations", (string)null);
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.Permission", b =>
@@ -300,7 +300,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Permissions");
+                    b.ToTable("Permissions", (string)null);
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.RolePermission", b =>
@@ -376,7 +376,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("OrganisationId");
 
-                    b.ToTable("Schools");
+                    b.ToTable("Schools", (string)null);
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.Subject", b =>
@@ -413,7 +413,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SchoolId");
 
-                    b.ToTable("Subjects");
+                    b.ToTable("Subjects", (string)null);
                 });
 
             modelBuilder.Entity("GradeSubject", b =>
@@ -428,7 +428,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("SubjectsId");
 
-                    b.ToTable("GradeSubject");
+                    b.ToTable("GradeSubject", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>

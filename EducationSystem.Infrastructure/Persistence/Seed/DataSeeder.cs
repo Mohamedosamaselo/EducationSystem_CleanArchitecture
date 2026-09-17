@@ -410,7 +410,7 @@ new School
          new ApplicationRole
         {
             Name = "Parent",
-            IsDefault = true,
+            IsDefault = false,
             IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         }
@@ -441,6 +441,12 @@ new School
 
     private static async Task SeedUserRoleAsync(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
     {
+        if (await userManager.Users.AnyAsync())
+            return;
+
+        if (!await roleManager.Roles.AnyAsync())
+            return;
+
         var userRoles = new List<(string Email, string Role)>
         {
                 ("orgadmin@example.com", "OrganisationAdmin"),
