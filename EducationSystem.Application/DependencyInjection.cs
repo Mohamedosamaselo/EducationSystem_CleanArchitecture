@@ -1,5 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Services;
+using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Application.Services;
 using EducationSystem.Infrastructure.Identity;
 using FluentValidation;
@@ -24,7 +25,6 @@ public static class DependencyInjection
 
         services.AddScoped<ISubjectService, SubjectService>();
 
-        // Add Fluent Validation
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
                 .AddFluentValidationAutoValidation();
 

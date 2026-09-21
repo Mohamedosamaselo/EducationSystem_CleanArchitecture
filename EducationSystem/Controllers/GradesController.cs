@@ -1,5 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Dtos.Request.Grade;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.WebApi.Controllers;
@@ -10,7 +11,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
 {
     private readonly IGradeService _gradeService = gradeService;
 
-    [HttpGet]
+    [HttpGet("")]
     public async Task<IActionResult> GetAllGradesAsync()
     {
         var grades = await _gradeService.GetAllAsync();

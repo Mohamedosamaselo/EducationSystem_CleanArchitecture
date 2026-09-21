@@ -1,4 +1,5 @@
-﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+﻿using EducationSystem.Application.Abstarctions.Identity;
+using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Domain.Entities;
@@ -11,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 namespace EducationSystem.Infrastructure;
@@ -21,7 +23,7 @@ public static class DependencyInjection
     {
         AddDatabase(services, configuration);
 
-        AddIdentity(services);
+        AddAuthConfig(services);
 
         AddIdentityOptions(services);
 
@@ -44,11 +46,13 @@ public static class DependencyInjection
 
     // Identity
 
-    private static void AddIdentity(IServiceCollection services)
+    private static void AddAuthConfig(IServiceCollection services)
     {
+        services.AddSingleton<IJwtProvider, JwtProvider>();
+
         services.AddIdentity<ApplicationUser, ApplicationRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>()
-            .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<ApplicationDbContext>()
+                .AddDefaultTokenProviders();
     }
 
     // Identity Options
@@ -58,10 +62,12 @@ public static class DependencyInjection
         {
             // Password
             options.Password.RequiredLength = 8;
-            options.Password.RequireDigit = true;
-            options.Password.RequireLowercase = true;
-            options.Password.RequireUppercase = true;
-            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequireDigit = false;
+            options.Password.RequireLowercase = false;
+            options.Password.RequireUppercase = false;
+            options.Password.RequireNonAlphanumeric = false;
+            options.Password.RequiredLength = 3;
+            //options.Password.RequiredUniqueChars = false;
 
             // User
             options.User.RequireUniqueEmail = true;
@@ -79,57 +85,50 @@ public static class DependencyInjection
         });
     }
 
-    // JWT Authentication
-    private static void AddJwtAuthentication(
-        IServiceCollection services,
-        IConfiguration configuration)
+    private static void AddJwtAuthentication(IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<JwtSetting>(configuration.GetSection("Jwt"));
+        services.Configure<JwtSetting>(configuration.GetSection("JWT"));
+
+        var x = configuration.GetSection("JWT");
 
         services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme =
-                JwtBearerDefaults.AuthenticationScheme;
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
 
-            options.DefaultChallengeScheme =
-                JwtBearerDefaults.AuthenticationScheme;
-        })
-         .AddJwtBearer(options =>
-        {
-            options.RequireHttpsMetadata = false;
-            options.SaveToken = false;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(o =>
+           {
+               o.RequireHttpsMetadata = false;
+               o.SaveToken = true;
 
-            options.TokenValidationParameters =
-                new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
+               o.TokenValidationParameters = new TokenValidationParameters
+               {
+                   ValidateIssuerSigningKey = true,
+                   ValidateIssuer = true,
+                   ValidateAudience = true,
+                   ValidateLifetime = true,
 
-                    ClockSkew = TimeSpan.Zero,
+                   IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!)),
+                   ValidIssuer = configuration["JWT:Issuer"],
+                   ValidAudience = configuration["JWT:Audience"],
 
-                    ValidIssuer = configuration["JWT:Issuer"],
-                    ValidAudience = configuration["JWT:Audience"],
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!))
-                };
-        });
+                   ClockSkew = TimeSpan.Zero,
+
+                   RoleClaimType = ClaimTypes.Role
+               };
+           });
 
         services.Configure<IdentityOptions>(options =>
          {
              options.Password.RequiredLength = 8;
-             //options.SignIn.RequireConfirmedEmail = false; // require confirm email
              options.User.RequireUniqueEmail = true;// require unique email
          });
     }
 
-    // Application / Infrastructure Services
-
     private static void AddApplicationAndInfrastructureServices(
         IServiceCollection services)
     {
-        //services.AddScoped<IAuthService, AuthService>();
-        //services.AddScoped<ISchoolService, SchoolService>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
     }

@@ -9,7 +9,13 @@ public class ApplicationUserConfigurations : IEntityTypeConfiguration<Applicatio
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        // Custom properties[FirstName , LAstName , Address, Status , DateOfBirth]
+        builder.Property(e => e.UserName)
+            .IsRequired()
+            .HasMaxLength(50);
+
+        builder.Property(e => e.Email)
+          .IsRequired()
+          .HasMaxLength(100);
 
         builder.Property(e => e.FirstName)
             .IsRequired()
@@ -27,14 +33,6 @@ public class ApplicationUserConfigurations : IEntityTypeConfiguration<Applicatio
              .IsRequired()
              .HasConversion<string>()  // Convert enum to string
              .HasDefaultValue(UserStatus.Active);  // UserStatus.Active
-
-        builder.Property(e => e.Email)
-            .IsRequired()
-            .HasMaxLength(100);
-
-        builder.Property(e => e.UserName)
-            .IsRequired()
-            .HasMaxLength(50);
 
         builder.Property(e => e.PasswordHash)
             .IsRequired();

@@ -1,8 +1,9 @@
 ﻿namespace EducationSystem.Application.Dtos.Request.Auth;
 
-public record RegisterRequestDto(
+public record RegisterRequest(
     string FirstName,
     string LastName,
     string Email,
-    string Password
+    string Password,
+    string Address
 );

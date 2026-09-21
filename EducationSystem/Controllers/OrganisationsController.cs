@@ -1,10 +1,12 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "OrganisationAdmin")]
 public class OrganisationsController(IOrganisationService _organisationService) : ControllerBase
 {
     private readonly IOrganisationService organisationService = _organisationService;

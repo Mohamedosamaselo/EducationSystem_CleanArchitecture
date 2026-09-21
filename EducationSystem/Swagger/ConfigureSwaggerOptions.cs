@@ -1,7 +1,9 @@
 ﻿using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi;
+using Microsoft.OpenApi; // <--- CHANGED: This is the new namespace for .NET 10
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Collections.Generic; // Needed for List<string>
+using Microsoft.OpenApi.Models; // <--- THIS IS REQUIRED
 
 namespace SurveyBasket.Swagger;
 
@@ -12,10 +14,11 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : 
     public void Configure(SwaggerGenOptions options)
     {
         foreach (var description in _provider.ApiVersionDescriptions)
-
+        {
             options.SwaggerDoc(
                 description.GroupName,
                 CreateInfoForApiVersion(description));
+        }
 
         options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
         {
@@ -23,24 +26,25 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : 
             Description = "Please Add your token",
             In = ParameterLocation.Header,
             Type = SecuritySchemeType.Http,
-            BearerFormat = "JWt",
+            BearerFormat = "JWT",
             Scheme = "Bearer"
         });
 
-        //        options.AddSecurityRequirement(new OpenApiSecurityRequirement
-        //{
-        //    {
-        //        new OpenApiSecurityScheme
-        //        {
-        //            Reference = new openApiReference
-        //            {
-        //                Type = ReferenceType.SecurityScheme,
-        //                Id = "Bearer"
-        //            }
-        //        },
-        //        Array.Empty<string>()
-        //    }
-        //});
+        // THIS IS THE STANDARD CODE THAT WORKS IN ALL .NET VERSIONS
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                new List<string>()
+            }
+        });
     }
 
     private static OpenApiInfo CreateInfoForApiVersion(

@@ -2,7 +2,7 @@
 
 namespace EducationSystem.Application.Dtos.Request.Auth;
 
-public class ResetPasswordRequestDto
+public class ResetPasswordRequest
 {
     public string Email { get; set; } = string.Empty;
 

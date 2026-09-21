@@ -38,7 +38,6 @@ public static class DataSeeder
         {
             new Organisation
             {
-                //Id = Guid.NewGuid(),
                 Name = "Ministery of Education " ,
                 Email="MinisteryOfEducation@gmail.com",
                 Phone="1552",

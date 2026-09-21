@@ -1,12 +1,14 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Dtos.Request.School;
 using EducationSystem.Application.Dtos.Response;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
+[Authorize(Roles = "Teacher,OrganisationAdmin,Student")]
 public class SchoolsController(ISchoolService schoolService) : ControllerBase
 {
     private readonly ISchoolService _schoolService = schoolService;

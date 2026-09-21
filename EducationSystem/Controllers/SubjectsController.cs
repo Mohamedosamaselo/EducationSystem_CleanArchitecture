@@ -1,6 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Dtos.Request.Subject;
 using EducationSystem.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
