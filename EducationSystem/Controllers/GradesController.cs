@@ -11,6 +11,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
 {
     private readonly IGradeService _gradeService = gradeService;
 
+    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet("")]
     public async Task<IActionResult> GetAllGradesAsync()
     {
@@ -19,6 +20,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return grades is null ? NotFound() : Ok(grades);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetGradeByIdAsync(Guid id)
     {
@@ -34,6 +36,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return grades is null ? NotFound() : Ok(grades);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPost]
     public async Task<IActionResult> CreateGradeAsync([FromBody] CreateGradeRequest createRequestDto)
     {
@@ -42,6 +45,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return Ok(grade);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> UpdateGradeAsync(Guid id, [FromBody] UpdateGradeRequest updateRequestDto)
     {
@@ -49,6 +53,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return updatedGrade is null ? NotFound() : Ok(updatedGrade);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteGradeAsync(Guid id)
     {

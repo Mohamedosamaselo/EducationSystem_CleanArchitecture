@@ -1,8 +1,6 @@
-using EducationSystem.Domain.Entities.Common;
-
 namespace EducationSystem.Domain.Entities;
 
-public class Permissions : BaseAuditableEntity
+public static class Permissions
 {
     // Schools
 

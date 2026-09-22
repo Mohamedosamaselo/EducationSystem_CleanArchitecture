@@ -8,11 +8,11 @@ namespace EducationSystem.WebApi.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-[Authorize(Roles = "Teacher,OrganisationAdmin,Student")]
 public class SchoolsController(ISchoolService schoolService) : ControllerBase
 {
     private readonly ISchoolService _schoolService = schoolService;
 
+    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet("GetAll")]
     public async Task<ActionResult<IReadOnlyList<SchoolResponse>>> GetAllAsync()
     {
@@ -21,6 +21,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return schools is not null ? Ok(schools) : NotFound("Sorry this school not Found ");
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult?> GetByIdAsync(Guid id)
     {
@@ -32,6 +33,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return NotFound("Sorry this school Not Found");
     }
 
+    [Authorize(Roles = "OrganisationAdmin")]
     [HttpPost("Create")]
     public async Task<ActionResult<SchoolResponse>> AddAsync([FromBody] CreateSchoolRequest request)
     {
@@ -40,6 +42,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return Ok(school);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPut("Update/{id:guid}")]
     public async Task<ActionResult<Application.Dtos.Response.SchoolResponse>> UpdateAsync(Guid id, [FromBody] UpdateSchoolRequest request)
     {
@@ -48,6 +51,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return Ok(school);
     }
 
+    [Authorize(Roles = "OrganisationAdmin")]
     [HttpDelete("Delete/{id:guid}")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {

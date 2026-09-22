@@ -17,7 +17,7 @@ using System.Text;
 
 namespace EducationSystem.Infrastructure;
 
-public static class DependencyInjection
+public static class InfrastructureDependencyInjection
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {

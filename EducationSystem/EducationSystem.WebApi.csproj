@@ -22,8 +22,4 @@
     <ProjectReference Include="..\EducationSystem.Infrastructure\EducationSystem.Infrastructure.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Middleware\" />
-  </ItemGroup>
-
 </Project>

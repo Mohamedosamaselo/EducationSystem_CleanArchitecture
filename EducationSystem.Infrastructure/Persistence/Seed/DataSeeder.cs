@@ -24,8 +24,6 @@ public static class DataSeeder
 
         await SeedUsersAsync(userManager, roleManager);
 
-        await SeedUserRoleAsync(userManager, roleManager);
-
         await SeedRoleClaimsAsync(roleManager);
     }
 
@@ -438,52 +436,8 @@ new School
         }
     }
 
-    private static async Task SeedUserRoleAsync(UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager)
-    {
-        if (await userManager.Users.AnyAsync())
-            return;
-
-        if (!await roleManager.Roles.AnyAsync())
-            return;
-
-        var userRoles = new List<(string Email, string Role)>
-        {
-                ("orgadmin@example.com", "OrganisationAdmin"),
-                 ("schooladmin@example.com", "SchoolAdmin"),
-                 ("teacher@example.com", "Teacher"),
-                 ("student@example.com", "Student"),
-                 ("parent@example.com", "Parent")
-        };
-
-        foreach (var (email, roleName) in userRoles)
-        {
-            // find user by email and check on user
-            var user = await userManager.FindByEmailAsync(email);
-            if (user is null)
-                continue;
-
-            var role = await roleManager.RoleExistsAsync(roleName);
-            if (!role) // if role not found
-                continue;
-
-            // check if user is already in role or not
-            if (!await userManager.IsInRoleAsync(user, roleName))
-            {
-                var result = await userManager.AddToRoleAsync(user, roleName);
-                if (!result.Succeeded)
-                {
-                    foreach (var error in result.Errors)
-                    {
-                        Console.WriteLine($"{error.Code}: {error.Description}");
-                    }
-                }
-            }
-        }
-    }
-
-    private static async Task SeedRoleClaimsAsync(
-        RoleManager<ApplicationRole> roleManager)
-    {
+    private static async Task SeedRoleClaimsAsync(RoleManager<ApplicationRole> roleManager)
+    {     // OrganicationAdmin Role
         var organisationAdmin =
             await roleManager.FindByNameAsync("OrganisationAdmin");
 
@@ -510,7 +464,7 @@ new School
                 Permissions.DeleteSubjects
                 });
         }
-
+        // schoolAdmin Role
         var schoolAdmin =
             await roleManager.FindByNameAsync("SchoolAdmin");
 
@@ -535,7 +489,7 @@ new School
                 Permissions.DeleteSubjects
                 });
         }
-
+        // Teacher Role
         var teacher =
             await roleManager.FindByNameAsync("Teacher");
 
@@ -551,7 +505,7 @@ new School
                 Permissions.GetSubjects
                 });
         }
-
+        // Student Role
         var student =
             await roleManager.FindByNameAsync("Student");
 
@@ -571,9 +525,9 @@ new School
 
     // helper Method
     private static async Task AddPermissionsToRoleAsync(
-        RoleManager<ApplicationRole> roleManager,
-        ApplicationRole role,
-        IEnumerable<string> permissions)
+                                                        RoleManager<ApplicationRole> roleManager,
+                                                        ApplicationRole role,
+                                                        IEnumerable<string> permissions)
     {
         var existingClaims = await roleManager.GetClaimsAsync(role);
 

@@ -13,6 +13,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
 {
     private readonly ISubjectService _subjectService = subjectService;
 
+    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet()]
     public async Task<IActionResult> GetAllSubjectsAsync()
     {
@@ -20,6 +21,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return subjects is null ? NotFound() : Ok(subjects);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{subjectId:guid}")]
     public async Task<ActionResult> GetSubjectAsync(Guid subjectId)
     {
@@ -35,6 +37,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return subject is null ? NotFound() : Ok(subject);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPost]
     public async Task<ActionResult> AddAsync(CreateSubjectRequest subjectRequest)
     {
@@ -42,6 +45,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return subject is null ? NotFound() : Ok(subject);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> updateAsync(Guid id,
         [FromBody] UpdateSubjectRequest subjectReq)
@@ -51,6 +55,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return updatedSubject is null ? NotFound() : Ok(updatedSubject);
     }
 
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {

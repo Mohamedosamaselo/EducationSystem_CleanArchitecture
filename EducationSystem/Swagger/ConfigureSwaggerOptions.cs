@@ -1,9 +1,7 @@
 ﻿using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.Options;
-using Microsoft.OpenApi; // <--- CHANGED: This is the new namespace for .NET 10
-using Swashbuckle.AspNetCore.SwaggerGen;
-using System.Collections.Generic; // Needed for List<string>
 using Microsoft.OpenApi.Models; // <--- THIS IS REQUIRED
+using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace SurveyBasket.Swagger;
 
