@@ -4,6 +4,8 @@ namespace EducationSystem.Application.Abstarctions.HandlingError;
 
 public static class ResultExtensions
 {
+    // Generic — for Result<T>
+    // ─────────────────────────────────────────────────────────────
     public static IActionResult ToActionResult<T>(this Result<T> result, ControllerBase ctrl)
     {
         if (result.IsSuccess)
@@ -21,6 +23,29 @@ public static class ResultExtensions
             401 => ctrl.Unauthorized(payload),
             404 => ctrl.NotFound(payload),
             409 => ctrl.Conflict(payload),
+            _ => ctrl.BadRequest(payload)
+        };
+    }
+
+    // Non-generic — for Result (no value, e.g. Delete)   ⬅ ADD THIS
+    // ─────────────────────────────────────────────────────────────
+    public static IActionResult ToActionResult(this Result result, ControllerBase ctrl)
+    {
+        if (result.IsSuccess)
+            return ctrl.NoContent();   // 204 No Content for deletes
+
+        var payload = new
+        {
+            code = result.Error.Code,
+            description = result.Error.Description
+        };
+
+        return MapErrorToStatus(result.Error.Code) switch
+        {
+            401 => ctrl.Unauthorized(payload),
+            404 => ctrl.NotFound(payload),
+            409 => ctrl.Conflict(payload),
+            500 => ctrl.StatusCode(500, payload),
             _ => ctrl.BadRequest(payload)
         };
     }
@@ -47,6 +72,16 @@ public static class ResultExtensions
         "Organisation.CreationFailed" => 500,
         "Organisation.UpdateFailed" => 500,
         "Organisation.DeletionFailed" => 500,
+
+        // School errors
+        "School.NotFound" => 404,
+        "School.OrganisationNotFound" => 404,
+        "School.DuplicateEmail" => 409,
+        "School.DuplicateName" => 409,
+        "School.InvalidInput" => 400,
+        "School.CreationFailed" => 500,
+        "School.UpdateFailed" => 500,
+        "School.DeletionFailed" => 500,
 
         _ => 400
     };

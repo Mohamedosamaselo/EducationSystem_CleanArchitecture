@@ -5,22 +5,22 @@ namespace EducationSystem.Application.Abstarctions.Persistence.Repositories;
 
 public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 {
-    Task<TEntity?> GetByIdAsync(Guid Id);
+    Task<TEntity?> GetByIdAsync(Guid Id, CancellationToken ct = default);
 
     Task<TEntity?> GetByIdWithIncludeAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
 
     Task<IReadOnlyList<TEntity>?> GetAllWithIncludesAsync(Expression<Func<TEntity, bool>>? filter = null,
                                                           params Expression<Func<TEntity, object>>[] includes);
 
-    Task<TEntity?> GetByNameAsync(string Name); // Search
+    Task<TEntity?> GetByNameAsync(string Name, CancellationToken ct = default); // Search
 
-    Task<IReadOnlyList<TEntity>> GetAllAsync();
+    Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken ct = default);
 
-    Task<IReadOnlyList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null);
+    Task<IReadOnlyList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null, CancellationToken ct = default);
 
-    Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate); //
+    Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default); //
 
-    Task AddAsync(TEntity entity);
+    Task AddAsync(TEntity entity, CancellationToken ct = default);
 
     Task AddRangeAsync(IEnumerable<TEntity> entities);
 

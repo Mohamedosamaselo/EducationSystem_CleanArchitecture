@@ -1,21 +1,22 @@
-﻿using EducationSystem.Application.Dtos.Request.School;
+﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Dtos.Request.School;
 using EducationSystem.Application.Dtos.Response;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 
 public interface ISchoolService
 {
-    Task<SchoolResponse?> GetByIdAsync(Guid Id);
+    Task<Result<IReadOnlyList<SchoolResponse>>> GetAllAsync(CancellationToken ct = default);
 
-    Task<SchoolResponse?> GetByNameAsync(string schoolName);// Search Schools
+    Task<Result<SchoolResponse?>> GetByIdAsync(Guid id, CancellationToken ct = default);
 
-    Task<IReadOnlyList<SchoolResponse>> GetAllByOrganisationIdAsync(Guid organizationId);
+    Task<Result<SchoolResponse?>> GetByNameAsync(string schoolName, CancellationToken ct = default);
 
-    Task<IReadOnlyList<SchoolResponse>> GetAllAsync();
+    Task<Result<IReadOnlyList<SchoolResponse>>> GetAllByOrganisationIdAsync(Guid organisationId, CancellationToken ct = default);
 
-    Task<SchoolResponse> AddAsync(CreateSchoolRequest createDto);
+    Task<Result<SchoolResponse?>> AddAsync(CreateSchoolRequest createDto, CancellationToken ct = default);
 
-    Task<SchoolResponse> UpdateAsync(Guid Id, UpdateSchoolRequest updateDto);
+    Task<Result<SchoolResponse?>> UpdateAsync(Guid id, UpdateSchoolRequest updateDto, CancellationToken ct = default);
 
-    Task<bool> DeleteAsync(Guid Id);
+    Task<Result> DeleteAsync(Guid id, CancellationToken ct = default);
 }

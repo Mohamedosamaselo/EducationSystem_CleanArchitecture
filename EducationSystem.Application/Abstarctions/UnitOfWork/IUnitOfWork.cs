@@ -10,5 +10,5 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<Grade> GradeRepository { get; }
     IGenericRepository<Subject> SubjectRepository { get; }
 
-    Task<int> SaveChangesAsync(); // save All changes in DB
+    Task<int> SaveChangesAsync(CancellationToken ct = default); // save All changes in DB
 }
