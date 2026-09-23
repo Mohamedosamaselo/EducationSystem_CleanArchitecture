@@ -1,6 +1,4 @@
-﻿using EducationSystem.Domain.Entities;
-
-namespace EducationSystem.Application.Dtos.Response.Organisation;
+﻿namespace EducationSystem.Application.Dtos.Response.Organisation;
 
 public class OrganisationResponse
 {

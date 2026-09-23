@@ -4,9 +4,9 @@ using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure;
 using EducationSystem.Infrastructure.Persistence;
 using EducationSystem.Infrastructure.Persistence.Seed;
+using EducationSystem.Swagger;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using SurveyBasket.Swagger;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 var builder = WebApplication.CreateBuilder(args);

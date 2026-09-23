@@ -97,7 +97,8 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         {
             Name = createRequestDto.Name,
             Description = createRequestDto.Description,
-            SchoolId = createRequestDto.SchoolId
+            SchoolId = createRequestDto.SchoolId,
+            IsActive = true
         };
 
         await _unitOfWork.GradeRepository.AddAsync(grade);

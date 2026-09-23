@@ -9,11 +9,6 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<School> SchoolRepository { get; }
     IGenericRepository<Grade> GradeRepository { get; }
     IGenericRepository<Subject> SubjectRepository { get; }
-    //IGenericRepository<Permission> PermissionRepository { get; }
-
-    // I Commented it as we have UserManager  , RoleManager in Identity Package
-    // IGenericRepository<ApplicationUser> UserRepo { get; }
-    // IGenericRepository<ApplicationRole> RoleRepo { get; }
 
     Task<int> SaveChangesAsync(); // save All changes in DB
 }

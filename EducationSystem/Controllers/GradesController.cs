@@ -54,6 +54,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     }
 
     [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteGradeAsync(Guid id)
     {

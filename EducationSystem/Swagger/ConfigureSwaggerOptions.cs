@@ -3,7 +3,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models; // <--- THIS IS REQUIRED
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace SurveyBasket.Swagger;
+//namespace SurveyBasket.Swagger;
+namespace EducationSystem.Swagger;
 
 public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : IConfigureOptions<SwaggerGenOptions>
 {

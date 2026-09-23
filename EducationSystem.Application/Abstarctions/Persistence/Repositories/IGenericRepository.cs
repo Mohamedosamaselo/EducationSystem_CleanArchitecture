@@ -18,6 +18,8 @@ public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 
     Task<IReadOnlyList<TEntity>> GetAllAsync(Expression<Func<TEntity, bool>>? filter = null);
 
+    Task<TEntity?> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate); //
+
     Task AddAsync(TEntity entity);
 
     Task AddRangeAsync(IEnumerable<TEntity> entities);

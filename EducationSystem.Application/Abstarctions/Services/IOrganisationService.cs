@@ -1,17 +1,12 @@
-﻿using EducationSystem.Application.Dtos.Request;
+﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Dtos.Request.Organisation;
 using EducationSystem.Application.Dtos.Response.Organisation;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 
 public interface IOrganisationService
 {
-    Task<OrganisationResponse?> GetByIdAsync(Guid Id);
+    Task<Result<OrganisationResponse?>> GetByIdAsync(Guid Id);
 
-    //Task<OrganisationResponse?> GetByNameAsync(string organisationName);// Search organisation
-
-    //Task<OrganisationResponse> AddAsync(CreateSchoolRequest createDto);
-
-    //Task<OrganisationResponse> UpdateAsync(Guid Id, UpdateSchoolRequest updateDto);
-
-    //Task DeleteAsync(Guid Id);
+    Task<Result<OrganisationResponse?>> AddAsync(CreateOrganisationRequest createDto);
 }

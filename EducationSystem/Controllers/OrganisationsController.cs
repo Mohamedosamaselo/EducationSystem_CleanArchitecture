@@ -1,4 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
+using EducationSystem.Application.Dtos.Request.Organisation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,5 +21,15 @@ public class OrganisationsController(IOrganisationService _organisationService) 
             return Ok(organisation);
 
         return NotFound("sorry organisation not found ");
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> AddAsync([FromBody] CreateOrganisationRequest createRequest)
+    {
+        var newOrganisation = await organisationService.AddAsync(createRequest);
+
+        if (newOrganisation is null)
+            return BadRequest("Failed to create organisation.");
+        return Ok(newOrganisation);
     }
 };

@@ -13,8 +13,4 @@ public class GradeResponseDto
     public Guid SchoolId { get; set; }
 
     public string SchoolName { get; set; } = string.Empty;
-
-    //public int SubjectsCount { get; set; }
-
-    //public int StudentsCount { get; set; }
 }

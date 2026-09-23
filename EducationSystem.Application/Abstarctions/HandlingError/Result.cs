@@ -18,10 +18,17 @@ public class Result
 
     public static Result Success() => new(true, Error.None);
 
-    public static Result Fail(Error error) => new(false, error);
+    public static Result Failure(Error error) => new(false, error);
+
+    public static Result<TValue> Success<TValue>(TValue value) => new(value, true, Error.None);
+
+    public static Result<TValue> Failure<TValue>(TValue value, Error error) => new(value, false, error);
+
+    // ⬇ cleaner overloads — no need to pass a value for failure cases
+    public static Result<TValue> Failure<TValue>(Error error) => new(default, false, error);
 }
 
-// we can return any value eith result do we make Generic Resut<T> Class
+// we can return any value with result do we make Generic Resut<T> Class
 public class Result<TValue> : Result
 {
     private readonly TValue? _value;
