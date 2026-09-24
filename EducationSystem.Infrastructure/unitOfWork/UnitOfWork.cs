@@ -25,7 +25,7 @@ public class UnitOfWork : IUnitOfWork
         SubjectRepository = new GenericRepository<Subject>(_context);
     }
 
-    public async Task<int> SaveChangesAsync() => await _context.SaveChangesAsync();
+    public async Task<int> SaveChangesAsync(CancellationToken ct = default) => await _context.SaveChangesAsync();
 
     public void Dispose() => _context.Dispose();
 }
