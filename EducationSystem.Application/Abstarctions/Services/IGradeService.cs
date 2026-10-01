@@ -1,19 +1,20 @@
-﻿using EducationSystem.Application.Dtos.Request.Grade;
-using EducationSystem.Application.Dtos.Response.Grade;
+﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Grade;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 
 public interface IGradeService
 {
-    Task<IReadOnlyList<GradeResponseDto>> GetAllAsync();
+    Task<Result<IReadOnlyList<GradeResponseDto>>> GetAllAsync(CancellationToken ct = default);
 
-    Task<GradeResponseDto?> GetByIdAsync(Guid Id);
+    Task<Result<GradeResponseDto?>> GetByIdAsync(Guid Id, CancellationToken ct = default);
 
-    Task<IReadOnlyList<GradeResponseDto>> SearchAsync(string gradeName);
+    Task<Result<IReadOnlyList<GradeResponseDto>>> SearchAsync(string gradeName, CancellationToken ct = default);
 
-    Task<GradeResponseDto> CreateAsync(CreateGradeRequest createRequestDto);
+    Task<Result<GradeResponseDto?>> CreateAsync(CreateGradeRequest createDto, CancellationToken ct = default);
 
-    Task<GradeResponseDto?> UpdateAsync(Guid Id, UpdateGradeRequest updateRequestDto);
+    Task<Result<GradeResponseDto?>> UpdateAsync(Guid Id, UpdateGradeRequest updateDto, CancellationToken ct = default);
 
-    Task<bool> DeleteAsync(Guid Id);
+    Task<Result> DeleteAsync(Guid Id, CancellationToken ct = default);
 }

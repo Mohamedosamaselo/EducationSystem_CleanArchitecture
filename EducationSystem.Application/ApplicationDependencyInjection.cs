@@ -1,8 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Services;
-using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Application.Services;
-using EducationSystem.Infrastructure.Identity;
 using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,6 +22,8 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ISchoolService, SchoolService>();
 
         services.AddScoped<ISubjectService, SubjectService>();
+
+        services.AddScoped<IEmailSender, EmailSender>();
 
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())
                 .AddFluentValidationAutoValidation();

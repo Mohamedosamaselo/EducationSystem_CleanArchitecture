@@ -7,9 +7,10 @@ public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 {
     Task<TEntity?> GetByIdAsync(Guid Id, CancellationToken ct = default);
 
-    Task<TEntity?> GetByIdWithIncludeAsync(Guid id, params Expression<Func<TEntity, object>>[] includes);
+    Task<TEntity?> GetByIdWithIncludeAsync(Guid id, CancellationToken cancellationToken = default, params Expression<Func<TEntity, object>>[] includes);
 
     Task<IReadOnlyList<TEntity>?> GetAllWithIncludesAsync(Expression<Func<TEntity, bool>>? filter = null,
+                                                          CancellationToken cancellationToken = default,
                                                           params Expression<Func<TEntity, object>>[] includes);
 
     Task<TEntity?> GetByNameAsync(string Name, CancellationToken ct = default); // Search

@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
-using EducationSystem.Application.Dtos.Request.Organisation;
+using EducationSystem.Application.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

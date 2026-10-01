@@ -1,4 +1,4 @@
-﻿using EducationSystem.Application.Dtos.Request.Auth;
+﻿using EducationSystem.Application.Dtos;
 using EducationSystem.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;

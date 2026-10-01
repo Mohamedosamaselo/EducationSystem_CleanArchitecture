@@ -29,4 +29,8 @@ public static class UserErrors
 
     public static readonly Error RoleAssignmentFailed =
         new("User.RoleAssignmentFailed", "Failed to assign the default role.");
+
+    public static readonly Error InvalidResetToken = new(
+    "User.InvalidResetToken",
+    "The password reset token is invalid or has expired.");
 }

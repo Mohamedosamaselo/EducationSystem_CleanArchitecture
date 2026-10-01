@@ -2,8 +2,7 @@
 using EducationSystem.Application.Abstarctions.HandlingError.Errors;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos.Request.School;
-using EducationSystem.Application.Dtos.Response;
+using EducationSystem.Application.Dtos;
 using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;

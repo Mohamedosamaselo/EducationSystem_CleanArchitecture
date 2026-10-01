@@ -1,4 +1,4 @@
-﻿using EducationSystem.Application.Dtos.Auth;
+﻿using EducationSystem.Application.Dtos;
 using EducationSystem.Domain.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;

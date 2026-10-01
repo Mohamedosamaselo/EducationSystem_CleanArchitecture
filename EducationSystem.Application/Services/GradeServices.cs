@@ -1,9 +1,9 @@
-﻿using EducationSystem.Application.Abstarctions.Services;
+﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos.Request.Grade;
-using EducationSystem.Application.Dtos.Response.Grade;
+using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Domain.Entities;
-using Microsoft.EntityFrameworkCore.Storage.Internal;
 
 namespace EducationSystem.Application.Services;
 
@@ -11,17 +11,20 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<IReadOnlyList<GradeResponseDto>> GetAllAsync()
+    public async Task<Result<IReadOnlyList<GradeResponseDto>>> GetAllAsync(CancellationToken ct = default)
     {
         // load navigational properties [Subject , school , users ] eager with grades
-        var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(null,
+        var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(null, ct,
                          p => p.Subjects,
                          p => p.School,
                          p => p.Users
                             );
 
-        if (grades == null || !grades.Any())
-            throw new Exception("No grades found.");
+        // If there are no grades, return a successful Result with an empty list.
+        if (grades is null || !grades.Any())
+        {
+            return Result.Success<IReadOnlyList<GradeResponseDto>>(new List<GradeResponseDto>());
+        }
 
         var gradeDtos = grades.Select(g => new GradeResponseDto
         {
@@ -35,46 +38,55 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             //StudentsCount = g.Users?.Count ?? 0
         }).ToList();
 
-        return gradeDtos;
+        return Result.Success<IReadOnlyList<GradeResponseDto>>(gradeDtos);
     }
 
-    public async Task<GradeResponseDto?> GetByIdAsync(Guid Id)
+    public async Task<Result<GradeResponseDto?>> GetByIdAsync(Guid Id, CancellationToken ct = default)
     {
-        // load navigational properties [Subject , school , users ] eager with grades
-        var grades = await _unitOfWork.GradeRepository.GetByIdWithIncludeAsync(Id,
-                         p => p.Subjects,
-                         p => p.School,
-                         p => p.Users
-                            );
+        var grade = await _unitOfWork.GradeRepository.GetByIdWithIncludeAsync(
+                        Id,
+                        ct,
+                        p => p.Subjects,
+                        p => p.School,
+                        p => p.Users
+                        );
 
-        if (grades == null)
-            throw new Exception("No grades found.");
-
-        var gradeDtos = new GradeResponseDto
+        if (grade is null)
         {
-            Id = Id,
-            Name = grades.Name,
-            Description = grades.Description,
-            IsActive = grades.IsActive,
-            SchoolId = grades.SchoolId,
-            SchoolName = grades.School?.Name ?? string.Empty,
-            //SubjectsCount = grades.Subjects?.Count ?? 0,
-            //StudentsCount = grades.Users?.Count ?? 0
+            return Result.Failure<GradeResponseDto?>(
+                new Error("Grade.NotFound", $"Grade with ID '{Id}' was not found."));
+        }
+
+        var gradeDto = new GradeResponseDto
+        {
+            Id = grade.Id,
+            Name = grade.Name,
+            Description = grade.Description,
+            IsActive = grade.IsActive,
+            SchoolId = grade.SchoolId,
+            SchoolName = grade.School?.Name ?? string.Empty,
         };
 
-        return gradeDtos;
+        return Result.Success<GradeResponseDto?>(gradeDto);
     }
 
-    public async Task<IReadOnlyList<GradeResponseDto>> SearchAsync(string gradeName)
+    public async Task<Result<IReadOnlyList<GradeResponseDto>>> SearchAsync(string gradeName, CancellationToken ct = default)
     {
-        var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(g => g.Name.ToLower().Contains(gradeName.ToLower()),
+        var searchTerm = gradeName?.ToLower() ?? string.Empty;
+
+        var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(
+                         g => g.Name.ToLower().Contains(searchTerm),
+                         ct,
                          p => p.Subjects,
                          p => p.School,
                          p => p.Users
-                            );
+                         );
 
-        if (grades == null || !grades.Any())
-            throw new Exception("No grades found.");
+        // For searches, returning an empty list on no matches is standard REST practice
+        if (grades is null || !grades.Any())
+        {
+            return Result.Success<IReadOnlyList<GradeResponseDto>>(new List<GradeResponseDto>());
+        }
 
         var gradeDtos = grades.Select(g => new GradeResponseDto
         {
@@ -84,15 +96,22 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             IsActive = g.IsActive,
             SchoolId = g.SchoolId,
             SchoolName = g.School?.Name ?? string.Empty,
-            //SubjectsCount = g.Subjects?.Count ?? 0,
-            //StudentsCount = g.Users?.Count ?? 0
         }).ToList();
 
-        return gradeDtos;
+        return Result.Success<IReadOnlyList<GradeResponseDto>>(gradeDtos);
     }
 
-    public async Task<GradeResponseDto> CreateAsync(CreateGradeRequest createRequestDto)
+    public async Task<Result<GradeResponseDto?>> CreateAsync(CreateGradeRequest createRequestDto, CancellationToken ct = default)
     {
+        // 1. Validate School exists
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(createRequestDto.SchoolId, ct);
+        if (school is null)
+        {
+            return Result.Failure<GradeResponseDto?>(
+                new Error("School.NotFound", $"School with ID '{createRequestDto.SchoolId}' was not found."));
+        }
+
+        // 2. Create entity
         var grade = new Grade
         {
             Name = createRequestDto.Name,
@@ -101,10 +120,20 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             IsActive = true
         };
 
-        await _unitOfWork.GradeRepository.AddAsync(grade);
+        await _unitOfWork.GradeRepository.AddAsync(grade, ct);
 
-        await _unitOfWork.SaveChangesAsync();
+        // 3. Save changes safely
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<GradeResponseDto?>(
+                new Error("Grade.CreationFailed", $"Failed to create grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
+        }
 
+        // 4. Map and return
         var gradeResponseDto = new GradeResponseDto
         {
             Id = grade.Id,
@@ -112,27 +141,47 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Description = grade.Description,
             IsActive = grade.IsActive,
             SchoolId = grade.SchoolId,
-            SchoolName = (await _unitOfWork.SchoolRepository.GetByIdAsync(grade.SchoolId))?.Name ?? string.Empty
+            SchoolName = school.Name
         };
-        return gradeResponseDto;
+
+        return Result.Success<GradeResponseDto?>(gradeResponseDto);
     }
 
-    public async Task<GradeResponseDto?> UpdateAsync(Guid Id,
-        UpdateGradeRequest updateRequestDto)
+    public async Task<Result<GradeResponseDto?>> UpdateAsync(Guid Id, UpdateGradeRequest updateRequestDto, CancellationToken cancellationToken = default)
     {
-        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(Id);
+        // 1. Fetch the grade AND its School in one trip
+        var grade = await _unitOfWork.GradeRepository.GetByIdWithIncludeAsync(
+                        Id,
+                        cancellationToken,
+                        p => p.School
+                        );
 
-        if (grade == null)
-            throw new Exception("Grade not found.");
+        if (grade is null)
+        {
+            return Result.Failure<GradeResponseDto?>(
+                new Error("Grade.NotFound", $"Grade with ID '{Id}' was not found."));
+        }
 
+        // 2. Update fields
         grade.Name = updateRequestDto.Name;
         grade.Description = updateRequestDto.Description;
         grade.IsActive = updateRequestDto.IsActive;
+        grade.ModifiedAt = DateTime.UtcNow;
 
         _unitOfWork.GradeRepository.Update(grade);
 
-        await _unitOfWork.SaveChangesAsync();
+        // 3. Save changes safely
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<GradeResponseDto?>(
+                new Error("Grade.UpdateFailed", $"Failed to update grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
+        }
 
+        // 4. Map to DTO
         var gradeResponseDto = new GradeResponseDto
         {
             Id = grade.Id,
@@ -140,23 +189,33 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Description = grade.Description,
             IsActive = grade.IsActive,
             SchoolId = grade.SchoolId,
-            SchoolName = (await _unitOfWork.SchoolRepository.GetByIdAsync(grade.SchoolId))?.Name ?? string.Empty
+            SchoolName = grade.School?.Name ?? string.Empty
         };
-        return gradeResponseDto;
+
+        return Result.Success<GradeResponseDto?>(gradeResponseDto);
     }
 
-    public async Task<bool> DeleteAsync(Guid Id)
+    public async Task<Result> DeleteAsync(Guid Id, CancellationToken ct = default)
     {
-        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(Id);
+        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(Id, ct);
 
-        if (grade == null)
-
-            return false;
+        if (grade is null)
+        {
+            return Result.Failure(new Error("Grade.NotFound", $"Grade with ID '{Id}' was not found."));
+        }
 
         _unitOfWork.GradeRepository.Delete(grade);
 
-        await _unitOfWork.SaveChangesAsync();
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(
+                new Error("Grade.DeletionFailed", $"Failed to delete grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
+        }
 
-        return true;
+        return Result.Success();
     }
 }

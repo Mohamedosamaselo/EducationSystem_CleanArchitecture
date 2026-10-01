@@ -1,6 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.Services;
-using EducationSystem.Application.Dtos.Request.School;
+using EducationSystem.Application.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,8 +16,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 
     [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet("GetAll")]
-    public async Task<IActionResult> GetAllAsync(CancellationToken ct)
-        => (await _schoolService.GetAllAsync(ct)).ToActionResult(this);
+    public async Task<IActionResult> GetAllAsync(CancellationToken ct) => (await _schoolService.GetAllAsync(ct)).ToActionResult(this);
 
     // GET  api/schools/{id}
     [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]

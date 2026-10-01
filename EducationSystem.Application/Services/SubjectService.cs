@@ -1,8 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos.Request.Subject;
-using EducationSystem.Application.Dtos.Response.Grade;
-using EducationSystem.Application.Dtos.Response.Subject;
+using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Subject;
 using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;
@@ -11,10 +10,10 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<IReadOnlyList<SubjectResponseDto>> GetAllSubjectsAsync()
+    public async Task<IReadOnlyList<SubjectResponseDto>> GetAllSubjectsAsync(CancellationToken CT = default)
     {
         // loaad Subject with Grades , School Navigational Property
-        var subjects = await _unitOfWork.SubjectRepository.GetAllWithIncludesAsync(null,
+        var subjects = await _unitOfWork.SubjectRepository.GetAllWithIncludesAsync(null, CT,
             s => s.Grades,
             s => s.School);
 
@@ -42,11 +41,12 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         }).ToList();
     }
 
-    public async Task<SubjectResponseDto?> GetSubjectAsync(Guid id)
+    public async Task<SubjectResponseDto?> GetSubjectAsync(Guid id, CancellationToken CT = default)
     {
         // loaad Subject with Grades , School Navigational Property
         var subject = await _unitOfWork.SubjectRepository
             .GetByIdWithIncludeAsync(id,
+                                     CT,
                                      s => s.Grades,
                                      s => s.School);
 
@@ -74,9 +74,9 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         };
     }
 
-    public async Task<SubjectResponseDto?> GetByNameAsync(string subjectName)
+    public async Task<SubjectResponseDto?> GetByNameAsync(string subjectName, CancellationToken CT = default)
     {
-        var subject = await _unitOfWork.SubjectRepository.GetByNameAsync(subjectName);
+        var subject = await _unitOfWork.SubjectRepository.GetByNameAsync(subjectName, CT);
 
         if (subject == null)
             throw new Exception("No Subjects ");
@@ -102,7 +102,7 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         };
     }
 
-    public async Task<SubjectResponseDto> CreateSubjectAsync(CreateSubjectRequest subjectRequest)
+    public async Task<SubjectResponseDto> CreateSubjectAsync(CreateSubjectRequest subjectRequest, CancellationToken CT = default)
     {
         var newSubject = new Subject
         {
@@ -111,14 +111,14 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
             SchoolId = subjectRequest.SchoolId,
         };
 
-        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(subjectRequest.GradeId);
+        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(subjectRequest.GradeId, CT);
 
         if (grade == null)
             throw new Exception("Grade not found");
 
         newSubject.Grades.Add(grade);
 
-        await _unitOfWork.SubjectRepository.AddAsync(newSubject);
+        await _unitOfWork.SubjectRepository.AddAsync(newSubject, CT);
 
         await _unitOfWork.SaveChangesAsync();
 
@@ -140,9 +140,9 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
     }
 
     public async Task<SubjectResponseDto?> UpdateSubjectAsync(Guid id,
-        UpdateSubjectRequest subjectRequest)
+        UpdateSubjectRequest subjectRequest, CancellationToken CT = default)
     {
-        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id);
+        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id, CT);
 
         if (subject == null)
             throw new Exception("no Subject Found");
@@ -152,7 +152,7 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         subject.SchoolId = subjectRequest.SchoolId;
 
         _unitOfWork.SubjectRepository.Update(subject);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(CT);
 
         return new SubjectResponseDto
         {
@@ -173,15 +173,15 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         };
     }
 
-    public async Task<bool> DeleteAsync(Guid id)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken CT = default)
     {
-        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id);
+        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id, CT);
         if (subject == null)
             return false;
 
         _unitOfWork.SubjectRepository.Delete(subject);
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(CT);
         return true;
     }
 }

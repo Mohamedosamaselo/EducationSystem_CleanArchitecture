@@ -13,6 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 #region Configure Services
 
+builder.Services.AddHttpContextAccessor();
+
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(options =>
 {

@@ -1,13 +1,17 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos.Auth;
+using EducationSystem.Application.Dtos;
 using EducationSystem.Domain.Entities;
+using EducationSystem.Infrastructure.Identity;
 using EducationSystem.Infrastructure.Persistence;
+using EducationSystem.Infrastructure.Persistence.Identity;
 using EducationSystem.Infrastructure.Repositories;
 using EducationSystem.Infrastructure.unitOfWork;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,24 +39,41 @@ public static class InfrastructureDependencyInjection
     }
 
     // Database
-
     private static void AddDatabase(IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"))
-                   .UseLazyLoadingProxies()
-                   );
+        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(configuration
+                                                    .GetConnectionString("DefaultConnection"))
+                                                    .UseLazyLoadingProxies());
     }
 
     // Identity
 
     private static void AddAuthConfig(IServiceCollection services)
     {
-        services.AddSingleton<IJwtProvider, JwtProvider>();
+        services
+             .AddIdentityCore<ApplicationUser>(options =>
+             {
+                 // ===== THE single source of truth for Identity options =====
 
-        services.AddIdentity<ApplicationUser, ApplicationRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders();
+                 //options.Password.RequiredLength = 8;
+                 //options.Password.RequireDigit = true;
+                 //options.Password.RequireUppercase = true;
+                 //options.Password.RequireLowercase = false;
+                 //options.Password.RequireNonAlphanumeric = false;
+
+                 options.User.RequireUniqueEmail = true;
+                 options.SignIn.RequireConfirmedEmail = false;   // until the confirmation flow exists
+             })
+             .AddUserStore<CustomUserStore>()
+             .AddRoles<ApplicationRole>()                                            // your custom role class
+             .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>() // built-in role store over YOUR types
+             .AddDefaultTokenProviders();
+
+        // Reset/forgot-password tokens expire after 1 hour (default: 3 days — too long)
+        services.Configure<DataProtectionTokenProviderOptions>(o =>
+            o.TokenLifespan = TimeSpan.FromHours(1));
+
+        services.AddSingleton<IJwtProvider, JwtProvider>();
     }
 
     // Identity Options
@@ -76,8 +97,7 @@ public static class InfrastructureDependencyInjection
             options.SignIn.RequireConfirmedEmail = true;
 
             // Lockout
-            options.Lockout.DefaultLockoutTimeSpan =
-                TimeSpan.FromMinutes(5);
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
 
             options.Lockout.MaxFailedAccessAttempts = 5;
 
@@ -108,7 +128,6 @@ public static class InfrastructureDependencyInjection
                    ValidateIssuer = true,
                    ValidateAudience = true,
                    ValidateLifetime = true,
-
                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Key"]!)),
                    ValidIssuer = configuration["JWT:Issuer"],
                    ValidAudience = configuration["JWT:Audience"],
@@ -131,5 +150,9 @@ public static class InfrastructureDependencyInjection
     {
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        //services.AddHttpContextAccessor();
+
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
     }
 }

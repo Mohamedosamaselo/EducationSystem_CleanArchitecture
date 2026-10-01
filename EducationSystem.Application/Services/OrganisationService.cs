@@ -2,7 +2,7 @@
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Abstractions.HandlingError.Errors;
-using EducationSystem.Application.Dtos.Request.Organisation;
+using EducationSystem.Application.Dtos;
 using EducationSystem.Application.Dtos.Response;
 using EducationSystem.Application.Dtos.Response.Organisation;
 using EducationSystem.Domain.Entities;
@@ -13,7 +13,7 @@ public class OrganisationService(IUnitOfWork unitOfWork) : IOrganisationService
 {
     private readonly IUnitOfWork unitOfWork = unitOfWork;
 
-    public async Task<Result<OrganisationResponse?>> GetByIdAsync(Guid id)
+    public async Task<Result<OrganisationResponse?>> GetByIdAsync(Guid id, CancellationToken CT = default)
     {
         // 1. Validate the id (defensive)
         if (id == Guid.Empty)
@@ -21,7 +21,7 @@ public class OrganisationService(IUnitOfWork unitOfWork) : IOrganisationService
 
         // 2. Fetch the organisation (with Schools included)
         var organisation = await unitOfWork.OrganisationRepository
-            .GetByIdWithIncludeAsync(id, o => o.Schools);
+            .GetByIdWithIncludeAsync(id, CT, o => o.Schools);
 
         // 3. Handle not found
         if (organisation is null)
@@ -30,7 +30,7 @@ public class OrganisationService(IUnitOfWork unitOfWork) : IOrganisationService
         return Result.Success<OrganisationResponse?>(MapToOrganisationResponse(organisation));
     }
 
-    public async Task<Result<OrganisationResponse?>> AddAsync(CreateOrganisationRequest createDto)
+    public async Task<Result<OrganisationResponse?>> AddAsync(CreateOrganisationRequest createDto, CancellationToken CT = default)
     {
         // 1. Validate input
         if (createDto is null)
@@ -46,7 +46,7 @@ public class OrganisationService(IUnitOfWork unitOfWork) : IOrganisationService
 
         // 2. Check for duplicate email (business rule)
         var existingByEmail = await unitOfWork.OrganisationRepository
-            .FirstOrDefaultAsync(o => o.Email == createDto.Email);
+            .FirstOrDefaultAsync(o => o.Email == createDto.Email, CT);
 
         if (existingByEmail is not null)
             return Result.Failure<OrganisationResponse?>(OrganisationErrors.DuplicateEmail);
@@ -68,12 +68,12 @@ public class OrganisationService(IUnitOfWork unitOfWork) : IOrganisationService
         };
 
         // 5. Add the entity to the repository
-        await unitOfWork.OrganisationRepository.AddAsync(newOrganisation);
+        await unitOfWork.OrganisationRepository.AddAsync(newOrganisation, CT);
 
         // 6. Save changes — wrap in try/catch so DB-level failures become Result.Failure
         try
         {
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync(CT);
         }
         catch (Exception)
         {

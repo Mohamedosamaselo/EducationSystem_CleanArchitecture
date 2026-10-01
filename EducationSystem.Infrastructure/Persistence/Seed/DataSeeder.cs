@@ -9,8 +9,8 @@ namespace EducationSystem.Infrastructure.Persistence.Seed;
 public static class DataSeeder
 {
     public static async Task SeedAsync(ApplicationDbContext context,
-        UserManager<ApplicationUser> userManager,
-        RoleManager<ApplicationRole> roleManager)
+                                        UserManager<ApplicationUser> userManager,
+                                        RoleManager<ApplicationRole> roleManager)
     {
         await SeedOrganizationAsync(context);
 
@@ -312,55 +312,162 @@ new School
         await context.SaveChangesAsync();
     }
 
-    private static async Task SeedUsersAsync(UserManager<ApplicationUser> userManager,
-                                            RoleManager<ApplicationRole> roleManager)
+    private static async Task SeedUsersAsync(
+    UserManager<ApplicationUser> userManager,
+    RoleManager<ApplicationRole> roleManager)
     {
-        if (await userManager.Users.AnyAsync())
-            return;
+        var users = new List<(
+            string UserName,
+            string Email,
+            string Password,
+            string Role,
+            string FirstName,
+            string LastName,
+            string Address,
+            DateTime DateOfBirth,
+            Guid? OrganisationId,
+            Guid? SchoolId,
+            Guid? GradeId)>
+    {
+        (
+            "orgadmin",
+            "orgadmin@example.com",
+            "OrgAdmin@123",
+            "OrganisationAdmin",
+            "Ali",
+            "Hassan",
+            "Cairo",
+            new DateTime(1985, 5, 10),
+            Guid.Parse("bcaf68e5-267b-42b1-a7a0-269dc05c84b0"),
+            null,
+            null
+        ),
 
-        var users = new List<(string UserName, string Email, string Password, string Role, string FirstName, string LastName, string Address, Guid? SchoolId, Guid? GradeId)>
-    {
-        ("orgadmin", "orgadmin@example.com", "OrgAdmin@123", "OrganisationAdmin", "Ali", "Hassan","Cairo" ,null, null),
-        ("schooladmin", "schooladmin@example.com", "SchoolAdmin@123", "SchoolAdmin", "Sara", "Mahmoud","ElRehab", Guid.Parse("31464c0b-4b25-4d99-a80d-23add5f25565"), null),
-        ("teacher", "teacher@example.com", "Teacher@123", "Teacher", "Omar", "Khaled","Nasr city ", Guid.Parse("005ac0e9-5468-4a77-aecc-741c85a4e7b9"), Guid.Parse("65f3d6d6-754a-4e03-b6c2-700782aa8050")),
-        ("student", "student@example.com", "Student@123", "Student", "Mona", "Ibrahim", "Helioplis",Guid.Parse("e41b0fdf-11ea-4453-9358-b66c3f452844"), Guid.Parse("844d8e13-75f8-45da-b3bc-a3203f8d2cd1")),
-        ("parent", "parent@example.com", "Parent@123", "Parent", "Hussein", "Ali","Alx" ,null, null)
+        (
+            "schooladmin",
+            "schooladmin@example.com",
+            "SchoolAdmin@123",
+            "SchoolAdmin",
+            "Sara",
+            "Mahmoud",
+            "ElRehab",
+            new DateTime(1990, 8, 20),
+            null,
+            Guid.Parse("9cd1b0da-286b-4280-ac49-131c4c0e6f99"),// Cairo International School
+            null
+        ),
+
+        (
+            "teacher",
+            "teacher@example.com",
+            "Teacher@123",
+            "Teacher",
+            "Omar",
+            "Khaled",
+            "Nasr City",
+            new DateTime(1988, 3, 15),
+            null,
+            Guid.Parse("9cd1b0da-286b-4280-ac49-131c4c0e6f99"),
+            Guid.Parse("92EBFD6E-AB2E-47C0-93DF-2412FA3BBB8A") // garde 4
+        ),
+
+        (
+            "student",
+            "student@example.com",
+            "Student@123",
+            "Student",
+            "Mona",
+            "Ibrahim",
+            "Heliopolis",
+            new DateTime(2010, 11, 25),
+            null,
+            Guid.Parse("9cd1b0da-286b-4280-ac49-131c4c0e6f99"),
+            Guid.Parse("92EBFD6E-AB2E-47C0-93DF-2412FA3BBB8A")
+        ),
+
+        (
+            "parent",
+            "parent@example.com",
+            "Parent@123",
+            "Parent",
+            "Hussein",
+            "Ali",
+            "Alexandria",
+            new DateTime(1982, 2, 5),
+            null,
+            null,
+            null
+        )
     };
 
-        foreach (var (userName, email, password, roleName, firstName, lastName, address, schoolId, gradeId) in users)
+        foreach (var userData in users)
         {
-            var existingUser = await userManager.FindByEmailAsync(email);
+            var existingUser = await userManager.FindByEmailAsync(userData.Email);
+
             if (existingUser != null)
                 continue;
 
             var newUser = new ApplicationUser
             {
-                UserName = userName,
-                Email = email,
+                UserName = userData.UserName,
+                Email = userData.Email,
                 EmailConfirmed = true,
-                FirstName = firstName,
-                LastName = lastName,
-                Address = address,
-                DateOfBirth = DateTime.UtcNow.AddYears(-20), // dummy DOB
-                Status = UserStatus.Active,
-                CreatedAt = DateTime.UtcNow,
-                SchoolId = schoolId,
-                GradeId = gradeId
+
+                FirstName = userData.FirstName,
+                LastName = userData.LastName,
+                Address = userData.Address,
+
+                DateOfBirth = userData.DateOfBirth,
+
+                IsActive = true,
+
+                OrganisationId = userData.OrganisationId,
+                SchoolId = userData.SchoolId,
+                GradeId = userData.GradeId,
+
+                // Your new property
+                Role = userData.Role,
+
+                CreatedAt = DateTime.UtcNow
             };
 
-            var result = await userManager.CreateAsync(newUser, password);
+            var result = await userManager.CreateAsync(
+                newUser,
+                userData.Password);
+
             if (!result.Succeeded)
             {
                 foreach (var error in result.Errors)
                 {
-                    Console.WriteLine($"{error.Code}: {error.Description}");
+                    Console.WriteLine(
+                        $"Failed to create {userData.Email}: " +
+                        $"{error.Code}: {error.Description}");
                 }
+
+                continue;
+            }
+            // check on Role
+            if (!await roleManager.RoleExistsAsync(userData.Role))
+            {
+                Console.WriteLine(
+                    $"Role '{userData.Role}' does not exist.");
+
                 continue;
             }
 
-            if (await roleManager.RoleExistsAsync(roleName))
+            var roleResult = await userManager.AddToRoleAsync(
+                newUser,
+                userData.Role);
+
+            if (!roleResult.Succeeded)
             {
-                await userManager.AddToRoleAsync(newUser, roleName);
+                foreach (var error in roleResult.Errors)
+                {
+                    Console.WriteLine(
+                        $"Failed to assign role '{userData.Role}' " +
+                        $"to '{userData.Email}': " +
+                        $"{error.Code}: {error.Description}");
+                }
             }
         }
     }

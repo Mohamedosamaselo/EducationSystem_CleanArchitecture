@@ -1,4 +1,4 @@
-﻿using EducationSystem.Application.Dtos.Request.Auth;
+﻿using EducationSystem.Application.Dtos;
 using FluentValidation;
 
 namespace EducationSystem.Application.Validators;
@@ -31,10 +31,10 @@ public class ResetPasswordRequestDtoValidator : AbstractValidator<ResetPasswordR
             .Matches("[^a-zA-Z0-9]")
             .WithMessage("Password must contain at least one special character.");
 
-        RuleFor(x => x.ConfirmPassword)
-            .NotEmpty()
-            .WithMessage("Confirm password is required.")
-            .Equal(x => x.NewPassword)
-            .WithMessage("Passwords do not match.");
+        //RuleFor(x => x.ConfirmPassword)
+        //    .NotEmpty()
+        //    .WithMessage("Confirm password is required.")
+        //    .Equal(x => x.NewPassword)
+        //    .WithMessage("Passwords do not match.");
     }
 }

@@ -18,7 +18,7 @@ public class School : BaseAuditableEntity
     // Navigational property
     public virtual Organisation Organisation { get; set; } = null!;
 
-    public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>();
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
     public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>();
 }

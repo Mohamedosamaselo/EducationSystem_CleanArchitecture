@@ -1,6 +1,8 @@
-﻿namespace EducationSystem.Domain.Entities.Common;
+﻿using EducationSystem.Domain.Interfaces.Common;
 
-public abstract class BaseAuditableEntity : BaseEntity
+namespace EducationSystem.Domain.Entities.Common;
+
+public abstract class BaseAuditableEntity : BaseEntity, IBaseAuditableEntity
 {
     public DateTime CreatedAt { get; set; }
     public Guid? CreatedBy { get; set; }
