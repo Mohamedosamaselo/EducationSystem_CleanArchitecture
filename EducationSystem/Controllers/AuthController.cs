@@ -31,6 +31,13 @@ public class AuthController(IAuthService authService) : ControllerBase
         return result.ToActionResult(this);
     }
 
+    [HttpPost("ConfirmEmail")]
+    public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailRequest request)
+    {
+        var result = await _authService.ConfirmEmailAsync(request);
+        return result.IsSuccess ? Ok(new { message = result }) : result.ToActionResult(this);
+    }
+
     [HttpPost("ForgotPassword")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {

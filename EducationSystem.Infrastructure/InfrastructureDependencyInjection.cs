@@ -50,24 +50,25 @@ public static class InfrastructureDependencyInjection
 
     private static void AddAuthConfig(IServiceCollection services)
     {
-        services
-             .AddIdentityCore<ApplicationUser>(options =>
-             {
-                 // ===== THE single source of truth for Identity options =====
+        services.AddIdentityCore<ApplicationUser>(options =>
+                 {
+                     // signin settings
+                     options.User.RequireUniqueEmail = true;
+                     options.SignIn.RequireConfirmedEmail = false;
+                     // Lockout settings
+                     /// options.Lockout.MaxFailedAccessAttempts = 5;
+                     /// options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+                     /// options.Lockout.AllowedForNewUsers = true;
+                 })
+                 .AddUserStore<CustomUserStore>()
+                 .AddRoles<ApplicationRole>()                                            // your custom role class
+                 .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>() // built-in role store over YOUR types
+                 .AddDefaultTokenProviders();
 
-                 //options.Password.RequiredLength = 8;
-                 //options.Password.RequireDigit = true;
-                 //options.Password.RequireUppercase = true;
-                 //options.Password.RequireLowercase = false;
-                 //options.Password.RequireNonAlphanumeric = false;
+        services.AddScoped<SignInManager<ApplicationUser>>();
 
-                 options.User.RequireUniqueEmail = true;
-                 options.SignIn.RequireConfirmedEmail = false;   // until the confirmation flow exists
-             })
-             .AddUserStore<CustomUserStore>()
-             .AddRoles<ApplicationRole>()                                            // your custom role class
-             .AddRoleStore<RoleStore<ApplicationRole, ApplicationDbContext, Guid>>() // built-in role store over YOUR types
-             .AddDefaultTokenProviders();
+        services.AddAuthentication(IdentityConstants.ApplicationScheme)
+                 .AddIdentityCookies();
 
         // Reset/forgot-password tokens expire after 1 hour (default: 3 days — too long)
         services.Configure<DataProtectionTokenProviderOptions>(o =>
@@ -145,13 +146,10 @@ public static class InfrastructureDependencyInjection
          });
     }
 
-    private static void AddApplicationAndInfrastructureServices(
-        IServiceCollection services)
+    private static void AddApplicationAndInfrastructureServices(IServiceCollection services)
     {
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-        //services.AddHttpContextAccessor();
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
     }

@@ -7,6 +7,8 @@ public interface IAuthService
 {
     Task<Result<AuthResponse?>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
+    Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request);
+
     Task<Result<AuthResponse?>> GetTokenAsync(string Email, string Password, CancellationToken cancellationToken = default);
 
     Task<Result<string>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken = default);

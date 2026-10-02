@@ -73,8 +73,18 @@ public class CustomUserStore(ApplicationDbContext db) :
     }
 
     // Called by: UserManager.FindByIdAsync
-    public Task<ApplicationUser?> FindByIdAsync(string userId, CancellationToken ct)
-        => db.Users.FirstOrDefaultAsync(u => u.Id == Guid.Parse(userId), ct);
+    public async Task<ApplicationUser?> FindByIdAsync(
+    string userId,
+    CancellationToken ct)
+    {
+        if (!Guid.TryParse(userId, out var id))
+        {
+            return null;
+        }
+
+        return await db.Users
+            .FirstOrDefaultAsync(u => u.Id == id, ct);
+    }
 
     // Called by: UserManager.FindByNameAsync (+ username uniqueness validation)
     public Task<ApplicationUser?> FindByNameAsync(string normalizedUserName, CancellationToken ct)
