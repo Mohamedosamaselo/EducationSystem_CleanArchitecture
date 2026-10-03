@@ -19,8 +19,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                             IJwtProvider jwtProvider,
                             IEmailSender emailSender,
                             IHttpContextAccessor httpContextAccessor,
-                             ILogger<IAuthService> logger,
-                               IConfiguration configuration) : IAuthService
+                            ILogger<IAuthService> logger,
+                            IConfiguration configuration) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -802,16 +802,13 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     // 5. CHANGE PASSWORD
     // ============================================================
 
-    public async Task<Result<string>> ChangePasswordAsync(
-        ChangePasswordRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<Result<string>> ChangePasswordAsync(string userId, ChangePasswordRequest request)
     {
         // --------------------------------------------------------
         // 5.1 Get the current HTTP context
         // --------------------------------------------------------
 
-        var httpContext =
-            _httpContextAccessor.HttpContext;
+        var httpContext = _httpContextAccessor.HttpContext;
 
         if (httpContext is null)
         {
@@ -821,7 +818,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                     "HTTP context is unavailable."));
         }
 
-        // --------------------------------------------------------
         // 5.2 Get the authenticated user principal from JWT
         // --------------------------------------------------------
 
@@ -835,26 +831,15 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                     "User is not authenticated."));
         }
 
-        // --------------------------------------------------------
         // 5.3 Find the ApplicationUser
         // --------------------------------------------------------
 
-        var user =
-            await _userManager.GetUserAsync(principal);
+        var user = await _userManager.GetUserAsync(principal);
 
-        if (user is null)
-        {
-            return Result.Failure<string>(
-                new Error(
-                    "User.NotFound",
-                    "User was not found."));
-        }
-
-        // --------------------------------------------------------
         // 5.4 Check whether the account is active
         // --------------------------------------------------------
 
-        if (!user.IsActive)
+        if (!user!.IsActive)
         {
             return Result.Failure<string>(
                 new Error(
@@ -867,10 +852,9 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // --------------------------------------------------------
 
         var result =
-            await _userManager.ChangePasswordAsync(
-                user,
-                request.CurrentPassword,
-                request.NewPassword);
+            await _userManager.ChangePasswordAsync(user,
+                                                    request.CurrentPassword,
+                                                    request.NewPassword);
 
         // --------------------------------------------------------
         // 5.6 Handle Identity validation errors
@@ -888,30 +872,30 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                         "Password.InvalidCurrentPassword",
                         "The current password is incorrect."),
 
-                "PasswordTooShort" =>
-                    new Error(
-                        "Password.TooShort",
-                        firstError.Description),
+                //"PasswordTooShort" =>
+                //    new Error(
+                //        "Password.TooShort",
+                //        firstError.Description),
 
-                "PasswordRequiresDigit" =>
-                    new Error(
-                        "Password.RequiresDigit",
-                        firstError.Description),
+                //"PasswordRequiresDigit" =>
+                //    new Error(
+                //        "Password.RequiresDigit",
+                //        firstError.Description),
 
-                "PasswordRequiresLower" =>
-                    new Error(
-                        "Password.RequiresLower",
-                        firstError.Description),
+                //"PasswordRequiresLower" =>
+                //    new Error(
+                //        "Password.RequiresLower",
+                //        firstError.Description),
 
-                "PasswordRequiresUpper" =>
-                    new Error(
-                        "Password.RequiresUpper",
-                        firstError.Description),
+                //"PasswordRequiresUpper" =>
+                //    new Error(
+                //        "Password.RequiresUpper",
+                //        firstError.Description),
 
-                "PasswordRequiresNonAlphanumeric" =>
-                    new Error(
-                        "Password.RequiresSpecialCharacter",
-                        firstError.Description),
+                //"PasswordRequiresNonAlphanumeric" =>
+                //    new Error(
+                //        "Password.RequiresSpecialCharacter",
+                //        firstError.Description),
 
                 _ =>
                     new Error(

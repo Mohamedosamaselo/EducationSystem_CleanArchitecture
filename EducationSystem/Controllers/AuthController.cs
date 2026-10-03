@@ -1,8 +1,8 @@
-﻿//using EducationSystem.Application.Abstarctions.Identity;
-using EducationSystem.Application.Abstarctions.HandlingError;
+﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EducationSystem.WebApi.Controllers;
 
@@ -69,9 +69,28 @@ public class AuthController(IAuthService authService) : ControllerBase
     [HttpPost("ChangePassword")]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
     {
-        var result = await _authService.ChangePasswordAsync(
-            request,
-            cancellationToken);
+        //var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //if (string.IsNullOrEmpty(userId))
+        //{
+        //    return Unauthorized(new
+        //    {
+        //        message = "User ID was not found in the token."
+        //    });
+        //}
+
+        // Get the authenticated user's ID from the JWT
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        // Make sure the claim exists and contains a valid Guid
+        if (!Guid.TryParse(userIdClaim, out var userId))
+        {
+            return Unauthorized(new
+            {
+                message = "Invalid user identity."
+            });
+        }
+        var result = await _authService.ChangePasswordAsync(userIdClaim, request);
 
         return result.IsSuccess
             ? Ok(new { message = result.Value })
