@@ -16,4 +16,6 @@ public interface IAuthService
     Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default);
 
     Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default);
+
+    Task<string> ResendConfirmationEmailAsync(ResendConfirmationEmailRequest request);
 }

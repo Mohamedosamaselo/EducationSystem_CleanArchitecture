@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text;
 
@@ -18,7 +19,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                             IJwtProvider jwtProvider,
                             IEmailSender emailSender,
                             IHttpContextAccessor httpContextAccessor,
-                             ILogger<IAuthService> logger) : IAuthService
+                             ILogger<IAuthService> logger,
+                               IConfiguration configuration) : IAuthService
 {
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -27,6 +29,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     private readonly IEmailSender _emailSender = emailSender;
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly ILogger _logger = logger;
+    private readonly IConfiguration _configuration = configuration;
 
     //public async Task<Result<AuthResponse?>> RegisterAsync(
     //    RegisterRequest request,
@@ -1004,8 +1007,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     // 6. CONFIRM EMAIL
     // ============================================================
 
-    public async Task<Result> ConfirmEmailAsync(
-        ConfirmEmailRequest request)
+    public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
     {
         // --------------------------------------------------------
         // 6.1 Find the user
@@ -1111,5 +1113,58 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // true
 
         return Result.Success();
+    }
+
+    public async Task<string> ResendConfirmationEmailAsync(ResendConfirmationEmailRequest request)
+    {
+        // 1. find the user by email
+        var user = await _userManager.FindByEmailAsync(request.Email);
+
+        // 2. Don't reveal whether the email exists
+        // This prevents user/account enumeration.
+        if (user is null)
+            return "If this email exists, a confirmation email has been sent.";
+
+        // 3. Check if the email is already confirmed
+        if (user.EmailConfirmed)
+            return "Email is already confirmed.";
+
+        // 4. Generate a new email confirmation token
+        var confirmationToken =
+            await _userManager.GenerateEmailConfirmationTokenAsync(user);
+
+        // 5. Encode the token so it can safely be placed inside a URL
+        var encodedToken = WebEncoders.Base64UrlEncode(
+            Encoding.UTF8.GetBytes(confirmationToken));
+
+        // 6. Get frontend confirmation URL from configuration
+        var confirmationUrl = _configuration["Frontend:ConfirmationUrl"];
+
+        if (string.IsNullOrWhiteSpace(confirmationUrl))
+        {
+            throw new InvalidOperationException(
+                "Frontend:ConfirmationUrl is not configured.");
+        }
+
+        // 7. Build confirmation link
+        var confirmationLink =
+            $"{confirmationUrl}?userId={user.Id}&token={encodedToken}";
+
+        // 8. Send confirmation email
+        await _emailSender.SendAsync(
+            user.Email!,
+            "Confirm your email",
+            $"""
+            Hello {user.UserName},
+
+            Please confirm your email by clicking the following link:
+
+            {confirmationLink}
+
+            If you did not create this account, you can ignore this email.
+            """);
+
+        // 9. Return success message
+        return "If this email exists, a confirmation email has been sent.";
     }
 }

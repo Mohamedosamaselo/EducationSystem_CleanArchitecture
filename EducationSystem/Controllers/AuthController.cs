@@ -38,6 +38,18 @@ public class AuthController(IAuthService authService) : ControllerBase
         return result.IsSuccess ? Ok(new { message = result }) : result.ToActionResult(this);
     }
 
+    [HttpPost("ResendConfirmEmail")]
+    public async Task<IActionResult> ResendConfirmationEmail(
+     [FromBody] ResendConfirmationEmailRequest request)
+    {
+        var result = await _authService.ResendConfirmationEmailAsync(request);
+
+        return Ok(new
+        {
+            message = result
+        });
+    }
+
     [HttpPost("ForgotPassword")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken cancellationToken)
     {
@@ -55,9 +67,7 @@ public class AuthController(IAuthService authService) : ControllerBase
     }
 
     [HttpPost("ChangePassword")]
-    public async Task<IActionResult> ChangePassword(
-    [FromBody] ChangePasswordRequest request,
-    CancellationToken cancellationToken)
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
     {
         var result = await _authService.ChangePasswordAsync(
             request,
