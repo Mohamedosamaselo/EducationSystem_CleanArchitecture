@@ -3,6 +3,8 @@
 namespace EducationSystem.Application.Dtos;
 
 public record ForgotPasswordRequest(
-    [property: Required, EmailAddress]
+
+    [Required]
+    [EmailAddress]
     string Email
 );

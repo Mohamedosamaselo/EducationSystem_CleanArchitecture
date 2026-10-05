@@ -1,14 +1,16 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.Identity;
+using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstractions.HandlingError.Errors;
 using EducationSystem.Application.Dtos;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
+//using NETCore.MailKit.Core;
 using System.Text;
 
 namespace EducationSystem.Application.Services;
@@ -17,150 +19,27 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                             SignInManager<ApplicationUser> signInManager,
                             RoleManager<ApplicationRole> roleManager,
                             IJwtProvider jwtProvider,
-                            IEmailSender emailSender,
+                            IEmailService MailKitEmailService,
                             IHttpContextAccessor httpContextAccessor,
                             ILogger<IAuthService> logger,
                             IConfiguration configuration) : IAuthService
 {
+    #region Fields
+
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
     private readonly IJwtProvider _jwtProvider = jwtProvider;
-    private readonly IEmailSender _emailSender = emailSender;
+
+    private readonly IEmailService _emailService = MailKitEmailService;
+
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
     private readonly ILogger _logger = logger;
     private readonly IConfiguration _configuration = configuration;
 
-    //public async Task<Result<AuthResponse?>> RegisterAsync(
-    //    RegisterRequest request,
-    //    CancellationToken cancellationToken = default)
-    //{
-    //    // 1. Check if the email already exists
-    //    var existingUser = await _userManager.FindByEmailAsync(request.Email);
-    //    if (existingUser is not null)
-    //        return Result.Failure<AuthResponse?>(UserErrors.DuplicateEmail);
-    //    // 2. Determine the role,   If no role is provided, assign Student by default
-    //    var role = string.IsNullOrWhiteSpace(request.Role) ? "Student" : request.Role.Trim();
-    //    // 3. Validate that the requested role exists
-    //    if (!await _roleManager.RoleExistsAsync(role))
-    //    {
-    //        return Result.Failure<AuthResponse?>(
-    //            new Error(
-    //                "Role.NotFound",
-    //                $"Role '{role}' does not exist."));
-    //    }
-    //    // 4. Create user
-    //    var user = new ApplicationUser
-    //    {
-    //        Id = Guid.NewGuid(),
-    //        UserName = request.Email,
-    //        Email = request.Email,
-    //        FirstName = request.FirstName,
-    //        LastName = request.LastName,
-    //        Address = request.Address,
-    //        DateOfBirth = request.DateOfBirth,
-    //        OrganisationId = request.OrganisationId,
-    //        SchoolId = request.SchoolId,
-    //        GradeId = request.GradeId,
-    //        EmailConfirmed = false,
-    //        IsActive = true,
-    //        // Your custom Role column in Users table
-    //        Role = role,
-    //        CreatedAt = DateTime.UtcNow
-    //    };
-    //    // 5. Create user + hash password
-    //    var createResult = await _userManager.CreateAsync(user, request.Password);
-    //    if (createResult.Succeeded)// if not succeeded to create user, return the first error
-    //    {
-    //        // 6. Assign role through ASP.NET Identity
-    //        var roleResult = await _userManager.AddToRoleAsync(
-    //            user,
-    //            role);
-    //        if (!roleResult.Succeeded)
-    //        {
-    //            // Rollback user if role assignment fails
-    //            await _userManager.DeleteAsync(user);
-    //            return Result.Failure<AuthResponse?>(
-    //                new Error(
-    //                    "User.RoleAssignmentFailed",
-    //                    $"Failed to assign role '{role}'."));
-    //        }
-    //        // geneate confirmationCode for email confirmation
-    //        var confirmationCode =
-    //            await _userManager.GenerateEmailConfirmationTokenAsync(user);
-    //        confirmationCode =
-    //            WebEncoders.Base64UrlEncode(System.Text.Encoding.UTF8.GetBytes(confirmationCode));
-    //        _logger.LogInformation("Email confirmation code generated for user {UserId}: {ConfirmationCode}", user.Id, confirmationCode);
-    //        // then Send email confirmation link to the user
-    //        // 7. Get user's role from Identity
-    //        var userRole = await _userManager.GetRolesAsync(user);
-    //        // 8. Generate JWT
-    //        var (token, expiresIn) = _jwtProvider.GenerateToken(user, userRole);
-    //        // 9. return response
-    //        var response = new AuthResponse(
-    //            Id: user.Id,
-    //            Email: user.Email!,
-    //            Username: user.UserName!,
-    //            FirstName: user.FirstName,
-    //            LastName: user.LastName,
-    //            Address: user.Address,
-    //            DateOfBirth: user.DateOfBirth,
-    //            OrganisationId: user.OrganisationId,
-    //            SchoolId: user.SchoolId,
-    //            GradeId: user.GradeId,
-    //            Token: token,
-    //            IsAuthenticated: true,
-    //            ExpiresIn: DateTime.UtcNow.AddMinutes(expiresIn),
-    //            Role: userRole.FirstOrDefault() ?? string.Empty
-    //        );
-    //        return Result.Success<AuthResponse?>(response);
-    //    }
-    //    // else if the creation failed, return the first error
-    //    var firstError = createResult.Errors.First();
+    #endregion Fields
 
-    //    var error = firstError.Code switch
-    //    {
-    //        "DuplicateEmail" =>
-    //            UserErrors.DuplicateEmail,
-
-    //        "DuplicateUserName" =>
-    //            UserErrors.DuplicateUserName,
-
-    //        "PasswordRequiresLower" =>
-    //            UserErrors.WeakPassword,
-
-    //        _ =>
-    //            new Error(
-    //                "User.CreationFailed",
-    //                firstError.Description)
-    //    };
-
-    //    return Result.Failure<AuthResponse?>(error);
-    //}
-
-    // ============================================================
     // 1. REGISTER
-    // ============================================================
-
-    //    POST /register
-    //       ↓
-    //User created
-    //       ↓
-    //EmailConfirmed = false
-    //       ↓
-    //Confirmation email sent
-    //       ↓
-    //POST /confirm-email
-    //       ↓
-    //EmailConfirmed = true
-    //       ↓
-    //POST /login
-    //       ↓
-    //PasswordSignInAsync()
-    //       ↓
-    //Success
-    //       ↓
-    //JWT generated
     public async Task<Result<AuthResponse?>> RegisterAsync(
         RegisterRequest request,
         CancellationToken cancellationToken = default)
@@ -349,20 +228,48 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // 1.11 Send the confirmation email
         // --------------------------------------------------------
 
-        await _emailSender.SendAsync(
-            user.Email!,
-            "Confirm your email",
-            $"""
-            Hello {user.FirstName},
+        //await _emailService.SendAsync(
+        //    user.Email!,
+        //    "Confirm your email",
+        //    $"""
+        //    Hello {user.FirstName},
 
-            Please confirm your email by clicking the following link:
+        //    Please confirm your email by clicking the following link:
 
-            {confirmationLink}
+        //    {confirmationLink}
 
-            This confirmation link will expire according to
-            your Identity token configuration.
-            """,
-            cancellationToken);
+        //    This confirmation link will expire according to
+        //    your Identity token configuration.
+        //    """);
+        try
+        {
+            await _emailService.SendAsync(
+                user.Email!,
+                "Confirm your email",
+                $"""
+                        <h2>Welcome {user.FirstName}!</h2>
+
+                        <p>Please confirm your email by clicking the button below:</p>
+
+                        <p>
+                            <a href="{confirmationLink}">
+                                Confirm Email
+                            </a>
+                        </p>
+                        """);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to send confirmation email to user {UserId}",
+                user.Id);
+
+            return Result.Failure<AuthResponse?>(
+                new Error(
+                    "Email.SendFailed",
+                    "The account was created, but we could not send the confirmation email."));
+        }
 
         // --------------------------------------------------------
         // 1.12 Get the user's Identity roles
@@ -415,10 +322,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         return Result.Success<AuthResponse?>(response);
     }
 
-    // ============================================================
     // 2. LOGIN
-    // ============================================================
-
     public async Task<Result<AuthResponse?>> GetTokenAsync(
         string email,
         string password,
@@ -539,97 +443,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             UserErrors.InvalidCredentials!);
     }
 
-    //// login method
-    //public async Task<Result<AuthResponse?>> GetTokenAsync(string Email, string password, CancellationToken cancellationToken = default)
-    //{
-    //    // 1. Find User
-    //    var user = await _userManager.FindByEmailAsync(Email);
-
-    //    if (user is null)
-    //        return Result.Failure<AuthResponse?>(UserErrors.InvalidCredentials!);
-
-    //    // 2. Check password
-    //    var result = await _signInManager.PasswordSignInAsync(user, password, false, false);
-    //    //await _userManager.CheckPasswordAsync(user, password);
-
-    //    if (result.Succeeded) // if the password is valid
-    //    {
-    //        // 3. Get User Roles
-
-    //        var roles = await _userManager.GetRolesAsync(user);
-
-    //        // 4. Generate Token
-    //        var (token, expiresIn) = _jwtProvider.GenerateToken(user, roles);
-
-    //        // 5. Return AuthReponse
-    //        var response = new AuthResponse(
-    //                                        Id: user.Id,
-    //                                        Email: user.Email!,
-    //                                        Username: user.UserName!,
-    //                                        FirstName: user.FirstName,
-    //                                        LastName: user.LastName,
-    //                                        Address: user.Address,
-    //                                        DateOfBirth: user.DateOfBirth,
-    //                                        OrganisationId: user.OrganisationId,
-    //                                        SchoolId: user.SchoolId,
-    //                                        GradeId: user.GradeId,
-    //                                        Token: token,
-    //                                        IsAuthenticated: true,
-    //                                        ExpiresIn: DateTime.UtcNow.AddMinutes(expiresIn),
-    //                                        Role: roles.ToList().FirstOrDefault() ?? string.Empty
-    //                                        );
-
-    //        return Result.Success(response)!;
-    //    }
-
-    //    // if fail it's mean
-    //    // that the password is not valid or User not confirmed his  Email
-
-    //    return Result.Failure<AuthResponse?>(result.IsNotAllowed ? UserErrors.EmailNotConfirmed : UserErrors.InvalidCredentials!);
-    //}
-
-    //public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request, CancellationToken cancellationToken = default)
-    //{
-    //    // search for user
-    //    var user = await _userManager.FindByEmailAsync(request.Email);
-    //    // 2. If the user doesn't exist, return SUCCESS with a generic message.
-    //    //    WHY? If we returned "user not found", attackers could use this endpoint
-    //    //    to test which emails are registered (a "user enumeration" attack).
-    //    if (user is null)
-    //        return Result.Success("If this email is registered, a reset link has been sent.");
-
-    //    // 3. Ask Identity to generate a one-time, expiring reset token for this user
-    //    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-    //    // 4. Build the link for the frontend.
-    //    //    IMPORTANT: tokens contain URL-unsafe characters (+, /, =),
-    //    //    so they MUST be URL-encoded inside a link.
-    //    var encodedToken = Uri.EscapeDataString(token);
-    //    var link = $"https://your-frontend.com/reset-password" +
-    //               $"?email={Uri.EscapeDataString(request.Email)}" +
-    //               $"&token={encodedToken}";
-
-    //    // 5. "Send" it (currently just logs — see EmailSender)
-    //    await _emailSender.SendAsync(
-    //        request.Email,
-    //        "Reset Your Password",
-    //        $"Click the link to reset your password:\n{link}",
-    //        cancellationToken);
-
-    //    // ⚠️ DEV ONLY: uncomment the next line while testing in Postman so you
-    //    // get the RAW token back. DELETE this line before production!
-    //    // return Result.Success(token);
-
-    //    return Result.Success("If this email is registered, a reset link has been sent.");
-    //}
-
-    // ============================================================
     // 3. FORGOT PASSWORD
-    // ============================================================
-
-    public async Task<Result<string>> ForgotPasswordAsync(
-        ForgotPasswordRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         // --------------------------------------------------------
         // 3.1 Find the user
@@ -656,32 +471,34 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         var resetToken =
             await _userManager.GeneratePasswordResetTokenAsync(user);
 
-        // --------------------------------------------------------
-        // 3.4 Encode the token for the URL
-        // --------------------------------------------------------
+        // 4. Encode token so it can safely travel inside a URL
+        var encodedToken = WebEncoders.Base64UrlEncode(
+            Encoding.UTF8.GetBytes(resetToken));
 
-        var encodedToken =
-            Uri.EscapeDataString(resetToken);
+        // 5. Create reset password URL
+        var resetUrl =
+            $"https://localhost:4200/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(encodedToken)}";
 
-        // --------------------------------------------------------
-        // 3.5 Build frontend reset-password URL
-        // --------------------------------------------------------
+        // 6. Send email
 
-        var link =
-            $"https://your-frontend.com/reset-password" +
-            $"?email={Uri.EscapeDataString(request.Email)}" +
-            $"&token={encodedToken}";
+        try
+        {
+            await _emailService.SendAsync(
+                user.Email!,
+                "Reset Your Password",
+                $"""
+                        <h2>Reset Your Password</h2>
 
-        // --------------------------------------------------------
-        // 3.6 Send reset email
-        // --------------------------------------------------------
+                        <p>Click the link below to reset your password:</p>
 
-        await _emailSender.SendAsync(
-            request.Email,
-            "Reset Your Password",
-            $"Click the following link to reset your password:\n\n{link}",
-            cancellationToken);
-
+                        <a href="{resetUrl}">Reset Password</a>
+                        """);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"EMAIL ERROR: {ex}");
+            throw;
+        }
         // --------------------------------------------------------
         // 3.7 Return generic response
         // --------------------------------------------------------
@@ -690,49 +507,10 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             "If this email is registered, a reset link has been sent.");
     }
 
-    //public async Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request, CancellationToken cancellationToken = default)
-    //{
-    //    // 1. Find the user
-    //    var user = await _userManager.FindByEmailAsync(request.Email);
-    //    if (user is null)
-    //        return Result.Failure<bool>(UserErrors.InvalidResetToken);
-
-    //    // 2. ResetPasswordAsync = "validate token + set new password" in one call.
-    //    //    It also re-hashes the password properly for you.
-    //    var result = await _userManager.ResetPasswordAsync(user,
-    //                                                       request.Token,
-    //                                                       request.NewPassword);
-
-    //    if (!result.Succeeded)
-    //    {
-    //        var firstError = result.Errors.First();
-    //        var error = firstError.Code switch
-    //        {
-    //            "InvalidToken" => UserErrors.InvalidResetToken,
-    //            "PasswordTooShort" => UserErrors.WeakPassword,
-    //            "PasswordRequiresDigit" => UserErrors.WeakPassword,
-    //            "PasswordRequiresUpper" => UserErrors.WeakPassword,
-    //            "PasswordRequiresLower" => UserErrors.WeakPassword,
-    //            _ => new Error("User.ResetPasswordFailed", firstError.Description)
-    //        };
-    //        return Result.Failure<bool>(error);
-    //    }
-
-    //    return Result.Success(true);
-    //}
-
-    // ============================================================
     // 4. RESET PASSWORD
-    // ============================================================
-
-    public async Task<Result<bool>> ResetPasswordAsync(
-        ResetPasswordRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request)
     {
-        // --------------------------------------------------------
         // 4.1 Find the user
-        // --------------------------------------------------------
-
         var user =
             await _userManager.FindByEmailAsync(request.Email);
 
@@ -742,25 +520,32 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                 UserErrors.InvalidResetToken);
         }
 
-        // --------------------------------------------------------
-        // 4.2 ResetPasswordAsync:
-        // validates the token AND changes the password.
-        // --------------------------------------------------------
+        // 4.2 Decode the token received from the frontend
+        string resetToken;
 
+        try
+        {
+            resetToken = Encoding.UTF8.GetString(
+                WebEncoders.Base64UrlDecode(request.Token));
+        }
+        catch (FormatException)
+        {
+            return Result.Failure<bool>(
+                UserErrors.InvalidResetToken);
+        }
+
+        // 4.3 Ask Identity to validate the token
+        // and reset the password
         var result =
             await _userManager.ResetPasswordAsync(
                 user,
-                request.Token,
+                resetToken,
                 request.NewPassword);
 
-        // --------------------------------------------------------
-        // 4.3 Check whether the operation succeeded
-        // --------------------------------------------------------
-
+        // 4.4 Handle Identity errors
         if (!result.Succeeded)
         {
-            var firstError =
-                result.Errors.First();
+            var firstError = result.Errors.First();
 
             var error = firstError.Code switch
             {
@@ -791,17 +576,10 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             return Result.Failure<bool>(error);
         }
 
-        // --------------------------------------------------------
-        // 4.4 Password reset successful
-        // --------------------------------------------------------
-
         return Result.Success(true);
     }
 
-    // ============================================================
     // 5. CHANGE PASSWORD
-    // ============================================================
-
     public async Task<Result<string>> ChangePasswordAsync(string userId, ChangePasswordRequest request)
     {
         // --------------------------------------------------------
@@ -914,83 +692,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             "Password changed successfully.");
     }
 
-    //public async Task<Result<string>> ChangePasswordAsync(ChangePasswordRequest request, CancellationToken cancellationToken = default)
-    //{
-    //    //1-  Get the current user from the JWT.
-    //    //2-  Check that the user exists.
-    //    var user = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext?.User!);
-    //    if (user is null)
-    //    {
-    //        return Result.Failure<string>(
-    //            new Error(
-    //                "User.NotFound",
-    //                "User was not found."));
-    //    }
-    //    //3-  Check that the account is active.
-    //    if (!user.IsActive)
-    //    {
-    //        return Result.Failure<string>(
-    //            new Error(
-    //                "User.Inactive",
-    //                "Your account has been deactivated."));
-    //    }
-    //    //4-  Call _userManager.ChangePasswordAsync().
-    //    var result = await _userManager.ChangePasswordAsync(
-    //                        user,
-    //                        request.CurrentPassword,
-    //                        request.NewPassword);
-    //    //5-  Return a success message or the Identity error.
-    //    if (!result.Succeeded)
-    //    {
-    //        var firstError = result.Errors.First();
-    //        var error = firstError.Code switch
-    //        {
-    //            "PasswordMismatch" =>
-    //                new Error(
-    //                    "Password.InvalidCurrentPassword",
-    //                    "The current password is incorrect."),
-
-    //            "PasswordTooShort" =>
-    //                new Error(
-    //                    "Password.TooShort",
-    //                    firstError.Description),
-
-    //            "PasswordRequiresDigit" =>
-    //                new Error(
-    //                    "Password.RequiresDigit",
-    //                    firstError.Description),
-
-    //            "PasswordRequiresLower" =>
-    //                new Error(
-    //                    "Password.RequiresLower",
-    //                    firstError.Description),
-
-    //            "PasswordRequiresUpper" =>
-    //                new Error(
-    //                    "Password.RequiresUpper",
-    //                    firstError.Description),
-
-    //            "PasswordRequiresNonAlphanumeric" =>
-    //                new Error(
-    //                    "Password.RequiresSpecialCharacter",
-    //                    firstError.Description),
-
-    //            _ =>
-    //                new Error(
-    //                    "Password.ChangeFailed",
-    //                    firstError.Description)
-    //        };
-    //        return Result.Failure<string>(error);
-    //    }
-    //    // 5. Password changed successfully
-    //    return Result.Success(
-    //        "Password changed successfully.");
-    //}
-
-    // ============================================================
     // 6. CONFIRM EMAIL
-    // ============================================================
-
     public async Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request)
     {
         // --------------------------------------------------------
@@ -1099,6 +801,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         return Result.Success();
     }
 
+    //7. RESEND CONFIRMATION EMAIL
     public async Task<string> ResendConfirmationEmailAsync(ResendConfirmationEmailRequest request)
     {
         // 1. find the user by email
@@ -1135,7 +838,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             $"{confirmationUrl}?userId={user.Id}&token={encodedToken}";
 
         // 8. Send confirmation email
-        await _emailSender.SendAsync(
+        await _emailService.SendAsync(
             user.Email!,
             "Confirm your email",
             $"""
