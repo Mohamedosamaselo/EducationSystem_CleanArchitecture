@@ -471,6 +471,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         var resetToken =
             await _userManager.GeneratePasswordResetTokenAsync(user);
 
+        Console.WriteLine($"Raw token      : {resetToken}");
+
         // 4. Encode token so it can safely travel inside a URL
         var encodedToken = WebEncoders.Base64UrlEncode(
             Encoding.UTF8.GetBytes(resetToken));
@@ -516,23 +518,21 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
         if (user is null)
         {
+            _logger.LogWarning("ResetPassword: no user found for email {Email}", request.Email);
+
             return Result.Failure<bool>(
                 UserErrors.InvalidResetToken);
         }
+        else
+
+            if (string.IsNullOrWhiteSpace(request.Token))
+                return Result.Failure<bool>(UserErrors.InvalidResetToken);
 
         // 4.2 Decode the token received from the frontend
-        string resetToken;
+        string resetToken = request.Token.Trim(); ;
 
-        try
-        {
-            resetToken = Encoding.UTF8.GetString(
-                WebEncoders.Base64UrlDecode(request.Token));
-        }
-        catch (FormatException)
-        {
-            return Result.Failure<bool>(
-                UserErrors.InvalidResetToken);
-        }
+        return Result.Failure<bool>(
+            UserErrors.InvalidResetToken);
 
         // 4.3 Ask Identity to validate the token
         // and reset the password
