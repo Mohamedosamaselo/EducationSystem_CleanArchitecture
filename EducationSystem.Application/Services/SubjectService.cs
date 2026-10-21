@@ -14,8 +14,7 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
     {
         // loaad Subject with Grades , School Navigational Property
         var subjects = await _unitOfWork.SubjectRepository.GetAllWithIncludesAsync(null, CT,
-            s => s.Grades,
-            s => s.School);
+            s => s.Grades);
 
         if (subjects == null || !subjects.Any())
             return new List<SubjectResponseDto>();
@@ -24,17 +23,17 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         {
             Id = s.Id,
             Name = s.Name,
-            Description = s.Description,
+            //Description = s.Description,
 
-            SchoolId = s.SchoolId,
-            SchoolName = s.School.Name,
+            //SchoolId = s.SchoolId,
+            //SchoolName = s.School.Name,
 
             Grades = s.Grades.Select(g => new GradeResponseDto
             {
                 Id = g.Id,
                 Name = g.Name,
                 Description = g.Description,
-                IsActive = g.IsActive,
+                //IsActive = g.IsActive,
                 SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()
@@ -47,8 +46,9 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         var subject = await _unitOfWork.SubjectRepository
             .GetByIdWithIncludeAsync(id,
                                      CT,
-                                     s => s.Grades,
-                                     s => s.School);
+                                     s => s.Grades
+                                     //s => s.School
+                                     );
 
         if (subject == null)
             throw new Exception("no subject");
@@ -57,17 +57,17 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         {
             Id = subject.Id,
             Name = subject.Name,
-            Description = subject.Description,
+            //Description = subject.Description,
 
-            SchoolId = subject.SchoolId,
-            SchoolName = subject.School.Name,
+            //SchoolId = subject.SchoolId,
+            //SchoolName = subject.School.Name,
 
             Grades = subject.Grades.Select(g => new GradeResponseDto
             {
                 Id = g.Id,
                 Name = g.Name,
                 Description = g.Description,
-                IsActive = g.IsActive,
+                //IsActive = g.IsActive,
                 SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()
@@ -85,17 +85,17 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         {
             Id = subject.Id,
             Name = subject.Name,
-            Description = subject.Description,
+            //Description = subject.Description,
 
-            SchoolId = subject.SchoolId,
-            SchoolName = subject.School.Name,
+            //SchoolId = subject.SchoolId,
+            //SchoolName = subject.School.Name,
 
             Grades = subject.Grades.Select(g => new GradeResponseDto
             {
                 Id = g.Id,
                 Name = g.Name,
                 Description = g.Description,
-                IsActive = g.IsActive,
+                //IsActive = g.IsActive,
                 SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()
@@ -107,8 +107,8 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         var newSubject = new Subject
         {
             Name = subjectRequest.Name,
-            Description = subjectRequest.Description,
-            SchoolId = subjectRequest.SchoolId,
+            //Description = subjectRequest.Description,
+            //SchoolId = subjectRequest.SchoolId,
         };
 
         var grade = await _unitOfWork.GradeRepository.GetByIdAsync(subjectRequest.GradeId, CT);
@@ -125,8 +125,8 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         return new SubjectResponseDto
         {
             Name = newSubject.Name,
-            Description = newSubject.Description,
-            SchoolId = newSubject.SchoolId,
+            //Description = newSubject.Description,
+            //SchoolId = newSubject.SchoolId,
             Grades = newSubject.Grades.Select(g => new GradeResponseDto
             {
                 //Id = g.Id,
@@ -148,8 +148,8 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
             throw new Exception("no Subject Found");
 
         subject.Name = subjectRequest.Name;
-        subject.Description = subjectRequest.Description;
-        subject.SchoolId = subjectRequest.SchoolId;
+        //subject.Description = subjectRequest.Description;
+        //subject.SchoolId = subjectRequest.SchoolId;
 
         _unitOfWork.SubjectRepository.Update(subject);
         await _unitOfWork.SaveChangesAsync(CT);
@@ -158,15 +158,15 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         {
             Id = subject.Id,
             Name = subject.Name,
-            Description = subject.Description,
-            SchoolId = subject.SchoolId,
-            SchoolName = subject.School?.Name ?? string.Empty,
+            //Description = subject.Description,
+            //SchoolId = subject.SchoolId,
+            //SchoolName = subject.School?.Name ?? string.Empty,
             Grades = subject.Grades.Select(g => new GradeResponseDto
             {
                 Id = g.Id,
                 Name = g.Name,
                 Description = g.Description,
-                IsActive = g.IsActive,
+                //IsActive = g.IsActive,
                 SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()

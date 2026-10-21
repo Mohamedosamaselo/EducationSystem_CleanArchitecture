@@ -28,8 +28,7 @@ public class SchoolConfigs : BaseAuditableEntityConfiguration<School>
             .IsRequired()
             .HasMaxLength(20);
 
-        builder.Property(s => s.LogoUrl)
-            .HasMaxLength(500);
+        ;
 
         // School with organization relationship
         builder.HasOne(s => s.Organisation)

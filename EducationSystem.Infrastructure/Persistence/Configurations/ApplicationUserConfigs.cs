@@ -38,7 +38,6 @@ public class ApplicationUserConfigs : IEntityTypeConfiguration<ApplicationUser>
         builder.Property(u => u.FirstName).IsRequired().HasMaxLength(100);
         builder.Property(u => u.LastName).IsRequired().HasMaxLength(100);
         builder.Property(u => u.Address).HasMaxLength(300);
-        builder.Property(u => u.IsActive).IsRequired();
 
         // ---- Uniqueness enforced by the DB ----Email & UserName is Unique
         builder.HasIndex(u => u.Email).IsUnique();
@@ -59,20 +58,10 @@ public class ApplicationUserConfigs : IEntityTypeConfiguration<ApplicationUser>
         builder.Property(e => e.LastModifiedBy)
             .IsRequired(false);
 
-        // ---- Relations ----
-        // Business rule: one admin per organisation (filtered unique index )
-        // only enforced among rows where the column is NOT NULL)
-        builder.HasIndex(u => u.OrganisationId)
-               .HasFilter("[OrganisationId] IS NOT NULL")
-               .IsUnique();
-
-        // Membership FKs — nullable, but RESTRICT: never delete an org/school/grade out from under users
-
-        // organisation
-        builder.HasOne(u => u.Organisation)
+        builder.HasOne(u => u.Role)
                .WithMany()
-               .HasForeignKey(u => u.OrganisationId)
-               .OnDelete(DeleteBehavior.Restrict);
+               .HasForeignKey(u => u.RoleId)
+                .OnDelete(DeleteBehavior.Restrict);
 
         // school
         builder.HasOne(u => u.School)
@@ -80,10 +69,10 @@ public class ApplicationUserConfigs : IEntityTypeConfiguration<ApplicationUser>
                .HasForeignKey(u => u.SchoolId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-        // Grade // i will make it inside the gradeConfigs
-        //builder.HasOne(u => u.Grade)
-        //       .WithMany()
-        //       .HasForeignKey(u => u.GradeId)
-        //        .OnDelete(DeleteBehavior.Restrict);
+        // Grade with many students
+        builder.HasOne(u => u.Grade)
+               .WithMany(s => s.Students)
+               .HasForeignKey(u => u.GradeId)
+                .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -96,16 +96,16 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             Address = request.Address,
             DateOfBirth = request.DateOfBirth,
 
-            OrganisationId = request.OrganisationId,
+            //OrganisationId = request.OrganisationId,
             SchoolId = request.SchoolId,
             GradeId = request.GradeId,
 
             EmailConfirmed = false,
-            IsActive = true,
+            //IsActive = true,
 
             // This is your custom Role column.
             // Identity authorization should still use UserRoles.
-            Role = role,
+            //Role = role,
 
             CreatedAt = DateTime.UtcNow
         };
@@ -306,7 +306,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             LastName: user.LastName,
             Address: user.Address,
             DateOfBirth: user.DateOfBirth,
-            OrganisationId: user.OrganisationId,
+            //OrganisationId: user.OrganisationId,
             SchoolId: user.SchoolId,
             GradeId: user.GradeId,
 
@@ -344,13 +344,13 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // 2.2 Check whether the account is active
         // --------------------------------------------------------
 
-        if (!user.IsActive)
-        {
-            return Result.Failure<AuthResponse?>(
-                new Error(
-                    "User.Inactive",
-                    "Your account has been deactivated."));
-        }
+        //if (!user.IsActive)
+        //{
+        //    return Result.Failure<AuthResponse?>(
+        //        new Error(
+        //            "User.Inactive",
+        //            "Your account has been deactivated."));
+        //}
 
         // --------------------------------------------------------
         // 2.3 Check password + Identity sign-in rules
@@ -397,7 +397,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                 LastName: user.LastName,
                 Address: user.Address,
                 DateOfBirth: user.DateOfBirth,
-                OrganisationId: user.OrganisationId,
+                //OrganisationId: user.OrganisationId,
                 SchoolId: user.SchoolId,
                 GradeId: user.GradeId,
 
@@ -617,13 +617,13 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // 5.4 Check whether the account is active
         // --------------------------------------------------------
 
-        if (!user!.IsActive)
-        {
-            return Result.Failure<string>(
-                new Error(
-                    "User.Inactive",
-                    "Your account has been deactivated."));
-        }
+        //if (!user!.IsActive)
+        //{
+        //    return Result.Failure<string>(
+        //        new Error(
+        //            "User.Inactive",
+        //            "Your account has been deactivated."));
+        //}
 
         // --------------------------------------------------------
         // 5.5 Change the password

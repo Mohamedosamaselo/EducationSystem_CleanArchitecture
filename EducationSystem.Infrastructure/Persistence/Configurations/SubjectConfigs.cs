@@ -1,6 +1,5 @@
 ﻿using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure.Persistence.Configurations.Common;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace EducationSystem.Infrastructure.Persistence.Configurations;
@@ -12,16 +11,6 @@ public class SubjectConfigs : BaseAuditableEntityConfiguration<Subject>
         builder.Property(e => e.Name)
                .IsRequired()
                .HasMaxLength(100);
-
-        builder.Property(e => e.Description)
-               .HasMaxLength(500)
-               .IsRequired(false);
-
-        // Configure the relationship between School and Subject entities [1:M]
-        builder.HasOne(s => s.School)
-               .WithMany(s => s.Subjects)
-               .HasForeignKey(s => s.SchoolId)
-               .OnDelete(DeleteBehavior.Restrict);
 
         // Configure the relationship between grade & subject[M:M]
         builder.HasMany(s => s.Grades)

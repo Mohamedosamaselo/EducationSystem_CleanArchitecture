@@ -3,7 +3,6 @@ using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Abstractions.HandlingError.Errors;
 using EducationSystem.Application.Dtos;
-using EducationSystem.Application.Dtos.Response;
 using EducationSystem.Application.Dtos.Response.Organisation;
 using EducationSystem.Domain.Entities;
 
@@ -99,8 +98,8 @@ public class OrganisationService(IUnitOfWork unitOfWork) : IOrganisationService
                 Address = school.Address,
                 Email = school.Email,
                 PhoneNumber = school.PhoneNumber,
-                Status = school.Status,
-                LogoUrl = school.LogoUrl,
+                //Status = school.Status,
+                //LogoUrl = school.LogoUrl,
                 OrganisationId = school.OrganisationId,
             }).ToList()
         };

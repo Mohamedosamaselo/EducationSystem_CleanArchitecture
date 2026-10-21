@@ -16,8 +16,8 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         // load navigational properties [Subject , school , users ] eager with grades
         var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(null, ct,
                          p => p.Subjects,
-                         p => p.School,
-                         p => p.Users
+                         p => p.School
+                         //p => p.Users
                             );
 
         // If there are no grades, return a successful Result with an empty list.
@@ -31,7 +31,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Id = g.Id,
             Name = g.Name,
             Description = g.Description,
-            IsActive = g.IsActive,
+            //IsActive = g.IsActive,
             SchoolId = g.SchoolId,
             SchoolName = g.School?.Name ?? string.Empty,
             //SubjectsCount = g.Subjects?.Count ?? 0,
@@ -47,8 +47,8 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
                         Id,
                         ct,
                         p => p.Subjects,
-                        p => p.School,
-                        p => p.Users
+                        p => p.School
+                        //p => p.Users
                         );
 
         if (grade is null)
@@ -62,7 +62,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Id = grade.Id,
             Name = grade.Name,
             Description = grade.Description,
-            IsActive = grade.IsActive,
+            //IsActive = grade.IsActive,
             SchoolId = grade.SchoolId,
             SchoolName = grade.School?.Name ?? string.Empty,
         };
@@ -78,8 +78,8 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
                          g => g.Name.ToLower().Contains(searchTerm),
                          ct,
                          p => p.Subjects,
-                         p => p.School,
-                         p => p.Users
+                         p => p.School
+                         //p => p.Users
                          );
 
         // For searches, returning an empty list on no matches is standard REST practice
@@ -93,7 +93,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Id = g.Id,
             Name = g.Name,
             Description = g.Description,
-            IsActive = g.IsActive,
+            //IsActive = g.IsActive,
             SchoolId = g.SchoolId,
             SchoolName = g.School?.Name ?? string.Empty,
         }).ToList();
@@ -117,7 +117,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Name = createRequestDto.Name,
             Description = createRequestDto.Description,
             SchoolId = createRequestDto.SchoolId,
-            IsActive = true
+            //IsActive = true
         };
 
         await _unitOfWork.GradeRepository.AddAsync(grade, ct);
@@ -139,7 +139,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Id = grade.Id,
             Name = grade.Name,
             Description = grade.Description,
-            IsActive = grade.IsActive,
+            //IsActive = grade.IsActive,
             SchoolId = grade.SchoolId,
             SchoolName = school.Name
         };
@@ -165,7 +165,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         // 2. Update fields
         grade.Name = updateRequestDto.Name;
         grade.Description = updateRequestDto.Description;
-        grade.IsActive = updateRequestDto.IsActive;
+        //grade.IsActive = updateRequestDto.IsActive;
         grade.ModifiedAt = DateTime.UtcNow;
 
         _unitOfWork.GradeRepository.Update(grade);
@@ -187,7 +187,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Id = grade.Id,
             Name = grade.Name,
             Description = grade.Description,
-            IsActive = grade.IsActive,
+            //IsActive = grade.IsActive,
             SchoolId = grade.SchoolId,
             SchoolName = grade.School?.Name ?? string.Empty
         };

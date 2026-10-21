@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace EducationSystem.Infrastructure.Persistence.Migrations
+namespace EducationSystem.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260929125331_CheckCurrentModel")]
-    partial class CheckCurrentModel
+    [Migration("20261020124749_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,17 +44,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<bool>("IsDefault")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
-
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -62,6 +51,7 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -70,10 +60,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("NormalizedName")
-                        .IsUnique()
-                        .HasFilter("[IsDeleted] = 0");
 
                     b.ToTable("AspNetRoles", (string)null);
                 });
@@ -122,9 +108,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("GradeId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -136,18 +119,15 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("OrganisationId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<Guid?>("SchoolId")
+                    b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("SchoolId1")
+                    b.Property<Guid?>("SchoolId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("SecurityStamp")
@@ -167,13 +147,9 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("GradeId");
 
-                    b.HasIndex("OrganisationId")
-                        .IsUnique()
-                        .HasFilter("[OrganisationId] IS NOT NULL");
+                    b.HasIndex("RoleId");
 
                     b.HasIndex("SchoolId");
-
-                    b.HasIndex("SchoolId1");
 
                     b.HasIndex("UserName")
                         .IsUnique();
@@ -198,11 +174,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(250)
                         .HasColumnType("nvarchar(250)");
-
-                    b.Property<bool>("IsActive")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
 
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
@@ -229,6 +200,9 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ApplicationUserId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
@@ -262,6 +236,10 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApplicationUserId")
+                        .IsUnique()
+                        .HasFilter("[ApplicationUserId] IS NOT NULL");
+
                     b.ToTable("Organisations");
                 });
 
@@ -292,11 +270,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("LogoUrl")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");
 
@@ -313,29 +286,11 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("OrganisationId");
 
                     b.ToTable("Schools");
-                });
-
-            modelBuilder.Entity("EducationSystem.Domain.Entities.StudentParent", b =>
-                {
-                    b.Property<Guid>("StudentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("ParentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("StudentId", "ParentId");
-
-                    b.HasIndex("ParentId");
-
-                    b.ToTable("StudentParents", (string)null);
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.Subject", b =>
@@ -350,10 +305,6 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<Guid?>("LastModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -365,14 +316,48 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<Guid>("SchoolId")
+                    b.HasKey("Id");
+
+                    b.ToTable("Subjects");
+                });
+
+            modelBuilder.Entity("EducationSystem.Domain.Entities.TeacherGrade", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("GradeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("TeacherId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SchoolId");
+                    b.HasIndex("GradeId");
 
-                    b.ToTable("Subjects");
+                    b.HasIndex("TeacherId");
+
+                    b.ToTable("TeacherGrades");
+                });
+
+            modelBuilder.Entity("EducationSystem.Domain.Entities.UserSubject", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("SubjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FinalEvaluation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("UserId", "SubjectId");
+
+                    b.HasIndex("SubjectId");
+
+                    b.ToTable("UserSubjects");
                 });
 
             modelBuilder.Entity("GradeSubject", b =>
@@ -399,56 +384,44 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("ClaimType")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<string>("ClaimValue")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1024)
+                        .HasColumnType("nvarchar(1024)");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RoleId");
+
                     b.ToTable("AspNetRoleClaims", (string)null);
-                });
-
-            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("RoleId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("UserId", "RoleId");
-
-                    b.ToTable("AspNetUserRoles", (string)null);
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.ApplicationUser", b =>
                 {
                     b.HasOne("EducationSystem.Domain.Entities.Grade", "Grade")
-                        .WithMany("Users")
+                        .WithMany("Students")
                         .HasForeignKey("GradeId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("EducationSystem.Domain.Entities.Organisation", "Organisation")
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationRole", "Role")
                         .WithMany()
-                        .HasForeignKey("OrganisationId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("EducationSystem.Domain.Entities.School", "School")
-                        .WithMany()
+                        .WithMany("Users")
                         .HasForeignKey("SchoolId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("EducationSystem.Domain.Entities.School", null)
-                        .WithMany("Users")
-                        .HasForeignKey("SchoolId1");
-
                     b.Navigation("Grade");
 
-                    b.Navigation("Organisation");
+                    b.Navigation("Role");
 
                     b.Navigation("School");
                 });
@@ -464,6 +437,15 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Navigation("School");
                 });
 
+            modelBuilder.Entity("EducationSystem.Domain.Entities.Organisation", b =>
+                {
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "OrganisationAdmin")
+                        .WithOne("ManagedOrganisation")
+                        .HasForeignKey("EducationSystem.Domain.Entities.Organisation", "ApplicationUserId");
+
+                    b.Navigation("OrganisationAdmin");
+                });
+
             modelBuilder.Entity("EducationSystem.Domain.Entities.School", b =>
                 {
                     b.HasOne("EducationSystem.Domain.Entities.Organisation", "Organisation")
@@ -475,34 +457,42 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                     b.Navigation("Organisation");
                 });
 
-            modelBuilder.Entity("EducationSystem.Domain.Entities.StudentParent", b =>
+            modelBuilder.Entity("EducationSystem.Domain.Entities.TeacherGrade", b =>
                 {
-                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "Parent")
-                        .WithMany()
-                        .HasForeignKey("ParentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("EducationSystem.Domain.Entities.Grade", "Grade")
+                        .WithMany("TeacherGrades")
+                        .HasForeignKey("GradeId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "Student")
-                        .WithMany()
-                        .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "Teacher")
+                        .WithMany("TeacherGrades")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Parent");
+                    b.Navigation("Grade");
 
-                    b.Navigation("Student");
+                    b.Navigation("Teacher");
                 });
 
-            modelBuilder.Entity("EducationSystem.Domain.Entities.Subject", b =>
+            modelBuilder.Entity("EducationSystem.Domain.Entities.UserSubject", b =>
                 {
-                    b.HasOne("EducationSystem.Domain.Entities.School", "School")
-                        .WithMany("Subjects")
-                        .HasForeignKey("SchoolId")
+                    b.HasOne("EducationSystem.Domain.Entities.Subject", "Subject")
+                        .WithMany("UserSubjects")
+                        .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("School");
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("UserSubjects")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subject");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("GradeSubject", b =>
@@ -520,9 +510,34 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
+                {
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationRole", null)
+                        .WithMany("Claims")
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("EducationSystem.Domain.Entities.ApplicationRole", b =>
+                {
+                    b.Navigation("Claims");
+                });
+
+            modelBuilder.Entity("EducationSystem.Domain.Entities.ApplicationUser", b =>
+                {
+                    b.Navigation("ManagedOrganisation");
+
+                    b.Navigation("TeacherGrades");
+
+                    b.Navigation("UserSubjects");
+                });
+
             modelBuilder.Entity("EducationSystem.Domain.Entities.Grade", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("Students");
+
+                    b.Navigation("TeacherGrades");
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.Organisation", b =>
@@ -534,9 +549,12 @@ namespace EducationSystem.Infrastructure.Persistence.Migrations
                 {
                     b.Navigation("Grades");
 
-                    b.Navigation("Subjects");
-
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("EducationSystem.Domain.Entities.Subject", b =>
+                {
+                    b.Navigation("UserSubjects");
                 });
 #pragma warning restore 612, 618
         }

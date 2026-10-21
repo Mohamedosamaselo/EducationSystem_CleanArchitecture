@@ -105,9 +105,9 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             Name = createDto.Name,
             Address = createDto.Address,
             Email = createDto.Email,
-            LogoUrl = createDto.LogoUrl,
+
             PhoneNumber = createDto.PhoneNumber,
-            Status = createDto.Status,
+
             OrganisationId = createDto.OrganisationId,
             Organisation = organisation
         };
@@ -158,9 +158,9 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         school.Name = updateDto.Name;
         school.Address = updateDto.Address;
         school.Email = updateDto.Email;
-        school.LogoUrl = updateDto.LogoUrl;
+
         school.PhoneNumber = updateDto.PhoneNumber;
-        school.Status = updateDto.Status;
+
         school.OrganisationId = updateDto.OrganisationId;
         school.ModifiedAt = DateTime.UtcNow;
 
@@ -218,8 +218,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             Address = school.Address,
             Email = school.Email,
             PhoneNumber = school.PhoneNumber,
-            LogoUrl = school.LogoUrl,
-            Status = school.Status,
+
             OrganisationId = school.OrganisationId,
             OrganisationName = school.Organisation?.Name ?? string.Empty
         };
