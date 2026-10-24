@@ -5,8 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace EducationSystem.Infrastructure.Persistence;
 
 //public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
-public class ApplicationDbContext
-    : DbContext
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)

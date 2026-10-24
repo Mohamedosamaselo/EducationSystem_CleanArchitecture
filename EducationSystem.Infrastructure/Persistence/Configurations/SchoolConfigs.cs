@@ -30,6 +30,13 @@ public class SchoolConfigs : BaseAuditableEntityConfiguration<School>
 
         ;
 
+        //// School with SchoolAdmin relationship
+        builder.HasOne(s => s.SchoolAdmin)
+            .WithOne(u => u.ManagedSchool)
+            .HasForeignKey<School>(s => s.SchoolAdminId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
         // School with organization relationship
         builder.HasOne(s => s.Organisation)
                 .WithMany(o => o.Schools)

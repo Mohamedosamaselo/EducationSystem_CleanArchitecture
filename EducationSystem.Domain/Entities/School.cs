@@ -13,6 +13,12 @@ public class School : BaseAuditableEntity
 
     public virtual Organisation Organisation { get; set; } = null!;// Navigation property to Organisation
 
-    public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>();
+    // Foreign key to the School Admin
+    public Guid SchoolAdminId { get; set; }
+
+    public virtual ApplicationUser SchoolAdmin { get; set; } = null!; // Navigation property to School Admin
+
+    public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>(); // Navigation property to Users in the School
+
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
 }

@@ -4,6 +4,7 @@ public record RegisterRequest(
     string FirstName,
     string LastName,
     string Email,
+    string UserName,
     DateTime? DateOfBirth,
     string Password,
     string Address,
@@ -11,4 +12,5 @@ public record RegisterRequest(
     Guid? SchoolId,
     Guid? GradeId,
     string? Role
+
 );

@@ -9,7 +9,7 @@ public record AuthResponse(
     string LastName,
     string Address,
     DateTime? DateOfBirth,
-    //Guid? OrganisationId,
+
     Guid? SchoolId,
     Guid? GradeId,
     string Token,

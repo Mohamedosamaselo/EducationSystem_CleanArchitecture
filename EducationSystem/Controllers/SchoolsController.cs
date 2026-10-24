@@ -8,28 +8,27 @@ namespace EducationSystem.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class SchoolsController(ISchoolService schoolService) : ControllerBase
 {
     private readonly ISchoolService _schoolService = schoolService;
-    // GET  api/schools/GetAll
+    // GET
 
-    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
+    [Authorize(Roles = "OrganisationAdmin")]
     [HttpGet("GetAll")]
-    public async Task<IActionResult> GetAllAsync(CancellationToken ct) => (await _schoolService.GetAllAsync(ct)).ToActionResult(this);
+    public async Task<IActionResult> GetAllAsync(CancellationToken ct)
+        => (await _schoolService.GetAllAsync(ct)).ToActionResult(this);
 
-    // GET  api/schools/{id}
+    //// GET
     [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken ct)
-        => (await _schoolService.GetByIdAsync(id, ct)).ToActionResult(this);
+                    => (await _schoolService.GetByIdAsync(id, ct)).ToActionResult(this);
 
     // POST api/schools/Create
 
     [Authorize(Roles = "OrganisationAdmin")]
     [HttpPost("Create")]
-    public async Task<IActionResult> AddAsync(
-        [FromBody] CreateSchoolRequest request, CancellationToken ct)
+    public async Task<IActionResult> AddAsync([FromBody] CreateSchoolRequest request, CancellationToken ct)
     {
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
@@ -39,7 +38,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 
     // PUT  api/schools/Update/{id}
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+    [Authorize(Roles = "OrganisationAdmin")]
     [HttpPut("Update/{id:guid}")]
     public async Task<IActionResult> UpdateAsync(
         Guid id, [FromBody] UpdateSchoolRequest request, CancellationToken ct)
@@ -59,16 +58,16 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 
     // GET  api/schools/organisation/{organisationId}
 
-    [HttpGet("organisation/{organisationId:guid}")]
-    public async Task<IActionResult> GetAllByOrganisationIdAsync(
-        [FromRoute] Guid organisationId, CancellationToken ct)
-        => (await _schoolService.GetAllByOrganisationIdAsync(organisationId, ct))
-              .ToActionResult(this);
+    //[HttpGet("organisation/{organisationId:guid}")]
+    //public async Task<IActionResult> GetAllByOrganisationIdAsync(
+    //    [FromRoute] Guid organisationId, CancellationToken ct)
+    //    => (await _schoolService.GetAllByOrganisationIdAsync(organisationId, ct))
+    //          .ToActionResult(this);
 
     // GET  api/schools/search?schoolName=...
 
-    [HttpGet("search")]
-    public async Task<IActionResult> GetByName(
-        [FromQuery] string schoolName, CancellationToken ct)
-        => (await _schoolService.GetByNameAsync(schoolName, ct)).ToActionResult(this);
+    //[HttpGet("search")]
+    //public async Task<IActionResult> GetByName(
+    //    [FromQuery] string schoolName, CancellationToken ct)
+    //    => (await _schoolService.GetByNameAsync(schoolName, ct)).ToActionResult(this);
 }

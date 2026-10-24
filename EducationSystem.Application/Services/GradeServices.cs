@@ -31,7 +31,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             Id = g.Id,
             Name = g.Name,
             Description = g.Description,
-            //IsActive = g.IsActive,
+
             SchoolId = g.SchoolId,
             SchoolName = g.School?.Name ?? string.Empty,
             //SubjectsCount = g.Subjects?.Count ?? 0,
@@ -48,7 +48,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
                         ct,
                         p => p.Subjects,
                         p => p.School
-                        //p => p.Users
+
                         );
 
         if (grade is null)

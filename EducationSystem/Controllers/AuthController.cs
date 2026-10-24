@@ -24,8 +24,8 @@ public class AuthController(IAuthService authService, IEmailService emailService
             return BadRequest(ModelState);
 
         var result = await _authService.RegisterAsync(registerdata);
-        //return result.IsSuccess ? Ok(result.Value) : Unauthorized(new { code = result.Error.Code, description = result.Error.Description });
         return result.IsSuccess ? Ok(result.Value) : result.ToActionResult(this);
+        //return result.IsSuccess ? Ok(result.Value) : Unauthorized(new { code = result.Error.Code, description = result.Error.Description });
     }
 
     [HttpPost("Login")]
@@ -92,17 +92,5 @@ public class AuthController(IAuthService authService, IEmailService emailService
             : result.ToActionResult(this);
     }
 
-    [HttpGet("test-email")]
-    public async Task<IActionResult> TestEmail()
-    {
-        await _emailService.SendAsync(
-            "mohamedosamaselo@gmail.com",
-            "Education System Test",
-            """
-        <h1>Email Test</h1>
-        <p>If you received this email, MailKit is working.</p>
-        """);
-
-        return Ok("Email sent successfully.");
-    }
+    
 }

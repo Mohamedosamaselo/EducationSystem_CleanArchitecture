@@ -50,7 +50,7 @@ public class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provider) : 
         ApiVersionDescription description) =>
         new()
         {
-            Title = "Survey Basket API",
+            Title = "Education System web  API",
             Version = description.ApiVersion.ToString(),
             Description =
                 $"API Description.{(description.IsDeprecated

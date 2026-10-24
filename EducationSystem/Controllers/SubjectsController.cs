@@ -1,9 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Dtos;
 using EducationSystem.Application.Dtos.Subject;
-using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.WebApi.Controllers;
@@ -22,7 +20,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return subjects is null ? NotFound() : Ok(subjects);
     }
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{subjectId:guid}")]
     public async Task<ActionResult> GetSubjectAsync(Guid subjectId)
     {
@@ -31,12 +29,12 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
     }
 
     // search by SubjectName
-    [HttpGet("{SubjectName:alpha}")]
-    public async Task<ActionResult> GetSubjectAsync(string SubjectName)
-    {
-        var subject = await _subjectService.GetByNameAsync(SubjectName);
-        return subject is null ? NotFound() : Ok(subject);
-    }
+    //[HttpGet("{SubjectName:alpha}")]
+    //public async Task<ActionResult> GetSubjectAsync(string SubjectName)
+    //{
+    //    var subject = await _subjectService.GetByNameAsync(SubjectName);
+    //    return subject is null ? NotFound() : Ok(subject);
+    //}
 
     [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPost]
@@ -56,11 +54,11 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
         return updatedSubject is null ? NotFound() : Ok(updatedSubject);
     }
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteAsync(Guid id)
-    {
-        var deleted = await _subjectService.DeleteAsync(id);
-        return deleted ? NoContent() : NotFound();
-    }
+    //[Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+    //[HttpDelete("{id:guid}")]
+    //public async Task<IActionResult> DeleteAsync(Guid id)
+    //{
+    //    var deleted = await _subjectService.DeleteAsync(id);
+    //    return deleted ? NoContent() : NotFound();
+    //}
 }

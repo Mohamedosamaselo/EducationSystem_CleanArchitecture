@@ -48,7 +48,6 @@ namespace EducationSystem.Infrastructure.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -283,9 +282,15 @@ namespace EducationSystem.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<Guid>("SchoolAdminId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
                     b.HasIndex("OrganisationId");
+
+                    b.HasIndex("SchoolAdminId")
+                        .IsUnique();
 
                     b.ToTable("Schools");
                 });
@@ -451,7 +456,15 @@ namespace EducationSystem.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "SchoolAdmin")
+                        .WithOne("ManagedSchool")
+                        .HasForeignKey("EducationSystem.Domain.Entities.School", "SchoolAdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.Navigation("Organisation");
+
+                    b.Navigation("SchoolAdmin");
                 });
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.TeacherGrade", b =>
@@ -524,6 +537,8 @@ namespace EducationSystem.Infrastructure.Migrations
             modelBuilder.Entity("EducationSystem.Domain.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("ManagedOrganisation");
+
+                    b.Navigation("ManagedSchool");
 
                     b.Navigation("TeacherGrades");
 

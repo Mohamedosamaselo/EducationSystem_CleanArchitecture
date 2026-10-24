@@ -13,13 +13,11 @@ public class GradesController(IGradeService gradeService) : ControllerBase
 {
     private readonly IGradeService _gradeService = gradeService;
 
-    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpGet("")]
     public async Task<IActionResult> GetAllGradesAsync(CancellationToken cancellationToken)
     {
         var result = await _gradeService.GetAllAsync(cancellationToken);
-
-        // Translates Result<T> to 200 OK (with list) or Error to 400/404/500
         return result.ToActionResult(this);
     }
 
@@ -31,14 +29,14 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return result.ToActionResult(this);
     }
 
-    [HttpGet("search")]
-    public async Task<IActionResult> SearchGradesAsync([FromQuery] string gradeName, CancellationToken cancellationToken)
-    {
-        var result = await _gradeService.SearchAsync(gradeName, cancellationToken);
-        return result.ToActionResult(this);
-    }
+    //[HttpGet("search")]
+    //public async Task<IActionResult> SearchGradesAsync([FromQuery] string gradeName, CancellationToken cancellationToken)
+    //{
+    //    var result = await _gradeService.SearchAsync(gradeName, cancellationToken);
+    //    return result.ToActionResult(this);
+    //}
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+    //[Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPost]
     public async Task<IActionResult> CreateGradeAsync([FromBody] CreateGradeRequest createRequestDto, CancellationToken cancellationToken)
     {
@@ -54,13 +52,13 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return result.ToActionResult(this);
     }
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteGradeAsync(Guid id, CancellationToken cancellationToken)
-    {
-        var result = await _gradeService.DeleteAsync(id, cancellationToken);
+    //[Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+    //[HttpDelete("{id:guid}")]
+    //public async Task<IActionResult> DeleteGradeAsync(Guid id, CancellationToken cancellationToken)
+    //{
+    //    var result = await _gradeService.DeleteAsync(id, cancellationToken);
 
-        // Uses the non-generic ToActionResult (returns 204 No Content on success, or error on failure)
-        return result.ToActionResult(this);
-    }
+    //    // Uses the non-generic ToActionResult (returns 204 No Content on success, or error on failure)
+    //    return result.ToActionResult(this);
+    //}
 }

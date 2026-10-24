@@ -15,7 +15,5 @@ public class ApplicationRoleConfigs : IEntityTypeConfiguration<ApplicationRole>
         builder.Property(r => r.Name).HasMaxLength(256);
         builder.Property(r => r.NormalizedName).HasMaxLength(256);
         builder.Property(r => r.ConcurrencyStamp).IsConcurrencyToken();
-
-        //builder.HasIndex(r => r.NormalizedName).IsUnique();
     }
 }

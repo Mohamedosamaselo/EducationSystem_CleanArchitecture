@@ -23,13 +23,22 @@ public class OrganisationsController(IOrganisationService _organisationService) 
         return NotFound("sorry organisation not found ");
     }
 
-    [HttpPost]
-    public async Task<ActionResult> AddAsync([FromBody] CreateOrganisationRequest createRequest)
+    [HttpPut("{id:guid}")]
+    public async Task<ActionResult> UpdateAsync(Guid id, [FromBody] UpdateOrganisationRequest updateRequest)
     {
-        var newOrganisation = await organisationService.AddAsync(createRequest);
-
-        if (newOrganisation is null)
-            return BadRequest("Failed to create organisation.");
-        return Ok(newOrganisation);
+        var updatedOrganisation = await organisationService.UpdateAsync(id, updateRequest);
+        if (updatedOrganisation is null)
+            return NotFound("Organisation not found or update failed.");
+        return Ok(updatedOrganisation);
     }
+
+    //[HttpPost]
+    //public async Task<ActionResult> AddAsync([FromBody] CreateOrganisationRequest createRequest)
+    //{
+    //    var newOrganisation = await organisationService.AddAsync(createRequest);
+
+    //    if (newOrganisation is null)
+    //        return BadRequest("Failed to create organisation.");
+    //    return Ok(newOrganisation);
+    //}
 };

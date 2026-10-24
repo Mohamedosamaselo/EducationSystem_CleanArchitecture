@@ -129,18 +129,18 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
             //SchoolId = newSubject.SchoolId,
             Grades = newSubject.Grades.Select(g => new GradeResponseDto
             {
-                //Id = g.Id,
+                Id = g.Id,
                 Name = g.Name,
                 //Description = g.Description,
                 //IsActive = g.IsActive,
-                //SchoolId = g.SchoolId,
+                SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()
         };
     }
 
     public async Task<SubjectResponseDto?> UpdateSubjectAsync(Guid id,
-        UpdateSubjectRequest subjectRequest, CancellationToken CT = default)
+            UpdateSubjectRequest subjectRequest, CancellationToken CT = default)
     {
         var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id, CT);
 

@@ -11,7 +11,7 @@ public static class DataSeeder
                                         UserManager<ApplicationUser> userManager,
                                         RoleManager<ApplicationRole> roleManager)
     {
-        //await SeedOrganizationAsync(context);
+        await SeedOrganizationAsync(context);
 
         //await SeedSchoolAsync(context);
 
@@ -23,7 +23,7 @@ public static class DataSeeder
 
         //await SeedUsersAsync(userManager, roleManager);
 
-        //await SeedRoleClaimsAsync(roleManager);
+        await SeedRoleClaimsAsync(roleManager);
     }
 
     private static async Task SeedOrganizationAsync(ApplicationDbContext context)
@@ -37,7 +37,7 @@ public static class DataSeeder
             {
                 Name = "Ministery of Education " ,
                 Email="MinisteryOfEducation@gmail.com",
-                Phone="1552",
+                Phone="01097782419",
                 CreatedAt = DateTime.UtcNow,
             }
         };
@@ -66,71 +66,73 @@ public static class DataSeeder
     Email = "info@cairointernational.edu.eg",
     PhoneNumber = "+20 2 2735 1122",
     OrganisationId = organisation.Id,
+    SchoolAdminId=Guid.NewGuid(),
     CreatedAt = DateTime.UtcNow
 },
-new School
-{
-    Name = "Alexandria Modern School",
-    Address = "45 Corniche Road, Alexandria, 21500, Egypt",
-    Email = "contact@alexmodern.edu.eg",
-    PhoneNumber = "+20 3 4871 5566",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-},
-new School
-{
-    Name = "Giza Excellence Academy",
-    Address = "78 Pyramids Road, Giza, 12511, Egypt",
-    Email = "admin@gizaexcellence.edu.eg",
-    PhoneNumber = "+20 2 3377 8899",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-},
-new School
-{
-    Name = "Mansoura National School",
-    Address = "32 El Gomhoria St, Mansoura, 35511, Egypt",
-    Email = "info@mansouranational.edu.eg",
-    PhoneNumber = "+20 50 223 4477",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-},
-new School
-{
-    Name = "Aswan Heritage School",
-    Address = "12 Corniche El Nil, Aswan, 81511, Egypt",
-    Email = "contact@aswanheritage.edu.eg",
-    PhoneNumber = "+20 97 231 6688",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-},
-new School
-{
-    Name = "Luxor Advanced Academy",
-    Address = "9 Karnak St, Luxor, 85951, Egypt",
-    Email = "info@luxoradvanced.edu.eg",
-    PhoneNumber = "+20 95 237 9911",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-},
-new School
-{
-    Name = "Ismailia Future School",
-    Address = "56 Suez Canal St, Ismailia, 41511, Egypt",
-    Email = "admin@ismailiafuture.edu.eg",
-    PhoneNumber = "+20 64 391 2244",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-},
-new School
-{
-    Name = "Tanta Modern Education School",
-    Address = "21 El Bahr St, Tanta, 31511, Egypt",
-    Email = "contact@tantamodern.edu.eg",
-    PhoneNumber = "+20 40 331 5577",
-    OrganisationId = organisation.Id,
-    CreatedAt = DateTime.UtcNow
-    } };
+//new School
+//{
+//    Name = "Alexandria Modern School",
+//    Address = "45 Corniche Road, Alexandria, 21500, Egypt",
+//    Email = "contact@alexmodern.edu.eg",
+//    PhoneNumber = "+20 3 4871 5566",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//},
+//new School
+//{
+//    Name = "Giza Excellence Academy",
+//    Address = "78 Pyramids Road, Giza, 12511, Egypt",
+//    Email = "admin@gizaexcellence.edu.eg",
+//    PhoneNumber = "+20 2 3377 8899",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//},
+//new School
+//{
+//    Name = "Mansoura National School",
+//    Address = "32 El Gomhoria St, Mansoura, 35511, Egypt",
+//    Email = "info@mansouranational.edu.eg",
+//    PhoneNumber = "+20 50 223 4477",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//},
+//new School
+//{
+//    Name = "Aswan Heritage School",
+//    Address = "12 Corniche El Nil, Aswan, 81511, Egypt",
+//    Email = "contact@aswanheritage.edu.eg",
+//    PhoneNumber = "+20 97 231 6688",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//},
+//new School
+//{
+//    Name = "Luxor Advanced Academy",
+//    Address = "9 Karnak St, Luxor, 85951, Egypt",
+//    Email = "info@luxoradvanced.edu.eg",
+//    PhoneNumber = "+20 95 237 9911",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//},
+//new School
+//{
+//    Name = "Ismailia Future School",
+//    Address = "56 Suez Canal St, Ismailia, 41511, Egypt",
+//    Email = "admin@ismailiafuture.edu.eg",
+//    PhoneNumber = "+20 64 391 2244",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//},
+//new School
+//{
+//    Name = "Tanta Modern Education School",
+//    Address = "21 El Bahr St, Tanta, 31511, Egypt",
+//    Email = "contact@tantamodern.edu.eg",
+//    PhoneNumber = "+20 40 331 5577",
+//    OrganisationId = organisation.Id,
+//    CreatedAt = DateTime.UtcNow
+//    }
+};
 
         await context.Schools.AddRangeAsync(schools);
 
@@ -153,9 +155,8 @@ new School
         new Grade
         {
             Name = "Grade 1",
-            SchoolId =school.Id ,
             Description = "First grade of primary school",
-            //IsActive = true,
+            SchoolId =school.Id ,
             CreatedAt = DateTime.UtcNow,
         },
         new Grade
@@ -163,7 +164,6 @@ new School
             Name = "Grade 2",
             SchoolId = school.Id,
              Description = "Second grade of primary school",
-            //IsActive = true,
             CreatedAt = DateTime.UtcNow,
         },
         new Grade
@@ -171,23 +171,20 @@ new School
             Name = "Grade 3",
             SchoolId = school.Id,
              Description = "third grade of primary school",
-            //IsActive = true,
              CreatedAt = DateTime.UtcNow,
         },
         new Grade
         {
             Name = "Grade 4",
             SchoolId = school.Id,
-             Description = "fourth grade of primary school",
-            //IsActive = true,
-             CreatedAt = DateTime.UtcNow,
+            Description = "fourth grade of primary school",
+            CreatedAt = DateTime.UtcNow,
         },
         new Grade
         {
             Name = "Grade 5",
             SchoolId = school.Id,
              Description = "fifth grade of primary school",
-            //IsActive = true,
              CreatedAt = DateTime.UtcNow,
         },
     };
@@ -212,80 +209,60 @@ new School
           new Subject
     {
         Name = "Mathematics",
-        //SchoolId = school.Id,
-        //Description = "Mathematics subject",
         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "English",
-        //SchoolId = school.Id,
-        //Description = "English language and literature subject",
         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Arabic",
-        //SchoolId = school.Id,
-        //Description = "Arabic language and literature subject",
         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Science",
-        //SchoolId = school.Id,
-        //  Description = "General science subject",
-        CreatedAt = DateTime.UtcNow,
+         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Physics",
-        //SchoolId = school.Id,
-        //Description = "Physics and physical science subject",
-        CreatedAt = DateTime.UtcNow,
+         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Chemistry",
-        //SchoolId = school.Id,
-        //Description = "Chemistry and laboratory science subject",
         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Biology",
-        //SchoolId = school.Id,
-        //Description = "Biology and life science subject",
-        CreatedAt = DateTime.UtcNow,
+         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "History",
-        //SchoolId = school.Id,
-        //Description = "History and historical studies subject",
-        CreatedAt = DateTime.UtcNow,
+         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Geography",
-        //SchoolId = school.Id,
-        //Description = "Geography and earth studies subject",
         CreatedAt = DateTime.UtcNow,
     },
 
     new Subject
     {
         Name = "Computer Science",
-        //SchoolId = school.Id,
-        //Description = "Computer science and programming subject",
         CreatedAt = DateTime.UtcNow,
     }
     };
@@ -321,9 +298,10 @@ new School
             "Hassan",
             "Cairo",
             new DateTime(1985, 5, 10),
-
             null,
             null
+            //"8c990d94-1ecb-4248-89f7-607d2123043e",
+            //"6ea08d52-81ca-4615-abb2-78cc38daeeba"
         ),
 
         (
@@ -367,20 +345,6 @@ new School
             Guid.Parse("9cd1b0da-286b-4280-ac49-131c4c0e6f99"),
             Guid.Parse("92EBFD6E-AB2E-47C0-93DF-2412FA3BBB8A")
         ),
-
-        (
-            "parent",
-            "parent@example.com",
-            "Parent@123",
-            "Parent",
-            "Hussein",
-            "Ali",
-            "Alexandria",
-            new DateTime(1982, 2, 5),
-
-            null,
-            null
-        )
     };
 
         foreach (var userData in users)
@@ -458,41 +422,27 @@ new School
     {
         new ApplicationRole
         {
+            Id = Guid.NewGuid(),
             Name = "OrganisationAdmin",
-            //IsDefault = false,
-            //IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         },
 
         new ApplicationRole
         {
+                        Id = Guid.NewGuid(),
             Name = "SchoolAdmin",
-                //IsDefault = false,
-                //IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         },
 
         new ApplicationRole
-        {
+        {Id = Guid.NewGuid(),
             Name = "Teacher",
-            //IsDefault = false,
-            //IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         },
 
         new ApplicationRole
-        {
+        {Id = Guid.NewGuid(),
             Name = "Student",
-            //IsDefault = true,
-            //IsDeleted = false,
-            CreatedAt = DateTime.UtcNow
-        },
-
-         new ApplicationRole
-        {
-            Name = "Parent",
-            //IsDefault = false,
-            //IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         }
     };

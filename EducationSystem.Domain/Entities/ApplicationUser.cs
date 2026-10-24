@@ -27,9 +27,10 @@ public class ApplicationUser : BaseAuditableEntity
     // ---- Relations ----
 
     // [one user for one school ]
-    public Guid? SchoolId { get; set; }// Foreign key to School
+    public Guid? SchoolId { get; set; }
 
-    public virtual School? School { get; set; }// user in one school
+    public virtual School? School { get; set; }
+    public virtual School? ManagedSchool { get; set; }// one admin managed one school
 
     // [one user for one grade : student ]
     public Guid? GradeId { get; set; }

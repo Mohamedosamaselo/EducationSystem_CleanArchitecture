@@ -62,20 +62,29 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // If the client does not send a role,
         // Student will be assigned by default.
 
-        var role = string.IsNullOrWhiteSpace(request.Role)
+        var userRole = string.IsNullOrWhiteSpace(request.Role)
             ? "Student"
             : request.Role.Trim();
+        //  only allow safe roles for public registration
+        var allowedPublicRoles = new[] { "Student", "SchoolAdmin", "OrganisationAdmin", "Teacher" };
+
+        if (!allowedPublicRoles.Contains(userRole, StringComparer.OrdinalIgnoreCase))
+        {
+            return Result.Failure<AuthResponse?>(new Error("Role.NotAllowed", "This role cannot be self-registered."));
+        }
 
         // --------------------------------------------------------
         // 1.3 Validate that the requested role exists
         // --------------------------------------------------------
 
-        if (!await _roleManager.RoleExistsAsync(role))
+        var role = await _roleManager.FindByNameAsync(userRole);
+
+        if (role is null)
         {
             return Result.Failure<AuthResponse?>(
                 new Error(
                     "Role.NotFound",
-                    $"Role '{role}' does not exist."));
+                    $"Role '{userRole}' does not exist."));
         }
 
         // --------------------------------------------------------
@@ -87,25 +96,19 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
-
-            UserName = request.Email,
-            Email = request.Email,
-
             FirstName = request.FirstName,
             LastName = request.LastName,
             Address = request.Address,
             DateOfBirth = request.DateOfBirth,
 
-            //OrganisationId = request.OrganisationId,
+            UserName = request.UserName,
+            Email = request.Email,
+            //PasswordHash = request.Password,
+            EmailConfirmed = false,
+
             SchoolId = request.SchoolId,
             GradeId = request.GradeId,
-
-            EmailConfirmed = false,
-            //IsActive = true,
-
-            // This is your custom Role column.
-            // Identity authorization should still use UserRoles.
-            //Role = role,
+            RoleId = role.Id,
 
             CreatedAt = DateTime.UtcNow
         };
@@ -116,9 +119,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // CreateAsync will hash the password using Identity's
         // configured PasswordHasher.
 
-        var createResult = await _userManager.CreateAsync(
-            user,
-            request.Password);
+        var createResult = await _userManager.CreateAsync(user, request.Password);
 
         if (!createResult.Succeeded)
         {
@@ -157,47 +158,17 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         }
 
         // --------------------------------------------------------
-        // 1.6 Assign the Identity role
-        // --------------------------------------------------------
-        // This creates the relation in AspNetUserRoles.
-
-        var roleResult = await _userManager.AddToRoleAsync(
-            user,
-            role);
-
-        if (!roleResult.Succeeded)
-        {
-            // If role assignment fails, remove the user
-            // because registration is not complete.
-
-            await _userManager.DeleteAsync(user);
-
-            var roleError = roleResult.Errors.FirstOrDefault();
-
-            return Result.Failure<AuthResponse?>(
-                new Error(
-                    "User.RoleAssignmentFailed",
-                    roleError?.Description
-                        ?? $"Failed to assign role '{role}'."));
-        }
-
-        // --------------------------------------------------------
         // 1.7 Generate email confirmation token
-        // --------------------------------------------------------
+        // successfully assigning the role.
         // IMPORTANT:
         // Generate the token AFTER creating the user and
-        // successfully assigning the role.
+        // --------------------------------------------------------
 
-        var confirmationToken =
-            await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var confirmationToken = await _userManager.GenerateEmailConfirmationTokenAsync(user);
 
         // --------------------------------------------------------
         // 1.8 Encode the confirmation token
         // --------------------------------------------------------
-        // Identity's original token may contain characters that
-        // are unsafe inside URLs.
-        //
-        // Base64UrlEncode converts the token into a URL-safe value.
 
         var encodedConfirmationToken =
             WebEncoders.Base64UrlEncode(
@@ -205,8 +176,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
         // --------------------------------------------------------
         // 1.9 Build the confirmation link
-        // --------------------------------------------------------
         // Replace this URL with your real Angular application URL.
+        // --------------------------------------------------------
 
         var confirmationLink =
             $"https://your-frontend.com/confirm-email" +
@@ -228,19 +199,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // 1.11 Send the confirmation email
         // --------------------------------------------------------
 
-        //await _emailService.SendAsync(
-        //    user.Email!,
-        //    "Confirm your email",
-        //    $"""
-        //    Hello {user.FirstName},
-
-        //    Please confirm your email by clicking the following link:
-
-        //    {confirmationLink}
-
-        //    This confirmation link will expire according to
-        //    your Identity token configuration.
-        //    """);
         try
         {
             await _emailService.SendAsync(
@@ -277,27 +235,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
         var userRoles = await _userManager.GetRolesAsync(user);
 
-        // --------------------------------------------------------
-        // 1.13 IMPORTANT:
-        // Do NOT generate a JWT here if email confirmation
-        // is required before login.
-        // --------------------------------------------------------
-        //
-        // Your Identity configuration contains:
-        //
-        // options.SignIn.RequireConfirmedEmail = true;
-        //
-        // Therefore the user should confirm the email first
-        // and then login to receive a JWT.
-
-        // --------------------------------------------------------
-        // 1.14 Return registration response
-        // --------------------------------------------------------
-        // We are using AuthResponse because that is your
-        // existing DTO.
-        //
-        // Token is empty because the user is not authenticated yet.
-
         var response = new AuthResponse(
             Id: user.Id,
             Email: user.Email!,
@@ -306,10 +243,9 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             LastName: user.LastName,
             Address: user.Address,
             DateOfBirth: user.DateOfBirth,
-            //OrganisationId: user.OrganisationId,
+
             SchoolId: user.SchoolId,
             GradeId: user.GradeId,
-
             Token: string.Empty,
 
             IsAuthenticated: false,
@@ -322,7 +258,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         return Result.Success<AuthResponse?>(response);
     }
 
-    // 2. LOGIN
+    // 2. LOGIN Method
     public async Task<Result<AuthResponse?>> GetTokenAsync(
         string email,
         string password,
@@ -341,23 +277,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         }
 
         // --------------------------------------------------------
-        // 2.2 Check whether the account is active
-        // --------------------------------------------------------
-
-        //if (!user.IsActive)
-        //{
-        //    return Result.Failure<AuthResponse?>(
-        //        new Error(
-        //            "User.Inactive",
-        //            "Your account has been deactivated."));
-        //}
-
-        // --------------------------------------------------------
         // 2.3 Check password + Identity sign-in rules
         // --------------------------------------------------------
-        //
-        // false = don't remember login
-        // false = don't lock out on failure
 
         var signInResult =
             await _signInManager.PasswordSignInAsync(
@@ -529,18 +450,15 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                 return Result.Failure<bool>(UserErrors.InvalidResetToken);
 
         // 4.2 Decode the token received from the frontend
-        string resetToken = request.Token.Trim(); ;
-
-        return Result.Failure<bool>(
-            UserErrors.InvalidResetToken);
+        string resetToken = request.Token.Trim();
 
         // 4.3 Ask Identity to validate the token
         // and reset the password
         var result =
-            await _userManager.ResetPasswordAsync(
-                user,
-                resetToken,
-                request.NewPassword);
+                     await _userManager.ResetPasswordAsync(
+                         user,
+                         resetToken,
+                         request.NewPassword);
 
         // 4.4 Handle Identity errors
         if (!result.Succeeded)
@@ -613,17 +531,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // --------------------------------------------------------
 
         var user = await _userManager.GetUserAsync(principal);
-
-        // 5.4 Check whether the account is active
-        // --------------------------------------------------------
-
-        //if (!user!.IsActive)
-        //{
-        //    return Result.Failure<string>(
-        //        new Error(
-        //            "User.Inactive",
-        //            "Your account has been deactivated."));
-        //}
 
         // --------------------------------------------------------
         // 5.5 Change the password

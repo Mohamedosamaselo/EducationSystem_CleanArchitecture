@@ -8,5 +8,5 @@ public class CreateGradeRequest
 
     public Guid SchoolId { get; set; }
 
-    public bool IsActive { get; set; }
+    //public bool IsActive { get; set; }
 }

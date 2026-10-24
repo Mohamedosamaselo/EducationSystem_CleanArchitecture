@@ -9,9 +9,9 @@ public interface ISchoolService
 
     Task<Result<SchoolResponse?>> GetByIdAsync(Guid id, CancellationToken ct = default);
 
-    Task<Result<SchoolResponse?>> GetByNameAsync(string schoolName, CancellationToken ct = default);
+    //Task<Result<SchoolResponse?>> GetByNameAsync(string schoolName, CancellationToken ct = default);
 
-    Task<Result<IReadOnlyList<SchoolResponse>>> GetAllByOrganisationIdAsync(Guid organisationId, CancellationToken ct = default);
+    //Task<Result<IReadOnlyList<SchoolResponse>>> GetAllByOrganisationIdAsync(Guid organisationId, CancellationToken ct = default);
 
     Task<Result<SchoolResponse?>> AddAsync(CreateSchoolRequest createDto, CancellationToken ct = default);
 

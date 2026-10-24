@@ -11,7 +11,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    // getAll
+    // get
     public async Task<Result<IReadOnlyList<SchoolResponse>>> GetAllAsync(CancellationToken ct = default)
     {
         var schools = await _unitOfWork.SchoolRepository.GetAllAsync(ct);
@@ -34,37 +34,38 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
     }
 
     // search school by name
-    public async Task<Result<SchoolResponse?>> GetByNameAsync(string schoolName, CancellationToken ct = default)
-    {
-        if (string.IsNullOrWhiteSpace(schoolName))
-            return Result.Failure<SchoolResponse?>(SchoolErrors.InvalidInput);
+    //public async Task<Result<SchoolResponse?>> GetByNameAsync(string schoolName, CancellationToken ct = default)
+    //{
+    //    if (string.IsNullOrWhiteSpace(schoolName))
+    //        return Result.Failure<SchoolResponse?>(SchoolErrors.InvalidInput);
 
-        var school = await _unitOfWork.SchoolRepository.GetByNameAsync(schoolName, ct);
-        if (school is null)
-            return Result.Failure<SchoolResponse?>(SchoolErrors.NotFound);
+    //    var school = await _unitOfWork.SchoolRepository.GetByNameAsync(schoolName, ct);
+    //    if (school is null)
+    //        return Result.Failure<SchoolResponse?>(SchoolErrors.NotFound);
 
-        return Result.Success<SchoolResponse?>(MapToSchoolResponse(school));
-    }
+    //    return Result.Success<SchoolResponse?>(MapToSchoolResponse(school));
+    //}
 
-    public async Task<Result<IReadOnlyList<SchoolResponse>>> GetAllByOrganisationIdAsync(
-        Guid organisationId, CancellationToken ct = default)
-    {
-        if (organisationId == Guid.Empty)
-            return Result.Failure<IReadOnlyList<SchoolResponse>>(SchoolErrors.InvalidInput);
+    //public async Task<Result<IReadOnlyList<SchoolResponse>>> GetAllByOrganisationIdAsync(
+    //    Guid organisationId, CancellationToken ct = default)
+    //{
+    //    if (organisationId == Guid.Empty)
+    //        return Result.Failure<IReadOnlyList<SchoolResponse>>(SchoolErrors.InvalidInput);
 
-        // Verify the organisation exists
-        var organisation = await _unitOfWork.OrganisationRepository.GetByIdAsync(organisationId, ct);
-        if (organisation is null)
-            return Result.Failure<IReadOnlyList<SchoolResponse>>(SchoolErrors.OrganisationNotFound);
+    //    // Verify the organisation exists
+    //    var organisation = await _unitOfWork.OrganisationRepository.GetByIdAsync(organisationId, ct);
+    //    if (organisation is null)
+    //        return Result.Failure<IReadOnlyList<SchoolResponse>>(SchoolErrors.OrganisationNotFound);
 
-        var schools = await _unitOfWork.SchoolRepository
-            .GetAllAsync(s => s.OrganisationId == organisationId, ct);
+    //    var schools = await _unitOfWork.SchoolRepository
+    //        .GetAllAsync(s => s.OrganisationId == organisationId, ct);
 
-        var response = schools.Select(MapToSchoolResponse).ToList();
-        return Result.Success<IReadOnlyList<SchoolResponse>>(response);
-    }
+    //    var response = schools.Select(MapToSchoolResponse).ToList();
+    //    return Result.Success<IReadOnlyList<SchoolResponse>>(response);
+    //}
 
     //add
+
     public async Task<Result<SchoolResponse?>> AddAsync(CreateSchoolRequest createDto, CancellationToken ct = default)
     {
         // 1. Validate input
@@ -107,7 +108,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             Email = createDto.Email,
 
             PhoneNumber = createDto.PhoneNumber,
-
+            SchoolAdminId = createDto.SchoolAdminId,
             OrganisationId = createDto.OrganisationId,
             Organisation = organisation
         };
@@ -148,8 +149,8 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         // 3. If OrganisationId changed, verify the new org exists
         if (updateDto.OrganisationId != school.OrganisationId)
         {
-            var newOrg = await _unitOfWork.OrganisationRepository
-                .GetByIdAsync(updateDto.OrganisationId, ct);
+            var newOrg = await _unitOfWork.OrganisationRepository.GetByIdAsync(updateDto.OrganisationId, ct);
+
             if (newOrg is null)
                 return Result.Failure<SchoolResponse?>(SchoolErrors.OrganisationNotFound);
         }
