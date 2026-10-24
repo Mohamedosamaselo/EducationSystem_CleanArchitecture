@@ -14,7 +14,7 @@ public class School : BaseAuditableEntity
     public virtual Organisation Organisation { get; set; } = null!;// Navigation property to Organisation
 
     // Foreign key to the School Admin
-    public Guid SchoolAdminId { get; set; }
+    public Guid? SchoolAdminId { get; set; }
 
     public virtual ApplicationUser SchoolAdmin { get; set; } = null!; // Navigation property to School Admin
 

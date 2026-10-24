@@ -14,6 +14,7 @@ public class UnitOfWork : IUnitOfWork
     public IGenericRepository<School> SchoolRepository { get; }
     public IGenericRepository<Grade> GradeRepository { get; }
     public IGenericRepository<Subject> SubjectRepository { get; }
+    public IGenericRepository<ApplicationUser> UserRepository { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
@@ -23,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
         SchoolRepository = new GenericRepository<School>(_context);
         GradeRepository = new GenericRepository<Grade>(_context);
         SubjectRepository = new GenericRepository<Subject>(_context);
+        UserRepository = new GenericRepository<ApplicationUser>(_context);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) => await _context.SaveChangesAsync();

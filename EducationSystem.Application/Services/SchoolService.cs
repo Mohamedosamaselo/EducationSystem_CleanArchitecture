@@ -3,15 +3,19 @@ using EducationSystem.Application.Abstarctions.HandlingError.Errors;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.School;
 using EducationSystem.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.Application.Services;
 
-public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
+public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager) : ISchoolService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly UserManager<ApplicationUser> _userManager = userManager;
 
-    // get
+    // get all schools
     public async Task<Result<IReadOnlyList<SchoolResponse>>> GetAllAsync(CancellationToken ct = default)
     {
         var schools = await _unitOfWork.SchoolRepository.GetAllAsync(ct);
@@ -20,7 +24,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         return Result.Success<IReadOnlyList<SchoolResponse>>(response);
     }
 
-    // getById
+    // getById for School
     public async Task<Result<SchoolResponse?>> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         if (id == Guid.Empty)
@@ -106,7 +110,6 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             Name = createDto.Name,
             Address = createDto.Address,
             Email = createDto.Email,
-
             PhoneNumber = createDto.PhoneNumber,
             SchoolAdminId = createDto.SchoolAdminId,
             OrganisationId = createDto.OrganisationId,
@@ -131,7 +134,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         return Result.Success<SchoolResponse?>(MapToSchoolResponse(school));
     }
 
-    // Update
+    // Update School
     public async Task<Result<SchoolResponse?>> UpdateAsync(Guid id, UpdateSchoolRequest updateDto, CancellationToken ct = default)
     {
         // 1. Validate input
@@ -185,7 +188,7 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         return Result.Success<SchoolResponse?>(MapToSchoolResponse(school));
     }
 
-    // Delete
+    // Delete School
     public async Task<Result> DeleteAsync(Guid id, CancellationToken ct = default)
     {
         if (id == Guid.Empty)
@@ -210,7 +213,205 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
         return Result.Success();
     }
 
-    // Helper — single source of truth for mapping School -> SchoolResponse
+    // Get the admin of a school
+    public async Task<Result<SchoolAdminResponse?>> GetSchoolAdminByIdAsync(
+        Guid schoolId, CancellationToken ct = default)
+    {
+        // 1. Validate input
+        if (schoolId == Guid.Empty)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.InvalidInput);
+
+        // 2. School must exist
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(schoolId, ct);
+        if (school is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolErrors.NotFound);
+
+        // 3. School must have an admin
+        if (school.SchoolAdminId == Guid.Empty)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.NotFound);
+
+        // 4. Load the admin user (inactive = removed)
+        var admin = await _userManager.FindByIdAsync(school.SchoolAdminId.ToString());
+        if (admin is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.NotFound);
+
+        // 5. Return mapped response (never includes the password)
+        return Result.Success<SchoolAdminResponse?>(MapToSchoolAdminResponse(admin, schoolId));
+    }
+
+    public async Task<Result<SchoolAdminResponse?>> CreateSchoolAdminAsync(Guid schoolId, CreateSchoolAdminRequest createDto, CancellationToken ct = default)
+    {
+        // 1. Validate input
+        if (schoolId == Guid.Empty || createDto is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.InvalidInput);
+
+        if (string.IsNullOrWhiteSpace(createDto.FirstName) ||
+            string.IsNullOrWhiteSpace(createDto.LastName) ||
+            string.IsNullOrWhiteSpace(createDto.Email) ||
+            string.IsNullOrWhiteSpace(createDto.Username) ||
+            string.IsNullOrWhiteSpace(createDto.Password))
+            return Result.Failure<SchoolAdminResponse?>(
+                new Error("SchoolAdmin.InvalidInput", "First name, last name, email, username and password are required."));
+
+        // 2. School must exist
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(schoolId, ct);
+        if (school is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolErrors.NotFound);
+
+        // 3. One admin per school
+        if (school.SchoolAdminId != Guid.Empty)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.AlreadyExists);
+
+        // 4. Unique username / email
+        if (await _userManager.FindByNameAsync(createDto.Username) is not null ||
+            await _userManager.FindByEmailAsync(createDto.Email) is not null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.DuplicateUser);
+
+        // 5. Build the user (Identity hashes the password inside CreateAsync)
+        var admin = new ApplicationUser
+        {
+            Id = Guid.NewGuid(),
+            FirstName = createDto.FirstName,
+            LastName = createDto.LastName,
+            Email = createDto.Email,
+            UserName = createDto.Username,
+            SchoolId = schoolId,
+        };
+
+        var createResult = await _userManager.CreateAsync(admin, createDto.Password);
+        if (!createResult.Succeeded)
+            return Result.Failure<SchoolAdminResponse?>(new Error(
+                "SchoolAdmin.CreationFailed",
+                string.Join(" ", createResult.Errors.Select(e => e.Description))));
+
+        // 6. Assign the role (Identity way)
+        var roleResult = await _userManager.AddToRoleAsync(admin, "SchoolAdmin");
+        if (!roleResult.Succeeded)
+        {
+            await _userManager.DeleteAsync(admin);   // rollback the user
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.RoleNotConfigured);
+        }
+
+        // 7. Link the admin to the school
+        school.SchoolAdminId = admin.Id;
+        school.ModifiedAt = DateTime.UtcNow;
+        _unitOfWork.SchoolRepository.Update(school);
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (Exception)
+        {
+            await _userManager.DeleteAsync(admin);   // rollback the user
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.CreationFailed);
+        }
+
+        return Result.Success<SchoolAdminResponse?>(MapToSchoolAdminResponse(admin, schoolId));
+    }
+
+    public async Task<Result<SchoolAdminResponse?>> UpdateSchoolAdminAsync(
+     Guid schoolId, UpdateSchoolAdminRequest updateDto, CancellationToken ct = default)
+    {
+        // 1. Validate input
+        if (schoolId == Guid.Empty || updateDto is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.InvalidInput);
+
+        // 2. Load school, then its admin
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(schoolId, ct);
+        if (school is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolErrors.NotFound);
+
+        if (school.SchoolAdminId == Guid.Empty)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.NotFound);
+
+        var admin = await _userManager.FindByIdAsync(school.SchoolAdminId.ToString());
+        if (admin is null)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.NotFound);
+
+        // If the email changed, it must still be unique
+        if (!string.Equals(admin.Email, updateDto.Email, StringComparison.OrdinalIgnoreCase))
+        {
+            var emailOwner = await _userManager.FindByEmailAsync(updateDto.Email);
+            if (emailOwner is not null && emailOwner.Id != admin.Id)
+                return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.DuplicateUser);
+        }
+
+        admin.FirstName = updateDto.FirstName;
+        admin.LastName = updateDto.LastName;
+        admin.Email = updateDto.Email;
+        admin.ModifiedAt = DateTime.UtcNow;
+
+        var updateResult = await _userManager.UpdateAsync(admin);
+        if (!updateResult.Succeeded)
+            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.UpdateFailed);
+
+        // Optional password reset
+        if (!string.IsNullOrWhiteSpace(updateDto.Password))
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(admin);
+            var pwResult = await _userManager.ResetPasswordAsync(admin, token, updateDto.Password);
+            if (!pwResult.Succeeded)
+                return Result.Failure<SchoolAdminResponse?>(new Error(
+                    "SchoolAdmin.UpdateFailed",
+                    string.Join(" ", pwResult.Errors.Select(e => e.Description))));
+        }
+
+        return Result.Success<SchoolAdminResponse?>(MapToSchoolAdminResponse(admin, schoolId));
+    }
+
+    public async Task<Result> RemoveSchoolAdminAsync(Guid schoolId, CancellationToken ct = default)
+    {
+        if (schoolId == Guid.Empty)
+            return Result.Failure(SchoolAdminErrors.InvalidInput);
+
+        var school = await _unitOfWork.SchoolRepository.GetByIdAsync(schoolId, ct);
+        if (school is null)
+            return Result.Failure(SchoolErrors.NotFound);
+
+        if (school.SchoolAdminId == Guid.Empty)
+            return Result.Failure(SchoolAdminErrors.NotFound);
+
+        var admin = await _unitOfWork.UserRepository.GetByIdAsync(school.SchoolAdminId!.Value, ct);
+        if (admin is null)
+            return Result.Failure(SchoolAdminErrors.NotFound);
+
+        // Soft delete the user and unlink from the school
+        //admin.IsActive = false;
+        admin.ModifiedAt = DateTime.UtcNow;
+        _unitOfWork.UserRepository.Update(admin);
+
+        school.SchoolAdminId = Guid.Empty;
+        school.ModifiedAt = DateTime.UtcNow;
+        _unitOfWork.SchoolRepository.Update(school);
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (Exception)
+        {
+            return Result.Failure(SchoolAdminErrors.DeletionFailed);
+        }
+
+        return Result.Success();
+    }
+
+    // Helper: User -> SchoolAdminResponse
+    private static SchoolAdminResponse MapToSchoolAdminResponse(ApplicationUser user, Guid schoolId)
+    {
+        return new SchoolAdminResponse(
+            user.Id,
+            user.FirstName,
+            user.LastName,
+            user.Email,
+            user.UserName,
+            //user.SchoolId.HasValue && user.SchoolId.Value != Guid.Empty ? user.SchoolId.Value : Guid.Empty
+            schoolId
+        );
+    }
+
+    // Helper — School -> SchoolResponse
     private static SchoolResponse MapToSchoolResponse(School school)
     {
         return new SchoolResponse
@@ -219,7 +420,6 @@ public class SchoolService(IUnitOfWork unitOfWork) : ISchoolService
             Address = school.Address,
             Email = school.Email,
             PhoneNumber = school.PhoneNumber,
-
             OrganisationId = school.OrganisationId,
             OrganisationName = school.Organisation?.Name ?? string.Empty
         };

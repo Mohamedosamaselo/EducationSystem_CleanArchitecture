@@ -1,6 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.School;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -70,4 +71,52 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     //public async Task<IActionResult> GetByName(
     //    [FromQuery] string schoolName, CancellationToken ct)
     //    => (await _schoolService.GetByNameAsync(schoolName, ct)).ToActionResult(this);
+
+    // School Admin management endpoints
+
+    [HttpGet("{schoolId:guid}/admin")]
+    public async Task<IActionResult> GetSchoolAdmin(Guid schoolId, CancellationToken ct)
+    {
+        var result = await _schoolService.GetSchoolAdminByIdAsync(schoolId, ct);
+        return result.IsSuccess ? Ok(result.Value) : ToProblem(result.Error);
+    }
+
+    [HttpPost("{schoolId:guid}/admin")]
+    [Authorize(Roles = "OrganisationAdmin")]
+    public async Task<IActionResult> CreateAdmin(Guid schoolId, [FromBody] CreateSchoolAdminRequest request, CancellationToken ct)
+    {
+        var result = await _schoolService.CreateSchoolAdminAsync(schoolId, request, ct);
+
+        return result.IsSuccess
+            ? Created($"/schools/{schoolId}/admin", result.Value)
+            : ToProblem(result.Error);
+    }
+
+    [HttpPut("{schoolId:guid}/admin")]
+    [Authorize(Roles = "OrganisationAdmin")]
+    public async Task<IActionResult> UpdateAdmin(
+        Guid schoolId, [FromBody] UpdateSchoolAdminRequest request, CancellationToken ct)
+    {
+        var result = await _schoolService.UpdateSchoolAdminAsync(schoolId, request, ct);
+
+        return result.IsSuccess ? Ok(result.Value) : ToProblem(result.Error);
+    }
+
+    [HttpDelete("{schoolId:guid}/admin")]
+    [Authorize(Roles = "OrganisationAdmin")]
+    public async Task<IActionResult> RemoveAdmin(Guid schoolId, CancellationToken ct)
+    {
+        var result = await _schoolService.RemoveSchoolAdminAsync(schoolId, ct);
+
+        return result.IsSuccess ? NoContent() : ToProblem(result.Error);
+    }
+
+    // Skip this if you already have a Result-to-HTTP mapper
+    private IActionResult ToProblem(Error error) => error.Code switch
+    {
+        var c when c.EndsWith("NotFound") => NotFound(new { error.Code, error.Description }),
+        var c when c.EndsWith("AlreadyExists") || c.EndsWith("Duplicate")
+                                                                => Conflict(new { error.Code, error.Description }),
+        _ => BadRequest(new { error.Code, error.Description })
+    };
 }

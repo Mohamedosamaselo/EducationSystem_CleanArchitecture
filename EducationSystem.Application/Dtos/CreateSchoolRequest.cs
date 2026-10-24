@@ -9,11 +9,8 @@ public class CreateSchoolRequest
     public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
 
-    //public SchoolStatus Status { get; set; } = SchoolStatus.Active;
-    //public string LogoUrl { get; set; } = string.Empty;
     public Guid OrganisationId { get; set; }
-
-    public Guid SchoolAdminId { get; set; }
+    public Guid? SchoolAdminId { get; set; }
 
     //public string OrganisationName { get; set; } = string.Empty;
 }
