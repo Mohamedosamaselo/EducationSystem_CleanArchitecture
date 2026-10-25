@@ -1,6 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Dtos;
 using EducationSystem.Application.Dtos.Grade;
+using EducationSystem.Application.Dtos.Subject;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 
@@ -17,4 +18,10 @@ public interface IGradeService
     Task<Result<GradeResponseDto?>> UpdateAsync(Guid Id, UpdateGradeRequest updateDto, CancellationToken ct = default);
 
     Task<Result> DeleteAsync(Guid Id, CancellationToken ct = default);
+
+    Task<Result<GradeSubjectResponse?>> AssignSubjectAsync(
+    Guid gradeId, AssignSubjectToGradeRequest request, CancellationToken ct = default);
+
+    Task<Result> RemoveSubjectAsync(
+        Guid gradeId, Guid subjectId, CancellationToken ct = default);
 }

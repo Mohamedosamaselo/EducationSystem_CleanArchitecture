@@ -9,6 +9,7 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<School> SchoolRepository { get; }
     IGenericRepository<Grade> GradeRepository { get; }
     IGenericRepository<Subject> SubjectRepository { get; }
+
     IGenericRepository<ApplicationUser> UserRepository { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default); // save All changes in DB

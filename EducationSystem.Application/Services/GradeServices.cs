@@ -1,8 +1,10 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Abstarctions.HandlingError.Errors;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos;
 using EducationSystem.Application.Dtos.Grade;
+using EducationSystem.Application.Dtos.Subject;
 using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;
@@ -223,6 +225,80 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         {
             return Result.Failure(
                 new Error("Grade.DeletionFailed", $"Failed to delete grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
+        }
+
+        return Result.Success();
+    }
+
+    // Assign a subject to a grade (inserts a row in the GradeSubject join table)
+    public async Task<Result<GradeSubjectResponse?>> AssignSubjectAsync(
+        Guid gradeId, AssignSubjectToGradeRequest request, CancellationToken ct = default)
+    {
+        if (gradeId == Guid.Empty || request is null || request.SubjectId == Guid.Empty)
+            return Result.Failure<GradeSubjectResponse?>(GradeSubjectErrors.InvalidInput);
+
+        // Load the grade WITH its subjects
+        var grade = await _unitOfWork.GradeRepository
+            .GetByIdWithIncludeAsync(gradeId, ct, g => g.Subjects);
+
+        if (grade is null)
+            return Result.Failure<GradeSubjectResponse?>(GradeSubjectErrors.GradeNotFound);
+
+        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(request.SubjectId, ct);
+        if (subject is null)
+            return Result.Failure<GradeSubjectResponse?>(GradeSubjectErrors.SubjectNotFound);
+
+        // Already assigned?
+        if (grade.Subjects.Any(s => s.Id == subject.Id))
+            return Result.Failure<GradeSubjectResponse?>(GradeSubjectErrors.AlreadyExists);
+
+        // Adding to the collection creates the join row on save
+        grade.Subjects.Add(subject);
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (Exception)
+        {
+            return Result.Failure<GradeSubjectResponse?>(GradeSubjectErrors.CreationFailed);
+        }
+
+        return Result.Success<GradeSubjectResponse?>(new GradeSubjectResponse
+        {
+            GradeId = grade.Id,
+            GradeName = grade.Name,
+            SubjectId = subject.Id,
+            SubjectName = subject.Name
+        });
+    }
+
+    // Remove a subject from a grade (deletes the join row only)
+    public async Task<Result> RemoveSubjectAsync(
+        Guid gradeId, Guid subjectId, CancellationToken ct = default)
+    {
+        if (gradeId == Guid.Empty || subjectId == Guid.Empty)
+            return Result.Failure(GradeSubjectErrors.InvalidInput);
+
+        var grade = await _unitOfWork.GradeRepository
+            .GetByIdWithIncludeAsync(gradeId, ct, g => g.Subjects);
+        if (grade is null)
+            return Result.Failure(GradeSubjectErrors.GradeNotFound);
+
+        var subject = grade.Subjects.FirstOrDefault(s => s.Id == subjectId);
+        if (subject is null)
+            return Result.Failure(GradeSubjectErrors.NotFound);
+
+        // Removing from the collection deletes the join row, not the subject itself
+        grade.Subjects.Remove(subject);
+
+        try
+        {
+            await _unitOfWork.SaveChangesAsync(ct);
+        }
+        catch (Exception)
+        {
+            return Result.Failure(GradeSubjectErrors.DeletionFailed);
         }
 
         return Result.Success();
