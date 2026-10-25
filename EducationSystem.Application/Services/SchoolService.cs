@@ -7,6 +7,8 @@ using EducationSystem.Application.Dtos.School;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.WebUtilities;
+using System.Text;
 
 namespace EducationSystem.Application.Services;
 
@@ -260,7 +262,7 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             return Result.Failure<SchoolAdminResponse?>(SchoolErrors.NotFound);
 
         // 3. One admin per school
-        if ( school.SchoolAdminId.HasValue)
+        if (school.SchoolAdminId.HasValue)
             return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.AlreadyExists);
 
         // 4. Unique username / email
@@ -307,6 +309,8 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             Email = createDto.Email,
             UserName = createDto.Username,
             SchoolId = schoolId,
+            DateOfBirth = createDto.DateOfBirth,
+            Address = createDto.Address,
             RoleId = schoolAdminRole.Id, // set it from DB
             CreatedAt = DateTime.UtcNow,
         };
@@ -322,9 +326,9 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
 
         // 9. Assign Admin to School Then save
         school.SchoolAdminId = admin.Id;
-
         school.ModifiedAt = DateTime.UtcNow;
 
+        // 10. Update the school with the new admin ID
         _unitOfWork.SchoolRepository.Update(school);
 
         try
@@ -337,7 +341,7 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.CreationFailed);
         }
 
-        // 10. Return Response
+        // 11. Return Response
         return Result.Success<SchoolAdminResponse?>(MapToSchoolAdminResponse(admin, schoolId));
     }
 
@@ -371,6 +375,9 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
         admin.FirstName = updateDto.FirstName;
         admin.LastName = updateDto.LastName;
         admin.Email = updateDto.Email;
+        admin.DateOfBirth = updateDto.DateOfBirth;
+        admin.Address = updateDto.Address;
+        admin.UserName = updateDto.Username;
         admin.ModifiedAt = DateTime.UtcNow;
 
         var updateResult = await _userManager.UpdateAsync(admin);
@@ -412,7 +419,7 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
         admin.ModifiedAt = DateTime.UtcNow;
         _unitOfWork.UserRepository.Update(admin);
 
-        school.SchoolAdminId = Guid.Empty;
+        school.SchoolAdminId = null;
         school.ModifiedAt = DateTime.UtcNow;
         _unitOfWork.SchoolRepository.Update(school);
 
@@ -436,6 +443,8 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             user.FirstName,
             user.LastName,
             user.Email,
+            user.DateOfBirth,
+            user.Address,
             user.UserName,
             //user.SchoolId.HasValue && user.SchoolId.Value != Guid.Empty ? user.SchoolId.Value : Guid.Empty
             schoolId

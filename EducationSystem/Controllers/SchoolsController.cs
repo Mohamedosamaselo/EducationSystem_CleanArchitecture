@@ -27,7 +27,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 
     // POST api/schools/Create
 
-    [Authorize(Roles = "OrganisationAdmin")]
+    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpPost("Create")]
     public async Task<IActionResult> AddAsync([FromBody] CreateSchoolRequest request, CancellationToken ct)
     {
@@ -75,6 +75,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     // School Admin management endpoints
 
     [HttpGet("{schoolId:guid}/admin")]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> GetSchoolAdmin(Guid schoolId, CancellationToken ct)
     {
         var result = await _schoolService.GetSchoolAdminByIdAsync(schoolId, ct);
@@ -82,7 +83,6 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpPost("{schoolId:guid}/admin")]
-    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> CreateAdmin(Guid schoolId, [FromBody] CreateSchoolAdminRequest request, CancellationToken ct)
     {
         var result = await _schoolService.CreateSchoolAdminAsync(schoolId, request, ct);
@@ -103,7 +103,6 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     [HttpDelete("{schoolId:guid}/admin")]
-    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> RemoveAdmin(Guid schoolId, CancellationToken ct)
     {
         var result = await _schoolService.RemoveSchoolAdminAsync(schoolId, ct);

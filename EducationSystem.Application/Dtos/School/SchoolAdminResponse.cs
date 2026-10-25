@@ -5,5 +5,7 @@ public sealed record SchoolAdminResponse(
     string FirstName,
     string LastName,
     string Email,
+    DateTime? DateOfBirth,
+    string Address,
     string Username,
     Guid SchoolId);

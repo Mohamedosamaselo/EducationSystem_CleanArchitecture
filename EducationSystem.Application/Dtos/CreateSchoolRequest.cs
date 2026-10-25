@@ -1,6 +1,4 @@
-﻿using EducationSystem.Domain.Enums;
-
-namespace EducationSystem.Application.Dtos;
+﻿namespace EducationSystem.Application.Dtos;
 
 public class CreateSchoolRequest
 {
