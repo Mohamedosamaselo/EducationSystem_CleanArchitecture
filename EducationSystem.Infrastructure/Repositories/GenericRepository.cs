@@ -39,6 +39,16 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
             .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<TEntity?> GetByIdWithIncludeTrackedAsync(Guid id, CancellationToken ct, params Expression<Func<TEntity, object>>[] includes)
+    {
+        IQueryable<TEntity> query = _dbSet;          // no AsNoTracking here
+
+        foreach (var include in includes)
+            query = query.Include(include);
+
+        return await query.FirstOrDefaultAsync(e => e.Id == id, ct);
+    }
+
     public async Task<IReadOnlyList<TEntity>?> GetAllWithIncludesAsync(
         Expression<Func<TEntity, bool>>? filter = null,
          CancellationToken cancellationToken = default,

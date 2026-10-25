@@ -281,7 +281,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             return Result.Failure(GradeSubjectErrors.InvalidInput);
 
         var grade = await _unitOfWork.GradeRepository
-            .GetByIdWithIncludeAsync(gradeId, ct, g => g.Subjects);
+            .GetByIdWithIncludeTrackedAsync(gradeId, ct, g => g.Subjects);
         if (grade is null)
             return Result.Failure(GradeSubjectErrors.GradeNotFound);
 
@@ -290,7 +290,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             return Result.Failure(GradeSubjectErrors.NotFound);
 
         // Removing from the collection deletes the join row, not the subject itself
-        grade.Subjects.Remove(subject);
+        var removingResult  = grade.Subjects.Remove(subject);
 
         try
         {

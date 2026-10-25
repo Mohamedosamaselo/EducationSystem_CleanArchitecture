@@ -72,15 +72,15 @@ public class GradesController(IGradeService gradeService) : ControllerBase
             : ToProblem(result.Error);
     }
 
-    //[HttpDelete("{gradeId:guid}/subjects/{subjectId:guid}")]
-    //[Authorize(Roles = "OrganisationAdmin")]
-    //public async Task<IActionResult> RemoveSubject(
-    //    Guid gradeId, Guid subjectId, CancellationToken ct)
-    //{
-    //    var result = await _gradeService.RemoveSubjectAsync(gradeId, subjectId, ct);
+    [HttpDelete("{gradeId:guid}/subjects/{subjectId:guid}")]
+    [Authorize(Roles = "OrganisationAdmin")]
+    public async Task<IActionResult> RemoveSubject(
+        Guid gradeId, Guid subjectId, CancellationToken ct)
+    {
+        var result = await _gradeService.RemoveSubjectAsync(gradeId, subjectId, ct);
 
-    //    return result.IsSuccess ? NoContent() : ToProblem(result.Error);
-    //}
+        return result.IsSuccess ? NoContent() : ToProblem(result.Error);
+    }
 
     //[HttpGet("search")]
     //public async Task<IActionResult> SearchGradesAsync([FromQuery] string gradeName, CancellationToken cancellationToken)
@@ -94,7 +94,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     {
         var c when c.EndsWith("NotFound") => NotFound(new { error.Code, error.Description }),
         var c when c.EndsWith("AlreadyExists") || c.EndsWith("Duplicate")
-                                                                => Conflict(new { error.Code, error.Description }),
+          => Conflict(new { error.Code, error.Description }),
         _ => BadRequest(new { error.Code, error.Description })
     };
 }
