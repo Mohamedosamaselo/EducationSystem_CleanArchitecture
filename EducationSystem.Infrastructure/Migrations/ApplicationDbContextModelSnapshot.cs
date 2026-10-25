@@ -17,7 +17,7 @@ namespace EducationSystem.Infrastructure.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.13")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true)
@@ -282,7 +282,7 @@ namespace EducationSystem.Infrastructure.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<Guid>("SchoolAdminId")
+                    b.Property<Guid?>("SchoolAdminId")
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -290,7 +290,8 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.HasIndex("OrganisationId");
 
                     b.HasIndex("SchoolAdminId")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[SchoolAdminId] IS NOT NULL");
 
                     b.ToTable("Schools");
                 });
@@ -459,8 +460,7 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "SchoolAdmin")
                         .WithOne("ManagedSchool")
                         .HasForeignKey("EducationSystem.Domain.Entities.School", "SchoolAdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Organisation");
 

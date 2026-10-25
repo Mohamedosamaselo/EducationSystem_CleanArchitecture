@@ -4,6 +4,7 @@ public record CreateSchoolAdminRequest(
     string FirstName,
     string LastName,
     string Email,
-    //string Phone,
     string Username,
-    string Password);
+    string Password
+    //Guid RoleId
+    );

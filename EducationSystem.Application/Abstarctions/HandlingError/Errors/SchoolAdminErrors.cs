@@ -12,7 +12,13 @@ public static class SchoolAdminErrors
         new("SchoolAdmin.AlreadyExists", "This school already has an admin. Edit or remove it first.");
 
     public static readonly Error DuplicateUser =
-        new("SchoolAdmin.Duplicate", "Username or email is already used.");
+      new("SchoolAdmin.DuplicateUser", "User is already used.");
+
+    public static readonly Error DuplicateUsername =
+        new("SchoolAdmin.DuplicateUsername", "Username  is already used.");
+
+    public static readonly Error DuplicateEmail =
+       new("SchoolAdmin.DuplicateEmail", "Email is already used.");
 
     public static readonly Error RoleNotConfigured =
         new("SchoolAdmin.RoleNotConfigured", "The SchoolAdmin role does not exist.");

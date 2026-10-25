@@ -34,7 +34,7 @@ public class SchoolConfigs : BaseAuditableEntityConfiguration<School>
         builder.HasOne(s => s.SchoolAdmin)
             .WithOne(u => u.ManagedSchool)
             .HasForeignKey<School>(s => s.SchoolAdminId)
-            .IsRequired()
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         // School with organization relationship

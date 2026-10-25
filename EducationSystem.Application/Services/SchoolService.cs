@@ -10,10 +10,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EducationSystem.Application.Services;
 
-public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager) : ISchoolService
+public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, RoleManager<ApplicationRole> roleManager) : ISchoolService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
     private readonly UserManager<ApplicationUser> _userManager = userManager;
+    private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
 
     // get all schools
     public async Task<Result<IReadOnlyList<SchoolResponse>>> GetAllAsync(CancellationToken ct = default)
@@ -259,15 +260,45 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             return Result.Failure<SchoolAdminResponse?>(SchoolErrors.NotFound);
 
         // 3. One admin per school
-        if (school.SchoolAdminId != Guid.Empty)
+        if ( school.SchoolAdminId.HasValue)
             return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.AlreadyExists);
 
         // 4. Unique username / email
-        if (await _userManager.FindByNameAsync(createDto.Username) is not null ||
-            await _userManager.FindByEmailAsync(createDto.Email) is not null)
-            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.DuplicateUser);
+        //if (await _userManager.FindByNameAsync(createDto.Username) is not null ||
+        //    await _userManager.FindByEmailAsync(createDto.Email) is not null)
+        //     return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.DuplicateUser);
 
-        // 5. Build the user (Identity hashes the password inside CreateAsync)
+        // 4. check on userName , email
+        var existingUserByUsername =
+         await _userManager.FindByNameAsync(createDto.Username);
+
+        var existingUserByEmail =
+            await _userManager.FindByEmailAsync(createDto.Email);
+
+        //5. Put a breakpoint here and inspect both variables.
+        if (existingUserByUsername is not null)
+        {
+            return Result.Failure<SchoolAdminResponse?>(
+                SchoolAdminErrors.DuplicateUsername);
+        }
+
+        if (existingUserByEmail is not null)
+        {
+            return Result.Failure<SchoolAdminResponse?>(
+                SchoolAdminErrors.DuplicateEmail);
+        }
+
+        // 6. Find the existing SchoolAdmin role
+        var schoolAdminRole =
+            await _roleManager.FindByNameAsync("SchoolAdmin");
+
+        if (schoolAdminRole is null)
+        {
+            return Result.Failure<SchoolAdminResponse?>(
+                SchoolAdminErrors.RoleNotConfigured);
+        }
+
+        // 7. Build the user (Identity hashes the password inside CreateAsync)
         var admin = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -276,25 +307,24 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             Email = createDto.Email,
             UserName = createDto.Username,
             SchoolId = schoolId,
+            RoleId = schoolAdminRole.Id, // set it from DB
+            CreatedAt = DateTime.UtcNow,
         };
 
+        // 8. Create the user (password is hashed by UserManager)
+
         var createResult = await _userManager.CreateAsync(admin, createDto.Password);
+
         if (!createResult.Succeeded)
             return Result.Failure<SchoolAdminResponse?>(new Error(
                 "SchoolAdmin.CreationFailed",
                 string.Join(" ", createResult.Errors.Select(e => e.Description))));
 
-        // 6. Assign the role (Identity way)
-        var roleResult = await _userManager.AddToRoleAsync(admin, "SchoolAdmin");
-        if (!roleResult.Succeeded)
-        {
-            await _userManager.DeleteAsync(admin);   // rollback the user
-            return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.RoleNotConfigured);
-        }
-
-        // 7. Link the admin to the school
+        // 9. Assign Admin to School Then save
         school.SchoolAdminId = admin.Id;
+
         school.ModifiedAt = DateTime.UtcNow;
+
         _unitOfWork.SchoolRepository.Update(school);
 
         try
@@ -307,6 +337,7 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
             return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.CreationFailed);
         }
 
+        // 10. Return Response
         return Result.Success<SchoolAdminResponse?>(MapToSchoolAdminResponse(admin, schoolId));
     }
 

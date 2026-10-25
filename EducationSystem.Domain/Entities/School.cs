@@ -16,7 +16,7 @@ public class School : BaseAuditableEntity
     // Foreign key to the School Admin
     public Guid? SchoolAdminId { get; set; }
 
-    public virtual ApplicationUser SchoolAdmin { get; set; } = null!; // Navigation property to School Admin
+    public virtual ApplicationUser? SchoolAdmin { get; set; } = null!; // Navigation property to School Admin
 
     public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>(); // Navigation property to Users in the School
 
