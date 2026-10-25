@@ -265,11 +265,6 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
         if (school.SchoolAdminId.HasValue)
             return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.AlreadyExists);
 
-        // 4. Unique username / email
-        //if (await _userManager.FindByNameAsync(createDto.Username) is not null ||
-        //    await _userManager.FindByEmailAsync(createDto.Email) is not null)
-        //     return Result.Failure<SchoolAdminResponse?>(SchoolAdminErrors.DuplicateUser);
-
         // 4. check on userName , email
         var existingUserByUsername =
          await _userManager.FindByNameAsync(createDto.Username);
@@ -277,58 +272,83 @@ public class SchoolService(IUnitOfWork unitOfWork, UserManager<ApplicationUser> 
         var existingUserByEmail =
             await _userManager.FindByEmailAsync(createDto.Email);
 
-        //5. Put a breakpoint here and inspect both variables.
-        if (existingUserByUsername is not null)
+        // 5. Check if username and email belong to different users
+        if (existingUserByUsername is not null &&
+            existingUserByEmail is not null &&
+            existingUserByUsername.Id != existingUserByEmail.Id)
         {
             return Result.Failure<SchoolAdminResponse?>(
-                SchoolAdminErrors.DuplicateUsername);
+                SchoolAdminErrors.DuplicateUser);
         }
 
-        if (existingUserByEmail is not null)
-        {
-            return Result.Failure<SchoolAdminResponse?>(
-                SchoolAdminErrors.DuplicateEmail);
-        }
+        // 6. Reuse existing user if found
+        ApplicationUser? admin =
+                existingUserByUsername ?? existingUserByEmail;
 
-        // 6. Find the existing SchoolAdmin role
+        // 6. Find SchoolAdmin role
         var schoolAdminRole =
             await _roleManager.FindByNameAsync("SchoolAdmin");
 
         if (schoolAdminRole is null)
-        {
             return Result.Failure<SchoolAdminResponse?>(
                 SchoolAdminErrors.RoleNotConfigured);
-        }
 
-        // 7. Build the user (Identity hashes the password inside CreateAsync)
-        var admin = new ApplicationUser
+        // 7. validate admin is not already assigned to another school
+        if (admin is not null)
         {
-            Id = Guid.NewGuid(),
-            FirstName = createDto.FirstName,
-            LastName = createDto.LastName,
-            Email = createDto.Email,
-            UserName = createDto.Username,
-            SchoolId = schoolId,
-            DateOfBirth = createDto.DateOfBirth,
-            Address = createDto.Address,
-            RoleId = schoolAdminRole.Id, // set it from DB
-            CreatedAt = DateTime.UtcNow,
-        };
+            // user belongs to another school
+            if (admin.SchoolId.HasValue &&
+                admin.SchoolId.Value != schoolId)
+            {
+                return Result.Failure<SchoolAdminResponse?>(
+                    SchoolAdminErrors.UserAlreadyAssignedToAnotherSchool);
+            }
+            // user already has another role
+            if (admin.RoleId != schoolAdminRole.Id)
+            {
+                return Result.Failure<SchoolAdminResponse?>(
+                    SchoolAdminErrors.InvalidRole);
+            }
 
-        // 8. Create the user (password is hashed by UserManager)
+            admin.SchoolId = schoolId;
+        }
+        else
+        {
+            // 9. Create new user only if not found
+            admin = new ApplicationUser
+            {
+                Id = Guid.NewGuid(),
+                FirstName = createDto.FirstName.Trim(),
+                LastName = createDto.LastName.Trim(),
+                Email = createDto.Email.Trim(),
+                UserName = createDto.Username.Trim(),
+                SchoolId = schoolId,
+                DateOfBirth = createDto.DateOfBirth,
+                Address = createDto.Address,
+                RoleId = schoolAdminRole.Id,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        var createResult = await _userManager.CreateAsync(admin, createDto.Password);
+            var createResult = await _userManager.CreateAsync(
+                admin,
+                createDto.Password);
 
-        if (!createResult.Succeeded)
-            return Result.Failure<SchoolAdminResponse?>(new Error(
-                "SchoolAdmin.CreationFailed",
-                string.Join(" ", createResult.Errors.Select(e => e.Description))));
+            if (!createResult.Succeeded)
+            {
+                return Result.Failure<SchoolAdminResponse?>(
+                    new Error(
+                        "SchoolAdmin.CreationFailed",
+                        string.Join(
+                            " ",
+                            createResult.Errors.Select(e => e.Description))));
+            }
+        }
 
         // 9. Assign Admin to School Then save
         school.SchoolAdminId = admin.Id;
         school.ModifiedAt = DateTime.UtcNow;
 
-        // 10. Update the school with the new admin ID
+        // 10. Save changes to the school
         _unitOfWork.SchoolRepository.Update(school);
 
         try

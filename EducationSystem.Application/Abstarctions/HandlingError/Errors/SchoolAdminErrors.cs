@@ -8,6 +8,18 @@ public static class SchoolAdminErrors
     public static readonly Error NotFound =
         new("SchoolAdmin.NotFound", "This school has no admin.");
 
+    public static readonly Error UserAlreadyAssignedToAnotherSchool =
+      new(
+          "UserAdmin.UserAlreadyAssignedToAnotherSchool",
+          "This user is already assigned to another school."
+      );
+
+    public static readonly Error InvalidRole =
+        new(
+            "UserAdmin.InvalidRole",
+            "The selected user does not have the SchoolAdmin role."
+        );
+
     public static readonly Error AlreadyExists =
         new("SchoolAdmin.AlreadyExists", "This school already has an admin. Edit or remove it first.");
 
