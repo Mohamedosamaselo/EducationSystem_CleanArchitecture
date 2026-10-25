@@ -11,7 +11,7 @@ public static class DataSeeder
                                         UserManager<ApplicationUser> userManager,
                                         RoleManager<ApplicationRole> roleManager)
     {
-        await SeedOrganizationAsync(context);
+        // await SeedOrganizationAsync(context);
 
         //await SeedSchoolAsync(context);
 

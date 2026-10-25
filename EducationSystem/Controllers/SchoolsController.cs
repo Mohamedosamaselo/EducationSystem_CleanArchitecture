@@ -38,7 +38,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     // PUT  api/schools/Update/{id}
-
+    [Authorize(Roles = "OrganisationAdmin")]
     [Authorize(Roles = "OrganisationAdmin")]
     [HttpPut("Update/{id:guid}")]
     public async Task<IActionResult> UpdateAsync(
@@ -82,6 +82,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : ToProblem(result.Error);
     }
 
+    [Authorize(Roles = "OrganisationAdmin")]
     [HttpPost("{schoolId:guid}/admin")]
     public async Task<IActionResult> CreateAdmin(Guid schoolId, [FromBody] CreateSchoolAdminRequest request, CancellationToken ct)
     {
@@ -92,8 +93,8 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
             : ToProblem(result.Error);
     }
 
-    [HttpPut("{schoolId:guid}/admin")]
     [Authorize(Roles = "OrganisationAdmin")]
+    [HttpPut("{schoolId:guid}/admin")]
     public async Task<IActionResult> UpdateAdmin(
         Guid schoolId, [FromBody] UpdateSchoolAdminRequest request, CancellationToken ct)
     {
@@ -102,6 +103,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : ToProblem(result.Error);
     }
 
+    [Authorize(Roles = "OrganisationAdmin")]
     [HttpDelete("{schoolId:guid}/admin")]
     public async Task<IActionResult> RemoveAdmin(Guid schoolId, CancellationToken ct)
     {

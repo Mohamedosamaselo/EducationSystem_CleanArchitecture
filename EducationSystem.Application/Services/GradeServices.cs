@@ -111,6 +111,15 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
                 new Error("School.NotFound", $"School with ID '{createRequestDto.SchoolId}' was not found."));
         }
 
+        var existingGrade = await _unitOfWork.GradeRepository.FirstOrDefaultAsync(
+            g => g.Name.ToLower() == createRequestDto.Name.ToLower() && g.SchoolId == createRequestDto.SchoolId, ct);
+
+        if (existingGrade is not null)
+        {
+            return Result.Failure<GradeResponseDto?>(
+                new Error("Grade.AlreadyExists", $"Grade with name '{createRequestDto.Name}' already exists in the specified school."));
+        }
+
         // 2. Create entity
         var grade = new Grade
         {
