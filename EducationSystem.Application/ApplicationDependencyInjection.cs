@@ -25,6 +25,8 @@ public static class ApplicationDependencyInjection
 
         services.AddScoped<ISubjectService, SubjectService>();
 
+        services.AddScoped<ISchoolUserService, SchoolUserService>();
+
         //services.AddScoped<IEmailSender, EmailSender>();
 
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly())

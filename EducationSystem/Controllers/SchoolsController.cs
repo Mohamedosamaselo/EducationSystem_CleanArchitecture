@@ -38,8 +38,8 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     }
 
     // PUT  api/schools/Update/{id}
-    [Authorize(Roles = "OrganisationAdmin")]
-    [Authorize(Roles = "OrganisationAdmin")]
+
+    [Authorize(Roles = "OrganisationAdmin,SchoolAdmin")]
     [HttpPut("Update/{id:guid}")]
     public async Task<IActionResult> UpdateAsync(
         Guid id, [FromBody] UpdateSchoolRequest request, CancellationToken ct)
