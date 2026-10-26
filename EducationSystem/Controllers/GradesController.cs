@@ -14,8 +14,8 @@ public class GradesController(IGradeService gradeService) : ControllerBase
 {
     private readonly IGradeService _gradeService = gradeService;
 
-    //[Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
-    [Authorize(Roles = "OrganisationAdmin")]
+    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
+    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpGet("")]
     public async Task<IActionResult> GetAllGradesAsync(CancellationToken cancellationToken)
     {
