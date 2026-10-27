@@ -198,4 +198,80 @@ public class SchoolUsersController(ISchoolUserService schoolUserService) : Contr
 
         return NoContent();
     }
+
+    // GET: api/school/grades
+    [HttpGet("grades")]
+    public async Task<IActionResult> GetGrades(
+        CancellationToken ct)
+    {
+        var schoolAdminId = Guid.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await _schoolUserService.GetGradesAsync(
+            schoolAdminId,
+            ct);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new
+            {
+                result.Error.Code,
+                result.Error.Description
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    // GET: api/school/grades/{gradeId}/subjects
+    [HttpGet("grades/{gradeId:guid}/subjects")]
+    public async Task<IActionResult> GetGradeSubjects(
+        Guid gradeId,
+        CancellationToken ct)
+    {
+        var schoolAdminId = Guid.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await _schoolUserService.GetGradeSubjectsAsync(
+            schoolAdminId,
+            gradeId,
+            ct);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new
+            {
+                result.Error.Code,
+                result.Error.Description
+            });
+        }
+
+        return Ok(result.Value);
+    }
+
+    // GET: api/school/grades/{gradeId}/students
+    [HttpGet("grades/{gradeId:guid}/students")]
+    public async Task<IActionResult> GetGradeStudents(
+        Guid gradeId,
+        CancellationToken ct)
+    {
+        var schoolAdminId = Guid.Parse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        var result = await _schoolUserService.GetGradeStudentsAsync(
+            schoolAdminId,
+            gradeId,
+            ct);
+
+        if (!result.IsSuccess)
+        {
+            return BadRequest(new
+            {
+                result.Error.Code,
+                result.Error.Description
+            });
+        }
+
+        return Ok(result.Value);
+    }
 }

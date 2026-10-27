@@ -2,7 +2,7 @@
 
 namespace EducationSystem.Domain.Entities;
 
-public class UserSubject
+public class UserSubject : BaseAuditableEntity
 {
     public Guid UserId { get; set; }
     public virtual ApplicationUser User { get; set; } = null!;

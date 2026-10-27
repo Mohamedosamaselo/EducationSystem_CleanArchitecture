@@ -1,4 +1,4 @@
-﻿namespace EducationSystem.Application.Dtos;
+﻿namespace EducationSystem.Application.Dtos.Organisation;
 
 public class UpdateOrganisationRequest
 {

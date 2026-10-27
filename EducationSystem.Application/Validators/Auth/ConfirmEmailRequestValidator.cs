@@ -1,4 +1,4 @@
-﻿using EducationSystem.Application.Dtos;
+﻿using EducationSystem.Application.Dtos.Auth;
 using FluentValidation;
 
 namespace EducationSystem.Application.Validators.Auth;

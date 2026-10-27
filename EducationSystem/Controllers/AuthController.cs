@@ -1,12 +1,12 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.Identity;
-using EducationSystem.Application.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 //using NETCore.MailKit.Core;
 using System.Security.Claims;
 
 using EducationSystem.Application.Abstarctions.Services;
+using EducationSystem.Application.Dtos.Auth;
 
 namespace EducationSystem.WebApi.Controllers;
 

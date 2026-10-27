@@ -2,7 +2,7 @@
 using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Domain.Entities;
 using EducationSystem.Infrastructure.Identity;
 using EducationSystem.Infrastructure.Persistence;

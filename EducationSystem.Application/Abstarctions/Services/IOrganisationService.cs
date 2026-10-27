@@ -1,6 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
-using EducationSystem.Application.Dtos;
-using EducationSystem.Application.Dtos.Response.Organisation;
+using EducationSystem.Application.Dtos.Organisation;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 

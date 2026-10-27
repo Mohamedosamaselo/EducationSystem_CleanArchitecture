@@ -2,7 +2,7 @@
 
 namespace EducationSystem.Domain.Entities;
 
-public class TeacherGrade : BaseEntity
+public class TeacherGrade : BaseAuditableEntity
 {
     public Guid TeacherId { get; set; }
     public virtual ApplicationUser Teacher { get; set; } = null!;

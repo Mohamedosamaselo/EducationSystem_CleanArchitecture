@@ -1,6 +1,6 @@
-﻿namespace EducationSystem.Application.Dtos;
+﻿namespace EducationSystem.Application.Dtos.Grade;
 
-public class SubjectResponseDto
+public class GradeResponse
 {
     public Guid Id { get; set; }
 
@@ -8,9 +8,9 @@ public class SubjectResponseDto
 
     public string? Description { get; set; }
 
+    //public bool IsActive { get; set; }
+
     public Guid SchoolId { get; set; }
 
     public string SchoolName { get; set; } = string.Empty;
-
-    public List<GradeResponseDto> Grades { get; set; } = new();
 }

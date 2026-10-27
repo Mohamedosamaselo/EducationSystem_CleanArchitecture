@@ -1,5 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
-using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Auth;
 
 namespace EducationSystem.Application.Abstarctions.Identity;
 

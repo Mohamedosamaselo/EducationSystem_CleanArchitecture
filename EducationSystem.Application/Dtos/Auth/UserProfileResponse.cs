@@ -1,7 +1,8 @@
-﻿namespace EducationSystem.Application.Dtos;
+﻿namespace EducationSystem.Application.Dtos.Auth;
 
 public record UserProfileResponse
-(string Email,
+(
+    string Email,
     string UserName,
     string FirstName,
     string LastName

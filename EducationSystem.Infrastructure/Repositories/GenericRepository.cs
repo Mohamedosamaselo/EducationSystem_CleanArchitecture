@@ -1,4 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
+using EducationSystem.Domain.Entities;
 using EducationSystem.Domain.Entities.Common;
 using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -131,4 +132,43 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     // MISC
     // ─────────────────────────────────────────────────────────────
     public async Task<int> CountAsync() => await _dbSet.CountAsync();
+
+    public async Task<bool> SchoolHasSubjectAsync(
+                                                    Guid schoolId,
+                                                    Guid subjectId,
+                                                    CancellationToken ct = default)
+    {
+        return await _context.Grades
+            .AnyAsync(g =>
+                g.SchoolId == schoolId &&
+                g.Subjects.Any(s => s.Id == subjectId),
+                ct);
+    }
+
+    public async Task<bool> GradeHasSubjectAsync(
+                                                Guid gradeId,
+                                                Guid schoolId,
+                                                Guid subjectId,
+                                                CancellationToken ct = default)
+    {
+        return await _context.Grades
+            .AnyAsync(g =>
+                g.Id == gradeId &&
+                g.SchoolId == schoolId &&
+                g.Subjects.Any(s => s.Id == subjectId),
+                ct);
+    }
+
+    public async Task<IReadOnlyList<Grade>> GetTeacherGradesAsync(
+         Guid teacherId,
+         Guid schoolId,
+         CancellationToken ct = default)
+    {
+        return await _context.TeacherGrades
+            .Where(tg =>
+                tg.TeacherId == teacherId &&
+                tg.Grade.SchoolId == schoolId)
+            .Select(tg => tg.Grade)
+            .ToListAsync(ct);
+    }
 }

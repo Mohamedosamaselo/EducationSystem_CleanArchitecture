@@ -2,7 +2,6 @@
 using EducationSystem.Application.Abstarctions.HandlingError.Errors;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos;
 using EducationSystem.Application.Dtos.School;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;

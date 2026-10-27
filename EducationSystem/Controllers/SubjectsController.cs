@@ -1,5 +1,4 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
-using EducationSystem.Application.Dtos;
 using EducationSystem.Application.Dtos.Subject;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -8,23 +7,22 @@ namespace EducationSystem.WebApi.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Authorize(Roles = "OrganisationAdmin")] // Apply authorization to all actions in the controller
 public class SubjectsController(ISubjectService subjectService) : ControllerBase
 {
     private readonly ISubjectService _subjectService = subjectService;
 
-    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet()]
     public async Task<IActionResult> GetAllSubjectsAsync()
     {
-        var subjects = await _subjectService.GetAllSubjectsAsync();
+        var subjects = await _subjectService.GetAllAsync();
         return subjects is null ? NotFound() : Ok(subjects);
     }
 
-    [Authorize(Roles = "Teacher,Student,SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{subjectId:guid}")]
-    public async Task<ActionResult> GetSubjectAsync(Guid subjectId)
+    public async Task<ActionResult> GetByIdAsync(Guid subjectId)
     {
-        var subject = await _subjectService.GetSubjectAsync(subjectId);
+        var subject = await _subjectService.GetByIdAsync(subjectId);
         return subject is null ? NotFound() : Ok(subject);
     }
 
@@ -36,29 +34,26 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
     //    return subject is null ? NotFound() : Ok(subject);
     //}
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPost]
     public async Task<ActionResult> AddAsync(CreateSubjectRequest subjectRequest)
     {
-        var subject = await _subjectService.CreateSubjectAsync(subjectRequest);
+        var subject = await _subjectService.AddAsync(subjectRequest);
         return subject is null ? NotFound() : Ok(subject);
     }
 
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult> updateAsync(Guid id,
         [FromBody] UpdateSubjectRequest subjectReq)
     {
-        var updatedSubject = await _subjectService.UpdateSubjectAsync(id, subjectReq);
+        var updatedSubject = await _subjectService.UpdateAsync(id, subjectReq);
 
         return updatedSubject is null ? NotFound() : Ok(updatedSubject);
     }
 
-    //[Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
-    //[HttpDelete("{id:guid}")]
-    //public async Task<IActionResult> DeleteAsync(Guid id)
-    //{
-    //    var deleted = await _subjectService.DeleteAsync(id);
-    //    return deleted ? NoContent() : NotFound();
-    //}
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> DeleteAsync(Guid id)
+    {
+        var deleted = await _subjectService.DeleteAsync(id);
+        return deleted ? NoContent() : NotFound();
+    }
 }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace EducationSystem.Application.Dtos;
+namespace EducationSystem.Application.Dtos.Organisation;
 
 public class CreateOrganisationRequest
 {

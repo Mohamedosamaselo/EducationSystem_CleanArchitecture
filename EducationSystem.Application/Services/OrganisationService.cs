@@ -2,8 +2,8 @@
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Abstractions.HandlingError.Errors;
-using EducationSystem.Application.Dtos;
-using EducationSystem.Application.Dtos.Response.Organisation;
+using EducationSystem.Application.Dtos.Organisation;
+using EducationSystem.Application.Dtos.School;
 using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;

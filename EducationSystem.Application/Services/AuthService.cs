@@ -2,7 +2,7 @@
 using EducationSystem.Application.Abstarctions.Identity;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstractions.HandlingError.Errors;
-using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Auth;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

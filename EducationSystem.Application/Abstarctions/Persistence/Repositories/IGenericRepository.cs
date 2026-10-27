@@ -1,4 +1,6 @@
-﻿using EducationSystem.Domain.Entities.Common;
+﻿using EducationSystem.Domain.Entities;
+using EducationSystem.Domain.Entities.Common;
+using EducationSystem.Domain.Interfaces.Common;
 using System.Linq.Expressions;
 
 namespace EducationSystem.Application.Abstarctions.Persistence.Repositories;
@@ -34,6 +36,22 @@ public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
     void Delete(TEntity entity);
 
     void DeleteRange(IEnumerable<TEntity> entities);
+
+    Task<bool> SchoolHasSubjectAsync(
+    Guid schoolId,
+    Guid subjectId,
+    CancellationToken ct = default);
+
+    Task<bool> GradeHasSubjectAsync(
+        Guid gradeId,
+        Guid schoolId,
+        Guid subjectId,
+        CancellationToken ct = default);
+
+    Task<IReadOnlyList<Grade>> GetTeacherGradesAsync(
+    Guid teacherId,
+    Guid schoolId,
+    CancellationToken ct = default);
 
     Task<int> CountAsync();
 }

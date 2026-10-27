@@ -1,6 +1,7 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
+using EducationSystem.Application.Dtos.School;
 using EducationSystem.Application.Dtos.SchoolUsers;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -20,6 +21,8 @@ public class SchoolUserService(
     private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
 
     #endregion Feilds
+
+    #region Methods
 
     public Task<Result<SchoolUserResponseDto?>> CreateTeacherAsync(
         Guid schoolAdminId,
@@ -195,6 +198,192 @@ public class SchoolUserService(
 
         return Result.Success<List<SchoolUserResponseDto>>(response);
     }
+
+    public async Task<Result<List<SchoolGradeResponseDto>>> GetGradesAsync(
+        Guid schoolAdminId,
+        CancellationToken ct = default)
+    {
+        // Validate the school admin and get the associated school
+        var school = await GetAdminSchoolAsync(schoolAdminId, ct);
+
+        if (school is null)
+        {
+            return Result.Failure<List<SchoolGradeResponseDto>>(
+                new Error(
+                    "School.NotFound",
+                    "Assigned school was not found."));
+        }
+
+        // Retrieve all grades associated with the school
+        var grades = await _unitOfWork.GradeRepository.GetAllAsync(
+            g => g.SchoolId == school.Id);
+
+        var response = grades
+            .Select(g => new SchoolGradeResponseDto
+            {
+                Id = g.Id,
+                Name = g.Name,
+                Description = g.Description,
+            })
+            .ToList();
+
+        return Result.Success<List<SchoolGradeResponseDto>>(response);
+    }
+
+    public async Task<Result<List<SchoolSubjectResponseDto>>> GetGradeSubjectsAsync(
+      Guid schoolAdminId,
+      Guid gradeId,
+      CancellationToken ct = default)
+    {
+        // Validate the school admin and get the associated school
+        var school = await GetAdminSchoolAsync(schoolAdminId, ct);
+
+        if (school is null)
+        {
+            return Result.Failure<List<SchoolSubjectResponseDto>>(
+                new Error(
+                    "School.NotFound",
+                    "Assigned school was not found."));
+        }
+
+        // Retrieve the grade associated with the school and the provided gradeId
+        var grade = await _unitOfWork.GradeRepository.FirstOrDefaultAsync(
+            g => g.Id == gradeId && g.SchoolId == school.Id,
+            ct);
+
+        if (grade is null)
+        {
+            return Result.Failure<List<SchoolSubjectResponseDto>>(
+                new Error(
+                    "Grade.NotFound",
+                    "Grade was not found in your school."));
+        }
+
+        // Retrieve the subjects associated with the grade
+        var subjects = grade.Subjects
+            .Select(s => new SchoolSubjectResponseDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+            })
+            .ToList();
+
+        return Result.Success<List<SchoolSubjectResponseDto>>(subjects);
+    }
+
+    public async Task<Result<List<SchoolGradeStudentResponseDto>>> GetGradeStudentsAsync(
+     Guid schoolAdminId,
+     Guid gradeId,
+     CancellationToken ct = default)
+    {
+        // Validate the school admin and get the associated school
+        var school = await GetAdminSchoolAsync(schoolAdminId, ct);
+
+        if (school is null)
+        {
+            return Result.Failure<List<SchoolGradeStudentResponseDto>>(
+                new Error(
+                    "School.NotFound",
+                    "Assigned school was not found."));
+        }
+        //  Retrieve the grade associated with the school and the provided gradeId
+        var grade = await _unitOfWork.GradeRepository.FirstOrDefaultAsync(
+            g => g.Id == gradeId && g.SchoolId == school.Id,
+            ct);
+
+        if (grade is null)
+        {
+            return Result.Failure<List<SchoolGradeStudentResponseDto>>(
+                new Error(
+                    "Grade.NotFound",
+                    "Grade was not found in your school."));
+        }
+        // Retrieve the "Student" role
+
+        var studentRole = await _roleManager.FindByNameAsync("Student");
+
+        if (studentRole is null)
+        {
+            return Result.Failure<List<SchoolGradeStudentResponseDto>>(
+                new Error(
+                    "User.RoleNotFound",
+                    "Student role is not configured."));
+        }
+        // Retrieve all students associated with the grade and school
+
+        var students = await _unitOfWork.UserRepository.GetAllAsync(
+            u => u.SchoolId == school.Id
+              && u.GradeId == gradeId
+              && u.RoleId == studentRole.Id);
+
+        var response = students
+            .Select(s => new SchoolGradeStudentResponseDto
+            {
+                Id = s.Id,
+                FirstName = s.FirstName,
+                LastName = s.LastName,
+                Email = s.Email ?? string.Empty,
+                DateOfBirth = s.DateOfBirth ?? DateTime.MinValue
+            })
+            .ToList();
+
+        return Result.Success<List<SchoolGradeStudentResponseDto>>(response);
+    }
+
+    //public async Task<Result<bool>> AssignSubjectAsync(
+    //   Guid schoolAdminId, Guid gradeId, Guid subjectId,
+    //   CancellationToken ct = default)
+    //{
+    //    var grade = await GetGradeInOrganisationAsync(
+    //        schoolAdminId, gradeId, ct);
+
+    //    if (grade is null)
+    //        return Result.Failure<bool>(
+    //            new Error("Grade.NotFound", "Grade was not found."));
+
+    //    var subject = await _unitOfWork.SubjectRepository.FirstOrDefaultAsync(
+    //        s => s.Id == subjectId, ct);
+
+    //    if (subject is null)
+    //        return Result.Failure<bool>(
+    //            new Error("Subject.NotFound", "Subject was not found."));
+
+    //    if (grade.Subjects.Any(s => s.Id == subjectId))
+    //        return Result.Failure<bool>(
+    //            new Error("GradeSubject.AlreadyAssigned",
+    //                "This subject is already assigned to the grade."));
+
+    //    grade.Subjects.Add(subject);
+    //    await _unitOfWork.SaveChangesAsync(ct);
+
+    //    return Result.Success(true);
+    //}
+
+    //public async Task<Result<bool>> RemoveSubjectAsync(
+    //    Guid schoolAdminId, Guid gradeId, Guid subjectId,
+    //    CancellationToken ct = default)
+    //{
+    //    var grade = await GetGradeInOrganisationAsync(
+    //        organisationAdminId, gradeId, ct);
+
+    //    if (grade is null)
+    //        return Result.Failure<bool>(
+    //            new Error("Grade.NotFound", "Grade was not found."));
+
+    //    var subject = grade.Subjects.FirstOrDefault(s => s.Id == subjectId);
+
+    //    if (subject is null)
+    //        return Result.Failure<bool>(
+    //            new Error("GradeSubject.NotFound",
+    //                "Subject is not assigned to this grade."));
+
+    //    grade.Subjects.Remove(subject);
+    //    await _unitOfWork.SaveChangesAsync(ct);
+
+    //    return Result.Success(true);
+    //}
+
+    #endregion Methods
 
     #region Helpers Method
 

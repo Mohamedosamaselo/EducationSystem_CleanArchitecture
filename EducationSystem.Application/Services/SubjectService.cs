@@ -1,6 +1,8 @@
-﻿using EducationSystem.Application.Abstarctions.Services;
+﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Abstarctions.HandlingError.Errors;
+using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
-using EducationSystem.Application.Dtos;
+using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Application.Dtos.Subject;
 using EducationSystem.Domain.Entities;
 
@@ -10,25 +12,18 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<IReadOnlyList<SubjectResponseDto>> GetAllSubjectsAsync(CancellationToken CT = default)
+    public async Task<IReadOnlyList<SubjectResponse>> GetAllAsync(CancellationToken CT = default)
     {
         // loaad Subject with Grades , School Navigational Property
-        var subjects = await _unitOfWork.SubjectRepository.GetAllWithIncludesAsync(null, CT,
-            s => s.Grades);
+        var subjects = await _unitOfWork.SubjectRepository.GetAllWithIncludesAsync(null, CT, s => s.Grades);
 
         if (subjects == null || !subjects.Any())
-            return new List<SubjectResponseDto>();
+            return new List<SubjectResponse>();
 
-        return subjects.Select(s => new SubjectResponseDto
+        return subjects.Select(s => new SubjectResponse
         {
-            Id = s.Id,
             Name = s.Name,
-            //Description = s.Description,
-
-            //SchoolId = s.SchoolId,
-            //SchoolName = s.School.Name,
-
-            Grades = s.Grades.Select(g => new GradeResponseDto
+            Grades = s.Grades.Select(g => new GradeResponse
             {
                 Id = g.Id,
                 Name = g.Name,
@@ -40,29 +35,23 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         }).ToList();
     }
 
-    public async Task<SubjectResponseDto?> GetSubjectAsync(Guid id, CancellationToken CT = default)
+    public async Task<SubjectResponse?> GetByIdAsync(Guid id, CancellationToken CT = default)
     {
         // loaad Subject with Grades , School Navigational Property
         var subject = await _unitOfWork.SubjectRepository
-            .GetByIdWithIncludeAsync(id,
-                                     CT,
-                                     s => s.Grades
-                                     //s => s.School
-                                     );
+                                        .GetByIdWithIncludeAsync(id,
+                                                                 CT,
+                                                                 s => s.Grades
+                                                                 //s => s.School
+                                                                 );
 
         if (subject == null)
             throw new Exception("no subject");
 
-        return new SubjectResponseDto
+        return new SubjectResponse
         {
-            Id = subject.Id,
             Name = subject.Name,
-            //Description = subject.Description,
-
-            //SchoolId = subject.SchoolId,
-            //SchoolName = subject.School.Name,
-
-            Grades = subject.Grades.Select(g => new GradeResponseDto
+            Grades = subject.Grades.Select(g => new GradeResponse
             {
                 Id = g.Id,
                 Name = g.Name,
@@ -74,114 +63,132 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         };
     }
 
-    public async Task<SubjectResponseDto?> GetByNameAsync(string subjectName, CancellationToken CT = default)
+    //public async Task<SubjectResponse?> GetByNameAsync(string subjectName, CancellationToken CT = default)
+    //{
+    //    var subject = await _unitOfWork.SubjectRepository.GetByNameAsync(subjectName, CT);
+
+    //    if (subject == null)
+    //        throw new Exception("No Subjects ");
+
+    //    return new SubjectResponse
+    //    {
+    //        //Id = subject.Id,
+    //        Name = subject.Name,
+    //        //Description = subject.Description,
+
+    //        //SchoolId = subject.SchoolId,
+    //        //SchoolName = subject.School.Name,
+
+    //        Grades = subject.Grades.Select(g => new GradeResponse
+    //        {
+    //            Id = g.Id,
+    //            Name = g.Name,
+    //            Description = g.Description,
+    //            //IsActive = g.IsActive,
+    //            SchoolId = g.SchoolId,
+    //            SchoolName = g.School?.Name ?? string.Empty
+    //        }).ToList()
+    //    };
+    //}
+
+    public async Task<SubjectResponse> AddAsync(CreateSubjectRequest dto, CancellationToken ct = default)
     {
-        var subject = await _unitOfWork.SubjectRepository.GetByNameAsync(subjectName, CT);
+        if (dto is null || string.IsNullOrWhiteSpace(dto.Name))
+            throw new Exception("Invalid Subject data");
 
-        if (subject == null)
-            throw new Exception("No Subjects ");
+        var name = dto.Name.Trim();
 
-        return new SubjectResponseDto
+        var duplicate = await _unitOfWork.SubjectRepository.FirstOrDefaultAsync(s => s.Name == name, ct);
+        if (duplicate is not null)
+            throw new Exception("Subject with the same name already exists");
+
+        var subject = new Subject
         {
-            Id = subject.Id,
-            Name = subject.Name,
-            //Description = subject.Description,
-
-            //SchoolId = subject.SchoolId,
-            //SchoolName = subject.School.Name,
-
-            Grades = subject.Grades.Select(g => new GradeResponseDto
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                //IsActive = g.IsActive,
-                SchoolId = g.SchoolId,
-                SchoolName = g.School?.Name ?? string.Empty
-            }).ToList()
+            Id = Guid.NewGuid(),
+            Name = name
         };
-    }
+        await _unitOfWork.SubjectRepository.AddAsync(subject, ct);
 
-    public async Task<SubjectResponseDto> CreateSubjectAsync(CreateSubjectRequest subjectRequest, CancellationToken CT = default)
-    {
-        var newSubject = new Subject
-        {
-            Name = subjectRequest.Name,
-            //Description = subjectRequest.Description,
-            //SchoolId = subjectRequest.SchoolId,
-        };
-
-        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(subjectRequest.GradeId, CT);
-
+        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(dto.GradeId, ct);
         if (grade == null)
             throw new Exception("Grade not found");
 
-        newSubject.Grades.Add(grade);
+        subject.Grades.Add(grade);
 
-        await _unitOfWork.SubjectRepository.AddAsync(newSubject, CT);
+        await _unitOfWork.SubjectRepository.AddAsync(subject, ct);
 
-        await _unitOfWork.SaveChangesAsync();
+        try { await _unitOfWork.SaveChangesAsync(ct); }
+        catch (Exception) { throw new Exception("Failed to save subject"); }
 
-        return new SubjectResponseDto
+        return new SubjectResponse
         {
-            Name = newSubject.Name,
-            //Description = newSubject.Description,
-            //SchoolId = newSubject.SchoolId,
-            Grades = newSubject.Grades.Select(g => new GradeResponseDto
+            Name = subject.Name,
+            Grades = subject.Grades.Select(g => new GradeResponse
             {
                 Id = g.Id,
                 Name = g.Name,
-                //Description = g.Description,
-                //IsActive = g.IsActive,
                 SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()
         };
     }
 
-    public async Task<SubjectResponseDto?> UpdateSubjectAsync(Guid id,
-            UpdateSubjectRequest subjectRequest, CancellationToken CT = default)
+    public async Task<SubjectResponse?> UpdateAsync(Guid id,
+            UpdateSubjectRequest dto, CancellationToken ct = default)
     {
-        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id, CT);
+        if (dto is null || string.IsNullOrWhiteSpace(dto.Name))
+            throw new Exception("Invalid Subject data");
 
+        var name = dto.Name.Trim();
+
+        var duplicate = await _unitOfWork.SubjectRepository
+            .FirstOrDefaultAsync(s => s.Name == name, ct);
+        if (duplicate is not null)
+            throw new Exception("Subject with the same name already exists");
+
+        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id, ct);
         if (subject == null)
             throw new Exception("no Subject Found");
 
-        subject.Name = subjectRequest.Name;
-        //subject.Description = subjectRequest.Description;
-        //subject.SchoolId = subjectRequest.SchoolId;
+        subject.Name = dto.Name;
+        subject.ModifiedAt = DateTime.UtcNow;
 
         _unitOfWork.SubjectRepository.Update(subject);
-        await _unitOfWork.SaveChangesAsync(CT);
 
-        return new SubjectResponseDto
+        try { await _unitOfWork.SaveChangesAsync(ct); }
+        catch (Exception) { throw new Exception("Failed to update subject"); }
+
+        return new SubjectResponse
         {
-            Id = subject.Id,
             Name = subject.Name,
-            //Description = subject.Description,
-            //SchoolId = subject.SchoolId,
-            //SchoolName = subject.School?.Name ?? string.Empty,
-            Grades = subject.Grades.Select(g => new GradeResponseDto
+            Grades = subject.Grades.Select(g => new GradeResponse
             {
                 Id = g.Id,
                 Name = g.Name,
                 Description = g.Description,
-                //IsActive = g.IsActive,
                 SchoolId = g.SchoolId,
                 SchoolName = g.School?.Name ?? string.Empty
             }).ToList()
         };
     }
 
-    public async Task<bool> DeleteAsync(Guid id, CancellationToken CT = default)
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        var subject = await _unitOfWork.SubjectRepository.GetByIdAsync(id, CT);
-        if (subject == null)
-            return false;
+        if (id == Guid.Empty)
+            throw new Exception("Invalid subject ID");
+
+        // Load with its grades so we can block deleting a subject that is in use
+        var subject = await _unitOfWork.SubjectRepository
+            .GetByIdWithIncludeAsync(id, ct, s => s.Grades);
+        if (subject is null)
+            throw new Exception("Subject not found");
+
+        if (subject.Grades.Any())
+            throw new Exception("Cannot delete subject that is assigned to grades");
 
         _unitOfWork.SubjectRepository.Delete(subject);
 
-        await _unitOfWork.SaveChangesAsync(CT);
+        await _unitOfWork.SaveChangesAsync(ct);
         return true;
     }
 }

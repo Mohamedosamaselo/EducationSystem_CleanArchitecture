@@ -7,6 +7,4 @@ public class CreateGradeRequest
     public string? Description { get; set; }
 
     public Guid SchoolId { get; set; }
-
-    //public bool IsActive { get; set; }
 }

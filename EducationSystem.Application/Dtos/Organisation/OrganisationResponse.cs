@@ -1,4 +1,6 @@
-﻿namespace EducationSystem.Application.Dtos.Response.Organisation;
+﻿using EducationSystem.Application.Dtos.School;
+
+namespace EducationSystem.Application.Dtos.Organisation;
 
 public class OrganisationResponse
 {
