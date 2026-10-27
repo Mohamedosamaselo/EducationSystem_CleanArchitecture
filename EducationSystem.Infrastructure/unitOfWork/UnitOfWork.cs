@@ -16,6 +16,12 @@ public class UnitOfWork : IUnitOfWork
     public IGenericRepository<Subject> SubjectRepository { get; }
     public IGenericRepository<ApplicationUser> UserRepository { get; }
 
+    //public IGenericRepository<ApplicationRole> RoleRepository { get; }
+
+    public IGenericRepository<TeacherGrade> TeacherGradeRepository { get; }
+
+    public IGenericRepository<UserSubject> UserSubjectRepository { get; }
+
     public UnitOfWork(ApplicationDbContext dbContext)
     {
         _context = dbContext;
@@ -25,6 +31,9 @@ public class UnitOfWork : IUnitOfWork
         GradeRepository = new GenericRepository<Grade>(_context);
         SubjectRepository = new GenericRepository<Subject>(_context);
         UserRepository = new GenericRepository<ApplicationUser>(_context);
+        //RoleRepository = new GenericRepository<ApplicationRole>(_context);
+        TeacherGradeRepository = new GenericRepository<TeacherGrade>(_context);
+        UserSubjectRepository = new GenericRepository<UserSubject>(_context);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) => await _context.SaveChangesAsync();
