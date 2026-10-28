@@ -31,7 +31,7 @@ public class UnitOfWork : IUnitOfWork
         GradeRepository = new GenericRepository<Grade>(_context);
         SubjectRepository = new GenericRepository<Subject>(_context);
         UserRepository = new GenericRepository<ApplicationUser>(_context);
-        //RoleRepository = new GenericRepository<ApplicationRole>(_context);
+        
         TeacherGradeRepository = new GenericRepository<TeacherGrade>(_context);
         UserSubjectRepository = new GenericRepository<UserSubject>(_context);
     }
