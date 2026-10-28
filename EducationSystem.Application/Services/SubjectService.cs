@@ -23,15 +23,13 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         return subjects.Select(s => new SubjectResponse
         {
             Name = s.Name,
-            Grades = s.Grades.Select(g => new GradeResponse
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                //IsActive = g.IsActive,
-                SchoolId = g.SchoolId,
-                SchoolName = g.School?.Name ?? string.Empty
-            }).ToList()
+            Grades = s.Grades.Select(g => new GradeResponseDto(
+                g.Id,
+                g.Name,
+                g.Description,
+                g.SchoolId,
+                g.School?.Name ?? string.Empty
+            )).ToList()
         }).ToList();
     }
 
@@ -51,15 +49,13 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         return new SubjectResponse
         {
             Name = subject.Name,
-            Grades = subject.Grades.Select(g => new GradeResponse
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                //IsActive = g.IsActive,
-                SchoolId = g.SchoolId,
-                SchoolName = g.School?.Name ?? string.Empty
-            }).ToList()
+            Grades = subject.Grades.Select(g => new GradeResponseDto(
+                g.Id,
+                g.Name,
+                g.Description,
+                g.SchoolId,
+                g.School?.Name ?? string.Empty
+            )).ToList()
         };
     }
 
@@ -119,17 +115,16 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
 
         try { await _unitOfWork.SaveChangesAsync(ct); }
         catch (Exception) { throw new Exception("Failed to save subject"); }
-
         return new SubjectResponse
         {
             Name = subject.Name,
-            Grades = subject.Grades.Select(g => new GradeResponse
-            {
-                Id = g.Id,
-                Name = g.Name,
-                SchoolId = g.SchoolId,
-                SchoolName = g.School?.Name ?? string.Empty
-            }).ToList()
+            Grades = subject.Grades.Select(g => new GradeResponseDto(
+                g.Id,
+                g.Name,
+                null, // Description, if included in your DTO
+                g.SchoolId,
+                g.School?.Name ?? string.Empty
+            )).ToList()
         };
     }
 
@@ -161,14 +156,13 @@ public class SubjectService(IUnitOfWork unitOfWork) : ISubjectService
         return new SubjectResponse
         {
             Name = subject.Name,
-            Grades = subject.Grades.Select(g => new GradeResponse
-            {
-                Id = g.Id,
-                Name = g.Name,
-                Description = g.Description,
-                SchoolId = g.SchoolId,
-                SchoolName = g.School?.Name ?? string.Empty
-            }).ToList()
+            Grades = subject.Grades.Select(g => new GradeResponseDto(
+          g.Id,
+          g.Name,
+          null,
+          g.SchoolId,
+          g.School?.Name ?? string.Empty
+      )).ToList()
         };
     }
 

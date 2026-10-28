@@ -1,5 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
+using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
@@ -16,30 +17,41 @@ public class SchoolAssignmentService : ISchoolAssignmentService
         _roleManager = roleManager;
     }
 
-    public async Task<Result<IReadOnlyList<Grade>>> GetTeacherGradesAsync(
-        Guid schoolAdminId,
-        Guid teacherId,
-        CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<GradeResponseDto>>> GetTeacherGradesAsync(
+      Guid schoolAdminId,
+      Guid teacherId,
+      CancellationToken ct = default)
     {
         var school = await GetAdminSchoolAsync(schoolAdminId, ct);
 
         if (school is null)
-            return Result.Failure<IReadOnlyList<Grade>>(
+        {
+            return Result.Failure<IReadOnlyList<GradeResponseDto>>(
                 new Error("School.NotFound", "Your assigned school was not found."));
+        }
 
         var teacher = await GetSchoolUserAsync(
             school.Id, teacherId, "Teacher", ct);
 
         if (teacher is null)
-            return Result.Failure<IReadOnlyList<Grade>>(
+        {
+            return Result.Failure<IReadOnlyList<GradeResponseDto>>(
                 new Error("Teacher.NotFound", "Teacher was not found in your school."));
+        }
 
-        // This query needs access to the EF Core DbContext.
-        // Implement it in a dedicated repository method.
         var grades = await _unitOfWork.TeacherGradeRepository
             .GetTeacherGradesAsync(teacherId, school.Id, ct);
 
-        return Result.Success<IReadOnlyList<Grade>>(grades);
+        var response = grades
+            .Select(g => new GradeResponseDto(
+                g.Id,
+                g.Name,
+                g.Description,
+                g.SchoolId,
+                g.School.Name))
+            .ToList();
+
+        return Result.Success<IReadOnlyList<GradeResponseDto>>(response);
     }
 
     public async Task<Result<bool>> AssignTeacherToGradeAsync(

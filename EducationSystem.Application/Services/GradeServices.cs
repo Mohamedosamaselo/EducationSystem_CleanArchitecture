@@ -12,7 +12,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
-    public async Task<Result<IReadOnlyList<GradeResponse>>> GetAllAsync(CancellationToken ct = default)
+    public async Task<Result<IReadOnlyList<GradeResponseDto>>> GetAllAsync(CancellationToken ct = default)
     {
         // load navigational properties [Subject , school , users ] eager with grades
         var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(null, ct,
@@ -24,24 +24,22 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         // If there are no grades, return a successful Result with an empty list.
         if (grades is null || !grades.Any())
         {
-            return Result.Success<IReadOnlyList<GradeResponse>>(new List<GradeResponse>());
+            return Result.Success<IReadOnlyList<GradeResponseDto>>(new List<GradeResponseDto>());
         }
 
-        var gradeDtos = grades.Select(g => new GradeResponse
-        {
-            Id = g.Id,
-            Name = g.Name,
-            Description = g.Description,
-            SchoolId = g.SchoolId,
-            SchoolName = g.School?.Name ?? string.Empty,
-            //SubjectsCount = g.Subjects?.Count ?? 0,
-            //StudentsCount = g.Users?.Count ?? 0
-        }).ToList();
+        var gradeDtos = grades
+            .Select(g => new GradeResponseDto(
+                g.Id,
+                g.Name,
+                g.Description,
+                g.SchoolId,
+                g.School.Name))
+            .ToList();
 
-        return Result.Success<IReadOnlyList<GradeResponse>>(gradeDtos);
+        return Result.Success<IReadOnlyList<GradeResponseDto>>(gradeDtos);
     }
 
-    public async Task<Result<GradeResponse?>> GetByIdAsync(Guid Id, CancellationToken ct = default)
+    public async Task<Result<GradeResponseDto?>> GetByIdAsync(Guid Id, CancellationToken ct = default)
     {
         var grade = await _unitOfWork.GradeRepository.GetByIdWithIncludeAsync(Id,
                                                                                 ct,
@@ -50,20 +48,17 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
                                                                                 );
 
         if (grade is null)
-            return Result.Failure<GradeResponse?>(
+            return Result.Failure<GradeResponseDto?>(
                 new Error("Grade.NotFound", $"Grade with ID '{Id}' was not found."));
 
-        var gradeDto = new GradeResponse
-        {
-            Id = grade.Id,
-            Name = grade.Name,
-            Description = grade.Description,
-            //IsActive = grade.IsActive,
-            SchoolId = grade.SchoolId,
-            SchoolName = grade.School?.Name ?? string.Empty,
-        };
-
-        return Result.Success<GradeResponse?>(gradeDto);
+        var gradeDto = new GradeResponseDto(
+                                             grade.Id,
+                                             grade.Name,
+                                             grade.Description,
+                                             grade.SchoolId,
+                                             grade.School?.Name ?? string.Empty
+                                                        );
+        return Result.Success<GradeResponseDto?>(gradeDto);
     }
 
     //public async Task<Result<IReadOnlyList<GradeResponseDto>>> SearchAsync(string gradeName, CancellationToken ct = default)
@@ -97,11 +92,11 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
     //    return Result.Success<IReadOnlyList<GradeResponseDto>>(gradeDtos);
     //}
 
-    public async Task<Result<GradeResponse?>> AddAsync(CreateGradeRequest dto, CancellationToken ct = default)
+    public async Task<Result<GradeResponseDto?>> AddAsync(CreateGradeRequest dto, CancellationToken ct = default)
     {
         // 1. Validate input
         if (dto is null || string.IsNullOrWhiteSpace(dto.Name))
-            return Result.Failure<GradeResponse?>(GradeErrors.InvalidInput);
+            return Result.Failure<GradeResponseDto?>(GradeErrors.InvalidInput);
 
         var name = dto.Name.Trim();
 
@@ -109,12 +104,12 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         var duplicate = await _unitOfWork.GradeRepository
                    .FirstOrDefaultAsync(g => g.Name == name, ct);
         if (duplicate is not null)
-            return Result.Failure<GradeResponse?>(GradeErrors.DuplicateName);
+            return Result.Failure<GradeResponseDto?>(GradeErrors.DuplicateName);
 
         // Validate School exists
         var school = await _unitOfWork.SchoolRepository.GetByIdAsync(dto.SchoolId, ct);
         if (school is null)
-            return Result.Failure<GradeResponse?>(new Error("School.NotFound", $"School with ID '{dto.SchoolId}' was not found."));
+            return Result.Failure<GradeResponseDto?>(new Error("School.NotFound", $"School with ID '{dto.SchoolId}' was not found."));
 
         // 2. Create entity
         var grade = new Grade
@@ -133,39 +128,38 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         }
         catch (Exception ex)
         {
-            return Result.Failure<GradeResponse?>(new Error("Grade.CreationFailed", $"Failed to create grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
+            return Result.Failure<GradeResponseDto?>(new Error("Grade.CreationFailed", $"Failed to create grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
         }
 
         // 4. Map and return
-        var gradeResponseDto = new GradeResponse
-        {
-            Id = grade.Id,
-            Name = grade.Name,
-            Description = grade.Description,
-            SchoolId = grade.SchoolId,
-            SchoolName = school.Name
-        };
+        var gradeResponseDto = new GradeResponseDto(
+                                    grade.Id,
+                                    grade.Name,
+                                    grade.Description,
+                                    grade.SchoolId,
+                                    grade.School?.Name ?? string.Empty
+                                );
 
-        return Result.Success<GradeResponse?>(gradeResponseDto);
+        return Result.Success<GradeResponseDto?>(gradeResponseDto);
     }
 
-    public async Task<Result<GradeResponse?>> UpdateAsync(Guid id, UpdateGradeRequest dto, CancellationToken ct = default)
+    public async Task<Result<GradeResponseDto?>> UpdateAsync(Guid id, UpdateGradeRequest dto, CancellationToken ct = default)
     {
         // 1. Validate input
         if (id == Guid.Empty || dto is null || string.IsNullOrWhiteSpace(dto.Name))
-            return Result.Failure<GradeResponse?>(GradeErrors.InvalidInput);
+            return Result.Failure<GradeResponseDto?>(GradeErrors.InvalidInput);
 
         // 2. Check if the grade exists
         var grade = await _unitOfWork.GradeRepository.GetByIdAsync(id, ct);
         if (grade is null)
-            return Result.Failure<GradeResponse?>(GradeErrors.NotFound);
+            return Result.Failure<GradeResponseDto?>(GradeErrors.NotFound);
 
         var name = dto.Name.Trim();
         // 3. Check for duplicate name (case-insensitive) across all grades except the one being updated
         var duplicate = await _unitOfWork.GradeRepository.FirstOrDefaultAsync(g => g.Name == name && g.Id != id, ct);
 
         if (duplicate is not null)
-            return Result.Failure<GradeResponse?>(GradeErrors.DuplicateName);
+            return Result.Failure<GradeResponseDto?>(GradeErrors.DuplicateName);
 
         // 2. Update the properties
         grade.Name = dto.Name;
@@ -181,20 +175,19 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         }
         catch (Exception ex)
         {
-            return Result.Failure<GradeResponse?>(new Error("Grade.UpdateFailed", $"Failed to update grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
+            return Result.Failure<GradeResponseDto?>(new Error("Grade.UpdateFailed", $"Failed to update grade. Reason: {ex.InnerException?.Message ?? ex.Message}"));
         }
 
         // 4. Map to DTO
-        var gradeResponseDto = new GradeResponse
-        {
-            Id = grade.Id,
-            Name = grade.Name,
-            Description = grade.Description,
-            SchoolId = grade.SchoolId,
-            SchoolName = grade.School?.Name ?? string.Empty
-        };
+        var gradeResponseDto = new GradeResponseDto(
+                                            grade.Id,
+                                            grade.Name,
+                                            grade.Description,
+                                            grade.SchoolId,
+                                            grade.School?.Name ?? string.Empty
+                                        );
 
-        return Result.Success<GradeResponse?>(gradeResponseDto);
+        return Result.Success<GradeResponseDto?>(gradeResponseDto);
     }
 
     public async Task<Result> DeleteAsync(Guid id, CancellationToken ct = default)

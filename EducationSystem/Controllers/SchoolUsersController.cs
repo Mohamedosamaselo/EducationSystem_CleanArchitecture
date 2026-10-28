@@ -174,7 +174,7 @@ public class SchoolUsersController(ISchoolUserService schoolUserService) : Contr
 
     // PUT: api/school/users/{userId}/password
 
-    [HttpPut("users/{userId:guid}/password")]
+    [HttpPut("users/{userId:guid}/ResetPassword")]
     public async Task<IActionResult> ResetPassword(
         Guid userId,
         [FromBody] ResetSchoolUserPasswordRequest request,

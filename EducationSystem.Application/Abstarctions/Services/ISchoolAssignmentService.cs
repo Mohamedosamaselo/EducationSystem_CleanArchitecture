@@ -1,9 +1,10 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Domain.Entities;
 
 public interface ISchoolAssignmentService
 {
-    Task<Result<IReadOnlyList<Grade>>> GetTeacherGradesAsync(
+    Task<Result<IReadOnlyList<GradeResponseDto>>> GetTeacherGradesAsync(
         Guid schoolAdminId,
         Guid teacherId,
         CancellationToken ct = default);

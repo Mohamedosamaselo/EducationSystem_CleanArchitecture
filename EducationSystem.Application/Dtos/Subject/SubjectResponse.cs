@@ -14,5 +14,5 @@ public class SubjectResponse
 
     //public string SchoolName { get; set; }
 
-    public List<GradeResponse> Grades { get; set; } = new();
+    public List<GradeResponseDto> Grades { get; set; } = new();
 }
