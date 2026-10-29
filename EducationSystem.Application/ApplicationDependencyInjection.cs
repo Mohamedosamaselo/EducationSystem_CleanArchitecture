@@ -23,6 +23,7 @@ public static class ApplicationDependencyInjection
 
         services.AddScoped<ISchoolService, SchoolService>();
 
+        services.AddScoped<ITeacherService, TeacherService>();
         services.AddScoped<ISubjectService, SubjectService>();
 
         services.AddScoped<ISchoolUserService, SchoolUserService>();

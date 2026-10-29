@@ -8,25 +8,23 @@ namespace EducationSystem.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "OrganisationAdmin")]
 public class SchoolsController(ISchoolService schoolService) : ControllerBase
 {
     private readonly ISchoolService _schoolService = schoolService;
     // GET
 
-    [Authorize(Roles = "OrganisationAdmin")]
     [HttpGet("GetAll")]
     public async Task<IActionResult> GetAllAsync(CancellationToken ct)
         => (await _schoolService.GetAllAsync(ct)).ToActionResult(this);
 
     //// GET
-    [Authorize(Roles = "SchoolAdmin,OrganisationAdmin")]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken ct)
                     => (await _schoolService.GetByIdAsync(id, ct)).ToActionResult(this);
 
     // POST api/schools/Create
 
-    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpPost("Create")]
     public async Task<IActionResult> AddAsync([FromBody] CreateSchoolRequest request, CancellationToken ct)
     {
@@ -38,7 +36,6 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 
     // PUT  api/schools/Update/{id}
 
-    [Authorize(Roles = "OrganisationAdmin,SchoolAdmin")]
     [HttpPut("Update/{id:guid}")]
     public async Task<IActionResult> UpdateAsync(
         Guid id, [FromBody] UpdateSchoolRequest request, CancellationToken ct)
@@ -51,7 +48,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
 
     // DELETE api/schools/Delete/{id}     ← uses non-generic ToActionResult overload
 
-    [Authorize(Roles = "OrganisationAdmin")]
+    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpDelete("Delete/{id:guid}")]
     public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken ct)
         => (await _schoolService.DeleteAsync(id, ct)).ToActionResult(this);
@@ -74,14 +71,13 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
     // School Admin management endpoints
 
     [HttpGet("{schoolId:guid}/admin")]
-    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> GetSchoolAdmin(Guid schoolId, CancellationToken ct)
     {
         var result = await _schoolService.GetSchoolAdminByIdAsync(schoolId, ct);
         return result.IsSuccess ? Ok(result.Value) : ToProblem(result.Error);
     }
 
-    [Authorize(Roles = "OrganisationAdmin")]
+    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpPost("{schoolId:guid}/admin")]
     public async Task<IActionResult> CreateAdmin(Guid schoolId, [FromBody] CreateSchoolAdminRequest request, CancellationToken ct)
     {
@@ -92,7 +88,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
             : ToProblem(result.Error);
     }
 
-    [Authorize(Roles = "OrganisationAdmin")]
+    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpPut("{schoolId:guid}/admin")]
     public async Task<IActionResult> UpdateAdmin(
         Guid schoolId, [FromBody] UpdateSchoolAdminRequest request, CancellationToken ct)
@@ -102,7 +98,7 @@ public class SchoolsController(ISchoolService schoolService) : ControllerBase
         return result.IsSuccess ? Ok(result.Value) : ToProblem(result.Error);
     }
 
-    [Authorize(Roles = "OrganisationAdmin")]
+    //[Authorize(Roles = "OrganisationAdmin")]
     [HttpDelete("{schoolId:guid}/admin")]
     public async Task<IActionResult> RemoveAdmin(Guid schoolId, CancellationToken ct)
     {

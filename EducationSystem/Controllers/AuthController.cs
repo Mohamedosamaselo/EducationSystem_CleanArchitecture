@@ -44,8 +44,7 @@ public class AuthController(IAuthService authService, IEmailService emailService
     }
 
     [HttpPost("ResendConfirmEmail")]
-    public async Task<IActionResult> ResendConfirmationEmail(
-     [FromBody] ResendConfirmationEmailRequest request)
+    public async Task<IActionResult> ResendConfirmationEmail([FromBody] ResendConfirmationEmailRequest request)
     {
         var result = await _authService.ResendConfirmationEmailAsync(request);
 
@@ -91,6 +90,4 @@ public class AuthController(IAuthService authService, IEmailService emailService
             ? Ok(new { message = result.Value })
             : result.ToActionResult(this);
     }
-
-    
 }

@@ -9,12 +9,14 @@ namespace EducationSystem.WebApi.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-[Authorize(Roles = "OrganisationAdmin")] // Apply authorization to all actions in the controller
-public class GradesController(IGradeService gradeService) : ControllerBase
+[Authorize] // Apply authorization to all actions in the controller
+public class GradesController(IGradeService gradeService)
+    : ControllerBase
 {
     private readonly IGradeService _gradeService = gradeService;
 
     [HttpGet("")]
+    [Authorize(Roles = "OrganisationAdmin , SchoolAdmin")]
     public async Task<IActionResult> GetAllAsync(CancellationToken cancellationToken)
     {
         var result = await _gradeService.GetAllAsync(cancellationToken);
@@ -22,6 +24,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
+    [Authorize(Roles = "OrganisationAdmin , SchoolAdmin")]
     public async Task<IActionResult> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var result = await _gradeService.GetByIdAsync(id, cancellationToken);
@@ -29,6 +32,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> CreateAsync([FromBody] CreateGradeRequest createRequestDto, CancellationToken cancellationToken)
     {
         var result = await _gradeService.AddAsync(createRequestDto, cancellationToken);
@@ -36,6 +40,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateGradeRequest updateRequestDto, CancellationToken cancellationToken)
     {
         var result = await _gradeService.UpdateAsync(id, updateRequestDto, cancellationToken);
@@ -43,7 +48,8 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    [Authorize(Roles = "OrganisationAdmin")]
+    public async Task<IActionResult> RemoveAsync(Guid id, CancellationToken cancellationToken)
     {
         var result = await _gradeService.DeleteAsync(id, cancellationToken);
 
@@ -51,8 +57,9 @@ public class GradesController(IGradeService gradeService) : ControllerBase
         return result.ToActionResult(this);
     }
 
-    // ---- Grade <-> Subject ----
+    // ---- Grade & Subject ----
     [HttpGet("{gradeId:guid}/subjects")]
+    [Authorize(Roles = "OrganisationAdmin , SchoolAdmin")]
     public async Task<IActionResult> GetSubjects(Guid gradeId, CancellationToken ct)
     {
         var result = await gradeService.GetSubjectsAsync(gradeId, ct);
@@ -60,6 +67,7 @@ public class GradesController(IGradeService gradeService) : ControllerBase
     }
 
     [HttpPost("{gradeId:guid}/subjects")]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> AssignSubject(
     Guid gradeId, [FromBody] AssignSubjectToGradeRequest request, CancellationToken ct)
     {
