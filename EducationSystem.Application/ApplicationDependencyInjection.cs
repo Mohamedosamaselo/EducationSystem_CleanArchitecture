@@ -1,4 +1,5 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
+using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Services;
 using FluentValidation;
@@ -24,6 +25,7 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ISchoolService, SchoolService>();
 
         services.AddScoped<ITeacherService, TeacherService>();
+
         services.AddScoped<ISubjectService, SubjectService>();
 
         services.AddScoped<ISchoolUserService, SchoolUserService>();
@@ -31,6 +33,7 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ISchoolAssignmentService, SchoolAssignmentService>();
 
         services.AddScoped<IStudentService, StudentService>();
+        //services.AddScoped<IGradeRepo, GradeRepo>();
 
         //services.AddScoped<IEmailSender, EmailSender>();
 

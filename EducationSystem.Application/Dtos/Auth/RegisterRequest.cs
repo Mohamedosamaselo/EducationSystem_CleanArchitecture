@@ -5,7 +5,7 @@ public record RegisterRequest(
     string LastName,
     string Email,
     string UserName,
-    DateTime? DateOfBirth,
+    DateTime? BirthDate,
     string Password,
     string Address,
     Guid? OrganisationId,

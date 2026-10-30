@@ -5,7 +5,8 @@ using System.Linq.Expressions;
 
 namespace EducationSystem.Application.Abstarctions.Persistence.Repositories;
 
-public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
+//public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity, IBaseAuditableEntity
+public interface IGenericRepository<TEntity> where TEntity : IBaseAuditableEntity
 {
     Task<TEntity?> GetByIdAsync(Guid Id, CancellationToken ct = default);
 
@@ -13,9 +14,7 @@ public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 
     Task<TEntity?> GetByIdWithIncludeTrackedAsync(Guid id, CancellationToken ct, params Expression<Func<TEntity, object>>[] includes);
 
-    Task<IReadOnlyList<TEntity>?> GetAllWithIncludesAsync(Expression<Func<TEntity, bool>>? filter = null,
-                                                          CancellationToken cancellationToken = default,
-                                                          params Expression<Func<TEntity, object>>[] includes);
+    Task<IReadOnlyList<TEntity>?> GetAllWithIncludesAsync(Expression<Func<TEntity, bool>>? filter = null, CancellationToken cancellationToken = default, params Expression<Func<TEntity, object>>[] includes);
 
     Task<TEntity?> GetByNameAsync(string Name, CancellationToken ct = default); // Search
 
@@ -29,29 +28,35 @@ public interface IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
 
     Task AddRangeAsync(IEnumerable<TEntity> entities);
 
+    Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default);
+
+    Task UpdateAsync(TEntity entity, CancellationToken ct = default);
+
     void Update(TEntity entity);
 
     void UpdateRange(IEnumerable<TEntity> entities);
 
     void Delete(TEntity entity);
 
+    Task DeleteAsync(TEntity entity, CancellationToken ct = default);
+
     void DeleteRange(IEnumerable<TEntity> entities);
 
-    Task<bool> SchoolHasSubjectAsync(
-    Guid schoolId,
-    Guid subjectId,
-    CancellationToken ct = default);
+    //Task<bool> SchoolHasSubjectAsync(
+    //Guid schoolId,
+    //Guid subjectId,
+    //CancellationToken ct = default);
 
-    Task<bool> GradeHasSubjectAsync(
-        Guid gradeId,
-        Guid schoolId,
-        Guid subjectId,
-        CancellationToken ct = default);
+    //Task<bool> GradeHasSubjectAsync(
+    //    Guid gradeId,
+    //    Guid schoolId,
+    //    Guid subjectId,
+    //    CancellationToken ct = default);
 
-    Task<IReadOnlyList<Grade>> GetTeacherGradesAsync(
-    Guid teacherId,
-    Guid schoolId,
-    CancellationToken ct = default);
+    //Task<IReadOnlyList<Grade>> GetTeacherGradesAsync(
+    //Guid teacherId,
+    //Guid schoolId,
+    //CancellationToken ct = default);
 
     Task<int> CountAsync();
 }

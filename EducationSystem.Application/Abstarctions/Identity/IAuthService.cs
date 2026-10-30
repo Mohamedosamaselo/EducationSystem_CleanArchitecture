@@ -5,9 +5,9 @@ namespace EducationSystem.Application.Abstarctions.Identity;
 
 public interface IAuthService
 {
-    Task<Result<AuthResponse?>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
+    Task<Result<RegisterResponse?>> RegisterAsync(RegisterRequest request, CancellationToken cancellationToken = default);
 
-    Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request);
+    Task<Result> ConfirmEmailAsync(ConfirmEmailRequest request, CancellationToken cancellationToken = default);
 
     Task<Result<AuthResponse?>> GetTokenAsync(string Email, string Password, CancellationToken cancellationToken = default);
 

@@ -1,8 +1,10 @@
 using EducationSystem.Domain.Entities.Common;
+using EducationSystem.Domain.Interfaces.Common;
 
 namespace EducationSystem.Domain.Entities;
 
-public class ApplicationUser : BaseAuditableEntity
+//public class ApplicationUser : BaseAuditableEntity
+public class ApplicationUser : IBaseAuditableEntity
 {
     // ---- Your own properties (unchanged) ----
     public string FirstName { get; set; } = string.Empty;
@@ -14,7 +16,12 @@ public class ApplicationUser : BaseAuditableEntity
     /// --- Minimum Identity needs(mapped by OUR store, not IdentityDbContext) ---
 
     public string UserName { get; set; } = string.Empty;
+
+    //public string NormalizedUserName { get; set; } = string.Empty; //
     public string Email { get; set; } = string.Empty;
+
+    //public string NormalizedEmail { get; set; } = string.Empty; //
+
     public string PasswordHash { get; set; } = string.Empty;   // was hidden inside IdentityUser
     public bool EmailConfirmed { get; set; }
     public string SecurityStamp { get; set; } = string.Empty;  // invalidates old reset tokens
@@ -44,4 +51,14 @@ public class ApplicationUser : BaseAuditableEntity
     public virtual Organisation? ManagedOrganisation { get; set; } // Navigation property to Organisation (if the user is an admin of an organisation)
 
     public virtual ICollection<UserSubject> UserSubjects { get; set; } = new List<UserSubject>();
+
+    public virtual ICollection<EmailConfirmationToken> EmailConfirmationTokens { get; set; } = new List<EmailConfirmationToken>();
+
+    // ---- IBaseAuditableEntity Implementation ----
+    public Guid Id { get; set; }
+
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
 }

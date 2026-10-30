@@ -1,5 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.HandlingError.Errors;
+using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Grade;
@@ -8,14 +9,16 @@ using EducationSystem.Domain.Entities;
 
 namespace EducationSystem.Application.Services;
 
-public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
+public class GradeServices(IUnitOfWork unitOfWork, IGradeRepo gradeRepository) : IGradeService
+
 {
     private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IGradeRepo gradeRepository = gradeRepository;
 
     public async Task<Result<IReadOnlyList<GradeResponseDto>>> GetAllAsync(CancellationToken ct = default)
     {
         // load navigational properties [Subject , school , users ] eager with grades
-        var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(null, ct,
+        var grades = await gradeRepository.GetAllWithIncludesAsync(null, ct,
                          p => p.Subjects,
                          p => p.School
                          //p => p.Users
@@ -41,7 +44,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
 
     public async Task<Result<GradeResponseDto?>> GetByIdAsync(Guid Id, CancellationToken ct = default)
     {
-        var grade = await _unitOfWork.GradeRepository.GetByIdWithIncludeAsync(Id,
+        var grade = await gradeRepository.GetByIdWithIncludeAsync(Id,
                                                                                 ct,
                                                                                 p => p.Subjects,
                                                                                 p => p.School
@@ -101,7 +104,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         var name = dto.Name.Trim();
 
         // Check for duplicate name (case-insensitive) across all grades
-        var duplicate = await _unitOfWork.GradeRepository
+        var duplicate = await gradeRepository
                    .FirstOrDefaultAsync(g => g.Name == name, ct);
         if (duplicate is not null)
             return Result.Failure<GradeResponseDto?>(GradeErrors.DuplicateName);
@@ -119,7 +122,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             SchoolId = dto.SchoolId,
         };
 
-        await _unitOfWork.GradeRepository.AddAsync(grade, ct);
+        await gradeRepository.AddAsync(grade, ct);
 
         // 3. Save changes safely
         try
@@ -150,13 +153,13 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
             return Result.Failure<GradeResponseDto?>(GradeErrors.InvalidInput);
 
         // 2. Check if the grade exists
-        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(id, ct);
+        var grade = await gradeRepository.GetByIdAsync(id, ct);
         if (grade is null)
             return Result.Failure<GradeResponseDto?>(GradeErrors.NotFound);
 
         var name = dto.Name.Trim();
         // 3. Check for duplicate name (case-insensitive) across all grades except the one being updated
-        var duplicate = await _unitOfWork.GradeRepository.FirstOrDefaultAsync(g => g.Name == name && g.Id != id, ct);
+        var duplicate = await gradeRepository.FirstOrDefaultAsync(g => g.Name == name && g.Id != id, ct);
 
         if (duplicate is not null)
             return Result.Failure<GradeResponseDto?>(GradeErrors.DuplicateName);
@@ -166,7 +169,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         grade.Description = dto.Description;
         grade.ModifiedAt = DateTime.UtcNow;
 
-        _unitOfWork.GradeRepository.Update(grade);
+        await gradeRepository.UpdateAsync(grade, ct);
 
         // 3. Save changes safely
         try
@@ -196,7 +199,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         if (id == Guid.Empty)
             return Result.Failure(GradeErrors.InvalidInput);
         // 2. Check if the grade exists
-        var grade = await _unitOfWork.GradeRepository.GetByIdAsync(id, ct);
+        var grade = await gradeRepository.GetByIdAsync(id, ct);
         if (grade is null)
             return Result.Failure(GradeErrors.NotFound);
 
@@ -206,7 +209,7 @@ public class GradeServices(IUnitOfWork unitOfWork) : IGradeService
         if (hasStudents is not null)
             return Result.Failure(GradeErrors.HasStudents);
 
-        _unitOfWork.GradeRepository.Delete(grade);
+        await gradeRepository.DeleteAsync(grade, ct);
 
         try
         {

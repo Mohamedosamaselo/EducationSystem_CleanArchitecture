@@ -144,13 +144,20 @@ public static class InfrastructureDependencyInjection
              options.Password.RequiredLength = 8;
              options.User.RequireUniqueEmail = true;// require unique email
          });
+
+        // In Program.cs of your startup project
+        services.AddDbContext<ApplicationDbContext>(options =>
+             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
     }
 
     private static void AddApplicationAndInfrastructureServices(IServiceCollection services)
     {
-        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+        services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepo<>));
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        services.AddScoped<IGradeRepo, GradeRepo>();
     }
 }

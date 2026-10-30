@@ -1,26 +1,24 @@
 ﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Domain.Entities;
 using EducationSystem.Domain.Entities.Common;
+using EducationSystem.Domain.Interfaces.Common;
 using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace EducationSystem.Infrastructure.Repositories;
 
-public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : BaseAuditableEntity
+public class GenericRepo<TEntity> : IGenericRepository<TEntity> where TEntity : class, IBaseAuditableEntity
 {
     private readonly ApplicationDbContext _context;
     private readonly DbSet<TEntity> _dbSet;
 
-    public GenericRepository(ApplicationDbContext context)
+    public GenericRepo(ApplicationDbContext context)
     {
         _context = context;
         _dbSet = _context.Set<TEntity>();
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // READ — single by Id
-    // ─────────────────────────────────────────────────────────────
     public async Task<TEntity?> GetByIdAsync(Guid Id, CancellationToken ct = default)
         // FindAsync has a (object[], CancellationToken) overload — pass ct explicitly
         => await _dbSet.FindAsync(new object[] { Id }, ct);
@@ -80,9 +78,6 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
             .FirstOrDefaultAsync(x => EF.Property<string>(x, "Name").ToLower() == normalisedName, ct);
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // READ — lists
-    // ─────────────────────────────────────────────────────────────
     public async Task<IReadOnlyList<TEntity>> GetAllAsync(CancellationToken ct = default)
         => await _dbSet
             .AsNoTracking()
@@ -133,42 +128,51 @@ public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEnt
     // ─────────────────────────────────────────────────────────────
     public async Task<int> CountAsync() => await _dbSet.CountAsync();
 
-    public async Task<bool> SchoolHasSubjectAsync(
-                                                    Guid schoolId,
-                                                    Guid subjectId,
-                                                    CancellationToken ct = default)
-    {
-        return await _context.Grades
-            .AnyAsync(g =>
-                g.SchoolId == schoolId &&
-                g.Subjects.Any(s => s.Id == subjectId),
-                ct);
-    }
+    //public async Task<bool> SchoolHasSubjectAsync(
+    //                                                Guid schoolId,
+    //                                                Guid subjectId,
+    //                                                CancellationToken ct = default)
+    //{
+    //    return await _context.Grades
+    //        .AnyAsync(g =>
+    //            g.SchoolId == schoolId &&
+    //            g.Subjects.Any(s => s.Id == subjectId),
+    //            ct);
+    //}
 
-    public async Task<bool> GradeHasSubjectAsync(
-                                                Guid gradeId,
-                                                Guid schoolId,
-                                                Guid subjectId,
-                                                CancellationToken ct = default)
-    {
-        return await _context.Grades
-            .AnyAsync(g =>
-                g.Id == gradeId &&
-                g.SchoolId == schoolId &&
-                g.Subjects.Any(s => s.Id == subjectId),
-                ct);
-    }
+    //public async Task<bool> GradeHasSubjectAsync(
+    //                                            Guid gradeId,
+    //                                            Guid schoolId,
+    //                                            Guid subjectId,
+    //                                            CancellationToken ct = default)
+    //{
+    //    return await _context.Grades
+    //        .AnyAsync(g =>
+    //            g.Id == gradeId &&
+    //            g.SchoolId == schoolId &&
+    //            g.Subjects.Any(s => s.Id == subjectId),
+    //            ct);
+    //}
 
-    public async Task<IReadOnlyList<Grade>> GetTeacherGradesAsync(
-         Guid teacherId,
-         Guid schoolId,
-         CancellationToken ct = default)
-    {
-        return await _context.TeacherGrades
-            .Where(tg =>
-                tg.TeacherId == teacherId &&
-                tg.Grade.SchoolId == schoolId)
-            .Select(tg => tg.Grade)
-            .ToListAsync(ct);
-    }
+    //public async Task<IReadOnlyList<Grade>> GetTeacherGradesAsync(
+    //     Guid teacherId,
+    //     Guid schoolId,
+    //     CancellationToken ct = default)
+    //{
+    //    return await _context.TeacherGrades
+    //        .Where(tg =>
+    //            tg.TeacherId == teacherId &&
+    //            tg.Grade.SchoolId == schoolId)
+    //        .Select(tg => tg.Grade)
+    //        .ToListAsync(ct);
+    //}
+
+    public Task<bool> AnyAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken ct = default)
+        => _dbSet.AnyAsync(predicate, ct);
+
+    public Task UpdateAsync(TEntity entity, CancellationToken ct = default)
+     => Task.Run(() => _dbSet.Update(entity), ct);
+
+    public Task DeleteAsync(TEntity entity, CancellationToken ct = default)
+   => Task.Run(() => _dbSet.Remove(entity), ct);
 }

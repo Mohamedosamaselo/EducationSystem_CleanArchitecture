@@ -1,21 +1,18 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
+using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
 
-public class SchoolAssignmentService : ISchoolAssignmentService
+public class SchoolAssignmentService(
+    IUnitOfWork unitOfWork,
+    IGradeRepo gradeRepository,
+    RoleManager<ApplicationRole> roleManager) : ISchoolAssignmentService
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly RoleManager<ApplicationRole> _roleManager;
-
-    public SchoolAssignmentService(
-        IUnitOfWork unitOfWork,
-        RoleManager<ApplicationRole> roleManager)
-    {
-        _unitOfWork = unitOfWork;
-        _roleManager = roleManager;
-    }
+    private readonly IUnitOfWork _unitOfWork = unitOfWork;
+    private readonly IGradeRepo _gradeRepository = gradeRepository;
+    private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
 
     public async Task<Result<IReadOnlyList<GradeResponseDto>>> GetTeacherGradesAsync(
       Guid schoolAdminId,
@@ -39,7 +36,7 @@ public class SchoolAssignmentService : ISchoolAssignmentService
                 new Error("Teacher.NotFound", "Teacher was not found in your school."));
         }
 
-        var grades = await _unitOfWork.TeacherGradeRepository
+        var grades = await _gradeRepository
             .GetTeacherGradesAsync(teacherId, school.Id, ct);
 
         var response = grades
@@ -170,7 +167,7 @@ public class SchoolAssignmentService : ISchoolAssignmentService
 
         // Validate that this subject is offered by at least one
         // grade in this school before assigning it to the teacher.
-        var subjectIsOffered = await _unitOfWork.GradeRepository
+        var subjectIsOffered = await _gradeRepository
             .SchoolHasSubjectAsync(school.Id, subjectId, ct);
 
         if (!subjectIsOffered)
@@ -265,7 +262,7 @@ public class SchoolAssignmentService : ISchoolAssignmentService
                 new Error("Student.GradeNotAssigned",
                     "The student must be assigned to a grade first."));
 
-        var gradeOffersSubject = await _unitOfWork.GradeRepository
+        var gradeOffersSubject = await _gradeRepository
             .GradeHasSubjectAsync(student.GradeId.Value, school.Id, subjectId, ct);
 
         if (!gradeOffersSubject)

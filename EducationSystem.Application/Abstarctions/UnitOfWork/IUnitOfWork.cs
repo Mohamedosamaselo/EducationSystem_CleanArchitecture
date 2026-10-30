@@ -6,6 +6,7 @@ namespace EducationSystem.Application.Abstarctions.UnitOfWork;
 public interface IUnitOfWork : IDisposable
 {
     IGenericRepository<Organisation> OrganisationRepository { get; }
+
     IGenericRepository<School> SchoolRepository { get; }
 
     IGenericRepository<Grade> GradeRepository { get; }
@@ -13,11 +14,13 @@ public interface IUnitOfWork : IDisposable
     IGenericRepository<Subject> SubjectRepository { get; }
 
     IGenericRepository<ApplicationUser> UserRepository { get; }
-    //IGenericRepository<ApplicationRole> RoleRepository { get; }
+
+    IGenericRepository<ApplicationRole> RoleRepository { get; }
 
     IGenericRepository<TeacherGrade> TeacherGradeRepository { get; }
 
     IGenericRepository<UserSubject> UserSubjectRepository { get; }
+    IGenericRepository<EmailConfirmationToken> EmailConfirmationTokenRepository { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default); // save All changes in DB
 }

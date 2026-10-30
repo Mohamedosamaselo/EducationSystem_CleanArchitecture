@@ -29,4 +29,6 @@ public class ApplicationDbContext : DbContext
     public DbSet<Subject> Subjects => Set<Subject>();
     public DbSet<TeacherGrade> TeacherGrades => Set<TeacherGrade>();
     public DbSet<UserSubject> UserSubjects => Set<UserSubject>();
+
+    public DbSet<EmailConfirmationToken> EmailConfirmationTokens => Set<EmailConfirmationToken>();
 }

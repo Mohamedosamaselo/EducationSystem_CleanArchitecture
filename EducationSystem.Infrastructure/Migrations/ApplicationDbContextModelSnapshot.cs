@@ -153,6 +153,50 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("EducationSystem.Domain.Entities.EmailConfirmationToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("EmailConfirmationTokens", (string)null);
+                });
+
             modelBuilder.Entity("EducationSystem.Domain.Entities.Grade", b =>
                 {
                     b.Property<Guid>("Id")
@@ -456,6 +500,17 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.Navigation("School");
                 });
 
+            modelBuilder.Entity("EducationSystem.Domain.Entities.EmailConfirmationToken", b =>
+                {
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("EmailConfirmationTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EducationSystem.Domain.Entities.Grade", b =>
                 {
                     b.HasOne("EducationSystem.Domain.Entities.School", "School")
@@ -563,6 +618,8 @@ namespace EducationSystem.Infrastructure.Migrations
 
             modelBuilder.Entity("EducationSystem.Domain.Entities.ApplicationUser", b =>
                 {
+                    b.Navigation("EmailConfirmationTokens");
+
                     b.Navigation("ManagedOrganisation");
 
                     b.Navigation("ManagedSchool");
