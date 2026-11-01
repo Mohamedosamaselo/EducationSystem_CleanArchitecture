@@ -1,6 +1,4 @@
 ﻿using EducationSystem.Application.Abstarctions.Persistence.Repositories;
-using EducationSystem.Domain.Entities;
-using EducationSystem.Domain.Entities.Common;
 using EducationSystem.Domain.Interfaces.Common;
 using EducationSystem.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;

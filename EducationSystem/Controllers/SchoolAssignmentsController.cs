@@ -1,5 +1,4 @@
-﻿using EducationSystem.Application.Abstarctions.Services;
-using EducationSystem.Application.Dtos.Grade;
+﻿using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Application.Dtos.Subject;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +10,26 @@ using System.Security.Claims;
 public class SchoolAssignmentsController(
     ISchoolAssignmentService assignmentService) : ControllerBase
 {
+    [HttpPost("teachers/{teacherId:guid}/grades")]
+    public async Task<IActionResult> AssignTeacherToGrade(
+     Guid teacherId,
+     [FromBody] AssignGradeRequestDto request,
+     CancellationToken ct)
+    {
+        if (!TryGetSchoolAdminId(out var adminId))
+            return Unauthorized();
+
+        var result = await assignmentService.AssignTeacherToGradeAsync(
+            adminId, teacherId, request.GradeId, ct);
+
+        if (!result.IsSuccess)
+            return result.Error.Code.EndsWith("NotFound")
+                ? NotFound(result.Error)
+                : BadRequest(result.Error);
+
+        return NoContent();
+    }
+
     [HttpGet("teachers/{teacherId:guid}/grades")]
     public async Task<IActionResult> GetTeacherGrades(
         Guid teacherId, CancellationToken ct)
@@ -27,26 +46,6 @@ public class SchoolAssignmentsController(
                 : BadRequest(result.Error);
 
         return Ok(result.Value);
-    }
-
-    [HttpPost("teachers/{teacherId:guid}/grades")]
-    public async Task<IActionResult> AssignTeacherToGrade(
-        Guid teacherId,
-        [FromBody] AssignGradeRequestDto request,
-        CancellationToken ct)
-    {
-        if (!TryGetSchoolAdminId(out var adminId))
-            return Unauthorized();
-
-        var result = await assignmentService.AssignTeacherToGradeAsync(
-            adminId, teacherId, request.GradeId, ct);
-
-        if (!result.IsSuccess)
-            return result.Error.Code.EndsWith("NotFound")
-                ? NotFound(result.Error)
-                : BadRequest(result.Error);
-
-        return NoContent();
     }
 
     [HttpDelete("teachers/{teacherId:guid}/grades/{gradeId:guid}")]

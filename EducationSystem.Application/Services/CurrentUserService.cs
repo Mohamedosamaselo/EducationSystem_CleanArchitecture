@@ -16,7 +16,7 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
                                // , seeding)
 
             var value = user.FindFirstValue(ClaimTypes.NameIdentifier)
-                     ?? user.FindFirstValue("sub");
+                          ?? user.FindFirstValue("sub");
 
             return Guid.TryParse(value, out var id) ? id : null;
         }

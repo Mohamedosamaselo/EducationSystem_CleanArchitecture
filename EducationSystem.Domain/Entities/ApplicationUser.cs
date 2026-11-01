@@ -13,9 +13,16 @@ public class ApplicationUser : IBaseAuditableEntity
     public string Address { get; set; } = string.Empty;
     public DateTime? DateOfBirth { get; set; }
 
-    /// --- Minimum Identity needs(mapped by OUR store, not IdentityDbContext) ---
+        // ---- IBaseAuditableEntity Implementation ----
+    public Guid Id { get; set; }
 
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
     public string UserName { get; set; } = string.Empty;
+
+
 
     //public string NormalizedUserName { get; set; } = string.Empty; //
     public string Email { get; set; } = string.Empty;
@@ -55,11 +62,5 @@ public class ApplicationUser : IBaseAuditableEntity
     public virtual ICollection<EmailConfirmationToken> EmailConfirmationTokens { get; set; } = new List<EmailConfirmationToken>();
     public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 
-    // ---- IBaseAuditableEntity Implementation ----
-    public Guid Id { get; set; }
 
-    public DateTime CreatedAt { get; set; }
-    public Guid? CreatedBy { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public Guid? LastModifiedBy { get; set; }
 }

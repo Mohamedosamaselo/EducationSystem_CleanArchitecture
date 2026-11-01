@@ -13,9 +13,9 @@ public class UserSubject : IBaseAuditableEntity
     public virtual Subject Subject { get; set; } = null!;
 
     public string? FinalEvaluation { get; set; } = string.Empty;
-    public Guid Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public DateTime CreatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public Guid? CreatedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public DateTime? ModifiedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public Guid? LastModifiedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
 }

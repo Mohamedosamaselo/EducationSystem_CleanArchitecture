@@ -18,9 +18,9 @@ public class Grade : IBaseAuditableEntity
     public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>(); // M : M [Grade , Subject](GradeSubject)
     public virtual ICollection<ApplicationUser> Students { get; set; } = new List<ApplicationUser>();// 1:M [Grade , StudentsApplicationUser]
     public virtual ICollection<TeacherGrade> TeacherGrades { get; set; } = new List<TeacherGrade>();// M : M [Grade , Teacher](TeacherGrade)
-    public Guid Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public DateTime CreatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public Guid? CreatedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public DateTime? ModifiedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public Guid? LastModifiedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
 }

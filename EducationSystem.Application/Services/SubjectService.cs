@@ -1,6 +1,4 @@
-﻿using EducationSystem.Application.Abstarctions.HandlingError;
-using EducationSystem.Application.Abstarctions.HandlingError.Errors;
-using EducationSystem.Application.Abstarctions.Services;
+﻿using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Grade;
 using EducationSystem.Application.Dtos.Subject;

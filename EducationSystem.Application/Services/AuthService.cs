@@ -107,18 +107,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         if (!IsStrongPassword(password))
             return Result.Failure<RegisterResponse?>(UserErrors.WeakPassword);
 
-        // --------------------------------------------------------
-        // 1.3 Check whether the email / username already exist
-        // --------------------------------------------------------
-        //if (await _db.Users.AnyAsync(u => u.NormalizedEmail == normalizedEmail, cancellationToken))
-        //    return Result.Failure<RegisterResponse?>(UserErrors.DuplicateEmail);
-
-        //if (await _db.Users.AnyAsync(u => u.NormalizedUserName == normalizedUserName, cancellationToken))
-        //    return Result.Failure<RegisterResponse?>(UserErrors.DuplicateUserName);
-
-        // --------------------------------------------------------
         // 1.4 Determine the user's role (default: Student) + whitelist
-        // --------------------------------------------------------
+
         var userRole = string.IsNullOrWhiteSpace(request.Role)
             ? "Student"
             : request.Role.Trim();
@@ -132,7 +122,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         // --------------------------------------------------------
         var normalizedRole = userRole.ToUpperInvariant();
         var role = await _unitOfWork.RoleRepository.FirstOrDefaultAsync(r => r.Name == normalizedRole, cancellationToken);
-        //var role = await unitOfWork.Roles.FirstOrDefaultAsync(r => r.Name == userRole, cancellationToken);
 
         if (role is null)
             return Result.Failure<RegisterResponse?>(
@@ -156,10 +145,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             return Result.Failure<RegisterResponse?>(
                 new Error("Grade.NotFound", "Grade does not exist."));
 
-        // --------------------------------------------------------
         // 1.7 Create the ApplicationUser object
-        // --------------------------------------------------------
-        // These are the fields UserManager.CreateAsync would normally fill in for you.
+
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid(),
@@ -169,8 +156,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             DateOfBirth = request.BirthDate?.Date,
             UserName = userName,
             Email = email,
-            EmailConfirmed = false,                                //   MUST stay false until the user confirms the email
-            SecurityStamp = Guid.NewGuid().ToString("N"),   //   invalidates old tokens when it changes
+            EmailConfirmed = false,
+            SecurityStamp = Guid.NewGuid().ToString("N"),
             ConcurrencyStamp = Guid.NewGuid().ToString(),
             SchoolId = request.SchoolId,
             GradeId = request.GradeId,
@@ -179,14 +166,11 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         };
 
         // 1.8 Hash the password (replaces CreateAsync's hashing)
-        // --------------------------------------------------------
-        // Same PBKDF2 hasher Identity uses, so hashes stay compatible if you ever adopt UserManager.
+
         user.PasswordHash = _passwordHasher.HashPassword(user, password);
 
-        // --------------------------------------------------------
         // 1.9 Generate the email confirmation token
-        // --------------------------------------------------------
-        // Raw token goes in the email; only its SHA-256 hash is stored.
+
         var rawToken = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
 
         var confirmationToken = new EmailConfirmationToken
@@ -197,14 +181,10 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             CreatedAt = DateTime.UtcNow
         };
 
-        // --------------------------------------------------------
         // 1.10 Save everything together (one SaveChanges = one transaction)
-        // --------------------------------------------------------
+
         await _unitOfWork.UserRepository.AddAsync(user, cancellationToken);
         await _unitOfWork.EmailConfirmationTokenRepository.AddAsync(confirmationToken, cancellationToken);
-
-        //// Keep AspNetUserRoles consistent too (remove this line if you only rely on user.RoleId).
-        //_db.UserRoles.Add(new IdentityUserRole<Guid> { UserId = user.Id, RoleId = role.Id });
 
         try
         {
@@ -212,22 +192,18 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         }
         catch (DbUpdateException ex)
         {
-            // Race condition: another request took the same email/username after our checks.
-            // The UNIQUE indexes caught it.
             _logger.LogWarning(ex, "Registration conflict for email {Email}", email);
             return Result.Failure<RegisterResponse?>(
                 new Error("User.Duplicate", "Email or username is already in use."));
         }
 
-        // --------------------------------------------------------
         // 1.11 Build the confirmation link
-        // --------------------------------------------------------
+
         // Base64Url + GUID are already URL-safe, so no extra escaping.
         var frontendUrl = _configuration["App:FrontendUrl"] ?? "https://your-frontend.com";
         var confirmationLink = $"{frontendUrl}/confirm-email?userId={user.Id}&token={rawToken}";
 
         // Never log the token itself.
-        // _logger.LogInformation("Email confirmation token created for user {UserId}", user.Id);
         if (_environment.IsDevelopment())
         {
             _logger.LogInformation(
@@ -241,9 +217,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                 "Email confirmation token generated for UserId {UserId}",
                 user.Id);
         }
-        // --------------------------------------------------------
         // 1.12 Send the confirmation email
-        // --------------------------------------------------------
+
         try
         {
             await _emailService.SendAsync(
@@ -266,9 +241,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                     "The account was created, but we could not send the confirmation email."));
         }
 
-        // --------------------------------------------------------
         // 1.13 Build the response (no JWT yet: user is not authenticated until login)
-        // --------------------------------------------------------
         var response = new RegisterResponse(
             IsSuccess: true,
             Message: "Registration successful. Please check your email to confirm your account.",
@@ -496,12 +469,10 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             cancellationToken);
 
         if (role is null)
-        {
             return Result.Failure<LoginResponse?>(
                 new Error(
                     "Role.NotFound",
                     "User role was not found."));
-        }
 
         // 7. Generate JWT
         var roles = new List<string> { role.Name! };
@@ -511,15 +482,15 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
         // 8. Build authentication response
         var response = new LoginResponse(
-                                            user.Id,
-                                            user.Email!,
-                                            user.UserName!,
-                                            user.FirstName,
-                                            user.LastName,
-                                            token,
-                                            DateTime.UtcNow.AddMinutes(expiresIn),
-                                            role.Name!
-                                            );
+                                           user.Id,
+                                           user.Email!,
+                                           user.UserName!,
+                                           user.FirstName,
+                                           user.LastName,
+                                           token,
+                                           DateTime.UtcNow.AddMinutes(expiresIn),
+                                           role.Name!
+                                           );
 
         // 9. Return success
         return Result.Success<LoginResponse?>(response);
@@ -634,10 +605,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         }
 
         // 5. Generate a cryptographically secure token
-        var rawToken = WebEncoders.Base64UrlEncode(
-            RandomNumberGenerator.GetBytes(32));
+        var rawToken = WebEncoders.Base64UrlEncode(RandomNumberGenerator.GetBytes(32));
 
-        // DEV ONLY: log the raw token so you can test reset-password without email
         if (_environment.IsDevelopment())
         {
             _logger.LogInformation("DEV ONLY - Password reset token for {Email}: {Token}",
@@ -681,18 +650,18 @@ public class AuthService(UserManager<ApplicationUser> userManager,
                 user.Email!,
                 "Reset Your Password",
                 $"""
-            <h2>Reset Your Password</h2>
+                            <h2>Reset Your Password</h2>
 
-            <p>We received a request to reset your password.</p>
+                            <p>We received a request to reset your password.</p>
 
-            <p>
-                <a href="{resetUrl}">Reset Your Password</a>
-            </p>
+                            <p>
+                                <a href="{resetUrl}">Reset Your Password</a>
+                            </p>
 
-            <p>This link expires in 15 minutes.</p>
+                            <p>This link expires in 15 minutes.</p>
 
-            <p>If you did not request this, you can ignore this email.</p>
-            """);
+                            <p>If you did not request this, you can ignore this email.</p>
+                            """);
         }
         catch (Exception ex)
         {
@@ -764,7 +733,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             string.IsNullOrWhiteSpace(request.Token))
             return Result.Failure<bool>(UserErrors.InvalidResetToken);
 
-        // 2. Find the user (case-insensitive, matches how ForgotPasswordAsync looks it up)
+        // 2. Find the user
         var email = request.Email.Trim().ToLowerInvariant();
 
         var user = await _unitOfWork.UserRepository
@@ -788,9 +757,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
             resetToken.UsedAt != null ||
             resetToken.RevokedAt != null ||
             resetToken.ExpiresAt <= now)
-        {
             return Result.Failure<bool>(UserErrors.InvalidResetToken);
-        }
 
         // 5. Validate the new password
         if (!IsStrongPassword(request.NewPassword))
@@ -807,11 +774,11 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
         // 8. Revoke any other active reset tokens for this user
         var otherTokens = await _unitOfWork.PasswordResetTokenRepository.GetAllAsync(
-            t => t.UserId == user.Id &&
-                 t.Id != resetToken.Id &&
-                 t.UsedAt == null &&
-                 t.RevokedAt == null,
-            cancellationToken);
+                                                                                        t => t.UserId == user.Id &&
+                                                                                             t.Id != resetToken.Id &&
+                                                                                             t.UsedAt == null &&
+                                                                                             t.RevokedAt == null,
+                                                                                        cancellationToken);
 
         foreach (var other in otherTokens)
             other.RevokedAt = now;
@@ -882,32 +849,24 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     {
         // 1. Validate the user id coming from the JWT
         if (!Guid.TryParse(userId, out var id))
-        {
             return Result.Failure<string>(
                 new Error("Auth.Unauthorized", "User is not authenticated."));
-        }
 
         // 2. Basic input checks
-        if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
-            string.IsNullOrWhiteSpace(request.NewPassword))
-        {
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword) || string.IsNullOrWhiteSpace(request.NewPassword))
             return Result.Failure<string>(
                 new Error("Password.Required", "Current and new password are required."));
-        }
 
         // 3. Load the user (tracked, so SaveChanges persists the changes)
         var user = await _unitOfWork.UserRepository
             .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
 
         if (user is null)
-        {
             return Result.Failure<string>(
                 new Error("Auth.Unauthorized", "User not found."));
-        }
 
         // 4. Verify the current password
-        var verification = _passwordHasher.VerifyHashedPassword(
-            user, user.PasswordHash, request.CurrentPassword);
+        var verification = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword);
 
         if (verification == PasswordVerificationResult.Failed)
         {
@@ -1037,9 +996,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     CancellationToken cancellationToken = default)
     {
         // 1. Find the user
-        var user = await unitOfWork.UserRepository.FirstOrDefaultAsync(
-                                                    u => u.Id.ToString() == request.UserId,
-                                                    cancellationToken);
+        var user = await unitOfWork.UserRepository.FirstOrDefaultAsync(u => u.Id.ToString() == request.UserId, cancellationToken);
 
         if (user is null)
             return Result.Failure(
@@ -1059,9 +1016,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         var confirmationToken =
             await unitOfWork.EmailConfirmationTokenRepository
                             .FirstOrDefaultAsync(
-                                t => t.UserId == user.Id &&
-                                     t.TokenHash == tokenHash,
-                                cancellationToken);
+                                t => t.UserId == user.Id && t.TokenHash == tokenHash, cancellationToken);
 
         if (confirmationToken is null)
             return Result.Failure(

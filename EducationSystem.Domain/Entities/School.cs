@@ -1,9 +1,7 @@
 namespace EducationSystem.Domain.Entities;
 
-using EducationSystem.Domain.Entities.Common;
 using EducationSystem.Domain.Interfaces.Common;
 
-//public class School : BaseAuditableEntity
 public class School : IBaseAuditableEntity
 {
     public string Name { get; set; } = string.Empty;
@@ -23,9 +21,9 @@ public class School : IBaseAuditableEntity
     public virtual ICollection<ApplicationUser> Users { get; set; } = new List<ApplicationUser>(); // Navigation property to Users in the School
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
-    public Guid Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public DateTime CreatedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public Guid? CreatedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public DateTime? ModifiedAt { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-    public Guid? LastModifiedBy { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public Guid Id { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public DateTime? ModifiedAt { get; set; }
+    public Guid? LastModifiedBy { get; set; }
 }

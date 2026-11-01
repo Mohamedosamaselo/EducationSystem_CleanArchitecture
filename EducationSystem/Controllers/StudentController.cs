@@ -20,7 +20,6 @@ public class StudentController : ControllerBase
     {
         if (!TryGetStudentId(out var studentId))
             return Unauthorized();
-
         var result = await _studentService.GetMyGradeAsync(studentId, ct);
 
         if (!result.IsSuccess)

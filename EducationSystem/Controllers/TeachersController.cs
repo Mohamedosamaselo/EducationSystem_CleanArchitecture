@@ -15,32 +15,6 @@ public sealed class TeachersController(ITeacherService teacherService)
 {
     private readonly ITeacherService _teacherService = teacherService;
 
-    private bool TryGetTeacherId(out Guid teacherId)
-    {
-        return Guid.TryParse(
-            User.FindFirstValue(ClaimTypes.NameIdentifier),
-            out teacherId);
-    }
-
-    private IActionResult HandleError(Error error)
-    {
-        if (error.Code.EndsWith(
-                "NotFound",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return NotFound(error);
-        }
-
-        if (error.Code.Contains(
-                "NotAssigned",
-                StringComparison.OrdinalIgnoreCase))
-        {
-            return Forbid();
-        }
-
-        return BadRequest(error);
-    }
-
     // GET: api/teacher/grades
     [HttpGet("grades")]
     public async Task<IActionResult> GetMyGrades(CancellationToken ct)
@@ -208,4 +182,34 @@ public sealed class TeachersController(ITeacherService teacherService)
             ? NoContent()
             : HandleError(result.Error);
     }
+
+    #region Helpers
+
+    private bool TryGetTeacherId(out Guid teacherId)
+    {
+        return Guid.TryParse(
+            User.FindFirstValue(ClaimTypes.NameIdentifier),
+            out teacherId);
+    }
+
+    private IActionResult HandleError(Error error)
+    {
+        if (error.Code.EndsWith(
+                "NotFound",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound(error);
+        }
+
+        if (error.Code.Contains(
+                "NotAssigned",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            return Forbid();
+        }
+
+        return BadRequest(error);
+    }
+
+    #endregion Helpers
 }

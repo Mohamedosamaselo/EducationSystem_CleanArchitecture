@@ -45,10 +45,10 @@ public class GradeServices(IUnitOfWork unitOfWork, IGradeRepo gradeRepository) :
     public async Task<Result<GradeResponseDto?>> GetByIdAsync(Guid Id, CancellationToken ct = default)
     {
         var grade = await gradeRepository.GetByIdWithIncludeAsync(Id,
-                                                                                ct,
-                                                                                p => p.Subjects,
-                                                                                p => p.School
-                                                                                );
+                                                                  ct,
+                                                                  p => p.Subjects,
+                                                                  p => p.School
+                                                                  );
 
         if (grade is null)
             return Result.Failure<GradeResponseDto?>(
@@ -63,37 +63,6 @@ public class GradeServices(IUnitOfWork unitOfWork, IGradeRepo gradeRepository) :
                                                         );
         return Result.Success<GradeResponseDto?>(gradeDto);
     }
-
-    //public async Task<Result<IReadOnlyList<GradeResponseDto>>> SearchAsync(string gradeName, CancellationToken ct = default)
-    //{
-    //    var searchTerm = gradeName?.ToLower() ?? string.Empty;
-
-    //    var grades = await _unitOfWork.GradeRepository.GetAllWithIncludesAsync(
-    //                     g => g.Name.ToLower().Contains(searchTerm),
-    //                     ct,
-    //                     p => p.Subjects,
-    //                     p => p.School
-    //                     //p => p.Users
-    //                     );
-
-    //    // For searches, returning an empty list on no matches is standard REST practice
-    //    if (grades is null || !grades.Any())
-    //    {
-    //        return Result.Success<IReadOnlyList<GradeResponseDto>>(new List<GradeResponseDto>());
-    //    }
-
-    //    var gradeDtos = grades.Select(g => new GradeResponseDto
-    //    {
-    //        Id = g.Id,
-    //        Name = g.Name,
-    //        Description = g.Description,
-    //        //IsActive = g.IsActive,
-    //        SchoolId = g.SchoolId,
-    //        SchoolName = g.School?.Name ?? string.Empty,
-    //    }).ToList();
-
-    //    return Result.Success<IReadOnlyList<GradeResponseDto>>(gradeDtos);
-    //}
 
     public async Task<Result<GradeResponseDto?>> AddAsync(CreateGradeRequest dto, CancellationToken ct = default)
     {
@@ -242,8 +211,7 @@ public class GradeServices(IUnitOfWork unitOfWork, IGradeRepo gradeRepository) :
     }
 
     // Assign a subject to a grade (inserts a row in the GradeSubject join table)
-    public async Task<Result<GradeSubjectResponse?>> AssignSubjectAsync(
-        Guid gradeId, AssignSubjectToGradeRequest request, CancellationToken ct = default)
+    public async Task<Result<GradeSubjectResponse?>> AssignSubjectAsync(Guid gradeId, AssignSubjectToGradeRequest request, CancellationToken ct = default)
     {
         if (gradeId == Guid.Empty || request is null || request.SubjectId == Guid.Empty)
             return Result.Failure<GradeSubjectResponse?>(GradeSubjectErrors.InvalidInput);

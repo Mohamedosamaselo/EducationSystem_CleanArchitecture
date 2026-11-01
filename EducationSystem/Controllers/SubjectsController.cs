@@ -7,12 +7,12 @@ namespace EducationSystem.WebApi.Controllers;
 
 [Route("[controller]")]
 [ApiController]
-[Authorize(Roles = "OrganisationAdmin")] // Apply authorization to all actions in the controller
 public class SubjectsController(ISubjectService subjectService) : ControllerBase
 {
     private readonly ISubjectService _subjectService = subjectService;
 
     [HttpGet()]
+    [Authorize(Roles = "OrganisationAdmin , SchoolAdmin")] // Apply authorization to all actions in the controller
     public async Task<IActionResult> GetAllSubjectsAsync()
     {
         var subjects = await _subjectService.GetAllAsync();
@@ -20,6 +20,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
     }
 
     [HttpGet("{subjectId:guid}")]
+    [Authorize(Roles = "OrganisationAdmin , SchoolAdmin")]
     public async Task<ActionResult> GetByIdAsync(Guid subjectId)
     {
         var subject = await _subjectService.GetByIdAsync(subjectId);
@@ -35,6 +36,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
     //}
 
     [HttpPost]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<ActionResult> AddAsync(CreateSubjectRequest subjectRequest)
     {
         var subject = await _subjectService.AddAsync(subjectRequest);
@@ -42,6 +44,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<ActionResult> updateAsync(Guid id,
         [FromBody] UpdateSubjectRequest subjectReq)
     {
@@ -51,6 +54,7 @@ public class SubjectsController(ISubjectService subjectService) : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
+    [Authorize(Roles = "OrganisationAdmin")]
     public async Task<IActionResult> DeleteAsync(Guid id)
     {
         var deleted = await _subjectService.DeleteAsync(id);
