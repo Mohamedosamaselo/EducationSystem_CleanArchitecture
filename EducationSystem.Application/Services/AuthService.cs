@@ -822,24 +822,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         return Result.Success(true);
     }
 
-    private static bool IsStrongPassword(string password)
-    {
-        if (string.IsNullOrEmpty(password) || password.Length < 8)
-            return false;
-
-        bool hasDigit = false, hasUpper = false, hasLower = false, hasSymbol = false;
-
-        foreach (var ch in password)
-        {
-            if (char.IsDigit(ch)) hasDigit = true;
-            else if (char.IsUpper(ch)) hasUpper = true;
-            else if (char.IsLower(ch)) hasLower = true;
-            else if (!char.IsLetterOrDigit(ch)) hasSymbol = true;
-        }
-
-        return hasDigit && hasUpper && hasLower && hasSymbol;
-    }
-
     // 4. RESET PASSWORD
     //public async Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request)
     //{
@@ -1366,21 +1348,15 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     // ============================================================
     // HELPERS
     // ============================================================
+
+    #region Helpers Methods
+
     private static bool IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email) || email.Length > 254) return false;
         return MailAddress.TryCreate(email, out var addr) && addr.Address == email;
     }
 
-    // Replaces Identity's PasswordOptions (same rules as the Identity defaults, minus the symbol requirement).
-    //private static bool IsStrongPassword(string password) =>
-    //    password.Length >= 8
-    //    && Encoding.UTF8.GetByteCount(password) <= 72   // bcrypt ignores anything after 72 bytes
-    //    && password.Any(char.IsUpper)
-    //    && password.Any(char.IsLower)
-    //    && password.Any(char.IsDigit);
-
-    //public static string HashToken(string rawToken) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
     private static string HashToken(string rawToken)
     {
         var tokenBytes = Encoding.UTF8.GetBytes(rawToken);
@@ -1388,4 +1364,24 @@ public class AuthService(UserManager<ApplicationUser> userManager,
 
         return Convert.ToHexString(hashBytes);
     }
+
+    private static bool IsStrongPassword(string password)
+    {
+        if (string.IsNullOrEmpty(password) || password.Length < 8)
+            return false;
+
+        bool hasDigit = false, hasUpper = false, hasLower = false, hasSymbol = false;
+
+        foreach (var ch in password)
+        {
+            if (char.IsDigit(ch)) hasDigit = true;
+            else if (char.IsUpper(ch)) hasUpper = true;
+            else if (char.IsLower(ch)) hasLower = true;
+            else if (!char.IsLetterOrDigit(ch)) hasSymbol = true;
+        }
+
+        return hasDigit && hasUpper && hasLower && hasSymbol;
+    }
+
+    #endregion Helpers Methods
 }
