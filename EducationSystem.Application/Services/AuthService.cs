@@ -841,7 +841,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     }
 
     // 4. RESET PASSWORD
-
     //public async Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request)
     //{
     //    // 4.1 Find the user
@@ -893,83 +892,162 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //    return Result.Success(true);
     //}
 
+    // 5. change Password
+    public async Task<Result<string>> ChangePasswordAsync(
+    string userId,
+    ChangePasswordRequest request,
+    CancellationToken cancellationToken = default)
+    {
+        // 1. Validate the user id coming from the JWT
+        if (!Guid.TryParse(userId, out var id))
+        {
+            return Result.Failure<string>(
+                new Error("Auth.Unauthorized", "User is not authenticated."));
+        }
+
+        // 2. Basic input checks
+        if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+            string.IsNullOrWhiteSpace(request.NewPassword))
+        {
+            return Result.Failure<string>(
+                new Error("Password.Required", "Current and new password are required."));
+        }
+
+        // 3. Load the user (tracked, so SaveChanges persists the changes)
+        var user = await _unitOfWork.UserRepository
+            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
+
+        if (user is null)
+        {
+            return Result.Failure<string>(
+                new Error("Auth.Unauthorized", "User not found."));
+        }
+
+        // 4. Verify the current password
+        var verification = _passwordHasher.VerifyHashedPassword(
+            user, user.PasswordHash, request.CurrentPassword);
+
+        if (verification == PasswordVerificationResult.Failed)
+        {
+            return Result.Failure<string>(
+                new Error("Password.InvalidCurrentPassword",
+                          "The current password is incorrect."));
+        }
+
+        // 5. New password must differ from the current one
+        if (request.CurrentPassword == request.NewPassword)
+        {
+            return Result.Failure<string>(
+                new Error("Password.SameAsCurrent",
+                          "The new password must be different from the current password."));
+        }
+
+        // 6. New password must be strong
+        if (!IsStrongPassword(request.NewPassword))
+            return Result.Failure<string>(UserErrors.WeakPassword);
+
+        var now = DateTime.UtcNow;
+
+        // 7. Set the new password and rotate stamps
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        user.SecurityStamp = Guid.NewGuid().ToString();
+        user.ConcurrencyStamp = Guid.NewGuid().ToString();
+        user.ModifiedAt = now;
+        user.LastModifiedBy = user.Id;
+
+        // 8. Revoke any outstanding reset-password tokens
+        var activeTokens = await _unitOfWork.PasswordResetTokenRepository.GetAllAsync(
+            t => t.UserId == user.Id &&
+                 t.UsedAt == null &&
+                 t.RevokedAt == null,
+            cancellationToken);
+
+        foreach (var token in activeTokens)
+            token.RevokedAt = now;
+
+        // 9. Save everything in one go (no Update() calls)
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success("Password changed successfully.");
+    }
+
     // 5. CHANGE PASSWORD
 
-    public async Task<Result<string>> ChangePasswordAsync(string userId, ChangePasswordRequest request)
-    {
-        // --------------------------------------------------------
-        // 5.1 Get the current HTTP context
-        // --------------------------------------------------------
+    //public async Task<Result<string>> ChangePasswordAsync(string userId, ChangePasswordRequest request)
+    //{
+    //    // --------------------------------------------------------
+    //    // 5.1 Get the current HTTP context
+    //    // --------------------------------------------------------
 
-        var httpContext = _httpContextAccessor.HttpContext;
+    //    var httpContext = _httpContextAccessor.HttpContext;
 
-        if (httpContext is null)
-        {
-            return Result.Failure<string>(
-                new Error(
-                    "Auth.HttpContextUnavailable",
-                    "HTTP context is unavailable."));
-        }
+    //    if (httpContext is null)
+    //    {
+    //        return Result.Failure<string>(
+    //            new Error(
+    //                "Auth.HttpContextUnavailable",
+    //                "HTTP context is unavailable."));
+    //    }
 
-        // 5.2 Get the authenticated user principal from JWT
-        // --------------------------------------------------------
+    //    // 5.2 Get the authenticated user principal from JWT
+    //    // --------------------------------------------------------
 
-        var principal = httpContext.User;
+    //    var principal = httpContext.User;
 
-        if (principal?.Identity?.IsAuthenticated != true)
-        {
-            return Result.Failure<string>(
-                new Error(
-                    "Auth.Unauthorized",
-                    "User is not authenticated."));
-        }
+    //    if (principal?.Identity?.IsAuthenticated != true)
+    //    {
+    //        return Result.Failure<string>(
+    //            new Error(
+    //                "Auth.Unauthorized",
+    //                "User is not authenticated."));
+    //    }
 
-        // 5.3 Find the ApplicationUser
-        // --------------------------------------------------------
+    //    // 5.3 Find the ApplicationUser
+    //    // --------------------------------------------------------
 
-        var user = await _userManager.GetUserAsync(principal);
+    //    var user = await _userManager.GetUserAsync(principal);
 
-        // --------------------------------------------------------
-        // 5.5 Change the password
-        // --------------------------------------------------------
+    //    // --------------------------------------------------------
+    //    // 5.5 Change the password
+    //    // --------------------------------------------------------
 
-        var result =
-            await _userManager.ChangePasswordAsync(user,
-                                                    request.CurrentPassword,
-                                                    request.NewPassword);
+    //    var result =
+    //        await _userManager.ChangePasswordAsync(user,
+    //                                                request.CurrentPassword,
+    //                                                request.NewPassword);
 
-        // --------------------------------------------------------
-        // 5.6 Handle Identity validation errors
-        // --------------------------------------------------------
+    //    // --------------------------------------------------------
+    //    // 5.6 Handle Identity validation errors
+    //    // --------------------------------------------------------
 
-        if (!result.Succeeded)
-        {
-            var firstError =
-                result.Errors.First();
+    //    if (!result.Succeeded)
+    //    {
+    //        var firstError =
+    //            result.Errors.First();
 
-            var error = firstError.Code switch
-            {
-                "PasswordMismatch" =>
-                    new Error(
-                        "Password.InvalidCurrentPassword",
-                        "The current password is incorrect."),
+    //        var error = firstError.Code switch
+    //        {
+    //            "PasswordMismatch" =>
+    //                new Error(
+    //                    "Password.InvalidCurrentPassword",
+    //                    "The current password is incorrect."),
 
-                _ =>
-                    new Error(
-                        "Password.ChangeFailed",
-                        firstError.Description)
-            };
+    //            _ =>
+    //                new Error(
+    //                    "Password.ChangeFailed",
+    //                    firstError.Description)
+    //        };
 
-            return Result.Failure<string>(error);
-        }
+    //        return Result.Failure<string>(error);
+    //    }
 
-        // --------------------------------------------------------
-        // 5.7 Password changed successfully
-        // --------------------------------------------------------
+    //    // --------------------------------------------------------
+    //    // 5.7 Password changed successfully
+    //    // --------------------------------------------------------
 
-        return Result.Success(
-            "Password changed successfully.");
-    }
+    //    return Result.Success(
+    //        "Password changed successfully.");
+    //}
 
     //6. Confirm Email
     public async Task<Result> ConfirmEmailAsync(
@@ -1288,7 +1366,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     // ============================================================
     // HELPERS
     // ============================================================
-
     private static bool IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email) || email.Length > 254) return false;

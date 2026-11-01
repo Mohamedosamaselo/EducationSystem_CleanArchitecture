@@ -11,9 +11,13 @@ public class UnitOfWork : IUnitOfWork
     private readonly ApplicationDbContext _context;
 
     public IGenericRepository<Organisation> OrganisationRepository { get; }
+
     public IGenericRepository<School> SchoolRepository { get; }
+
     public IGenericRepository<Grade> GradeRepository { get; }
+
     public IGenericRepository<Subject> SubjectRepository { get; }
+
     public IGenericRepository<ApplicationUser> UserRepository { get; }
 
     public IGenericRepository<ApplicationRole> RoleRepository { get; }
@@ -23,6 +27,8 @@ public class UnitOfWork : IUnitOfWork
     public IGenericRepository<UserSubject> UserSubjectRepository { get; }
 
     public IGenericRepository<EmailConfirmationToken> EmailConfirmationTokenRepository { get; }
+
+    public IGenericRepository<PasswordResetToken> PasswordResetTokenRepository { get; }
 
     public UnitOfWork(ApplicationDbContext dbContext)
     {
@@ -37,6 +43,7 @@ public class UnitOfWork : IUnitOfWork
         TeacherGradeRepository = new GenericRepo<TeacherGrade>(_context);
         UserSubjectRepository = new GenericRepo<UserSubject>(_context);
         EmailConfirmationTokenRepository = new GenericRepo<EmailConfirmationToken>(_context);
+        PasswordResetTokenRepository = new GenericRepo<PasswordResetToken>(_context);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken ct = default) => await _context.SaveChangesAsync();
