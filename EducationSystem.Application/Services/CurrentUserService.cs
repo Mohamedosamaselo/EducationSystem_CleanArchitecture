@@ -12,7 +12,8 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
         {
             var user = httpContextAccessor.HttpContext?.User;
             if (user is null || user.Identity?.IsAuthenticated != true)
-                return null;   // anonymous request (register, login, seeding)
+                return null;   // anonymous request (register,
+                               // , seeding)
 
             var value = user.FindFirstValue(ClaimTypes.NameIdentifier)
                      ?? user.FindFirstValue("sub");

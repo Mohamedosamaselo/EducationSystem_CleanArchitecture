@@ -46,6 +46,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     private static readonly string[] AllowedPublicRoles = { "Student", "SchoolAdmin", "OrganisationAdmin", "Teacher" };
 
     private static readonly TimeSpan ConfirmationTokenLifetime = TimeSpan.FromHours(24);
+    private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
     private readonly UserManager<ApplicationUser> _userManager = userManager;
     private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -192,7 +193,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         {
             UserId = user.Id,
             TokenHash = HashToken(rawToken),
-            ExpiresAt = DateTime.UtcNow.Add(ConfirmationTokenLifetime)
+            ExpiresAt = DateTime.UtcNow.Add(ConfirmationTokenLifetime),
+            CreatedAt = DateTime.UtcNow
         };
 
         // --------------------------------------------------------
@@ -450,234 +452,449 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //    return Result.Success<AuthResponse?>(response);
     //}
 
-    // 2. LOGIN Method
-
-    public async Task<Result<AuthResponse?>> GetTokenAsync(
+    public async Task<Result<LoginResponse?>> GetTokenAsync(
         string email,
         string password,
         CancellationToken cancellationToken = default)
     {
-        // --------------------------------------------------------
-        // 2.1 Find the user by email
-        // --------------------------------------------------------
+        // 1. Normalize email
+        email = email.Trim().ToLowerInvariant();
 
-        var user = await _userManager.FindByEmailAsync(email);
+        // 2. Find user by email
+        var user = await unitOfWork.UserRepository.FirstOrDefaultAsync(
+            u => u.Email == email,
+            cancellationToken);
 
         if (user is null)
         {
-            return Result.Failure<AuthResponse?>(
+            return Result.Failure<LoginResponse?>(
                 UserErrors.InvalidCredentials!);
         }
 
-        // --------------------------------------------------------
-        // 2.3 Check password + Identity sign-in rules
-        // --------------------------------------------------------
+        // 3. Verify password manually
+        var passwordResult = _passwordHasher.VerifyHashedPassword(
+            user,
+            user.PasswordHash!,
+            password);
 
-        var signInResult =
-            await _signInManager.PasswordSignInAsync(
-                user,
-                password,
-                isPersistent: false,
-                lockoutOnFailure: false);
-
-        // 2.4 Password and Identity checks succeeded
-
-        if (signInResult.Succeeded)
+        if (passwordResult == PasswordVerificationResult.Failed)
         {
-            // 2.4.1 Get user's roles
-
-            var roles = await _userManager.GetRolesAsync(user);
-
-            // 2.4.2 Generate JWT
-
-            var (token, expiresIn) =
-                _jwtProvider.GenerateToken(user, roles);
-
-            // 2.4.3 Build response
-
-            var response = new AuthResponse(
-                Id: user.Id,
-                Email: user.Email!,
-                Username: user.UserName!,
-                FirstName: user.FirstName,
-                LastName: user.LastName,
-                Address: user.Address,
-                DateOfBirth: user.DateOfBirth,
-                SchoolId: user.SchoolId,
-                GradeId: user.GradeId,
-                Token: token,
-                IsAuthenticated: true,
-                ExpiresIn: DateTime.UtcNow.AddMinutes(expiresIn),
-                Role: roles.FirstOrDefault() ?? string.Empty
-            );
-
-            return Result.Success<AuthResponse?>(response);
+            return Result.Failure<LoginResponse?>(
+                UserErrors.InvalidCredentials!);
         }
 
-        // --------------------------------------------------------
-        // 2.5 Email has not been confirmed
-        // --------------------------------------------------------
-
-        if (signInResult.IsNotAllowed)
+        // 4. Check email confirmation
+        if (!user.EmailConfirmed)
         {
-            return Result.Failure<AuthResponse?>(
+            return Result.Failure<LoginResponse?>(
                 UserErrors.EmailNotConfirmed);
         }
 
-        // --------------------------------------------------------
-        // 2.6 Account is locked out
-        // --------------------------------------------------------
+        // 6. Get user's role
+        var role = await unitOfWork.RoleRepository.FirstOrDefaultAsync(
+            r => r.Id == user.RoleId,
+            cancellationToken);
 
-        if (signInResult.IsLockedOut)
+        if (role is null)
         {
-            return Result.Failure<AuthResponse?>(
+            return Result.Failure<LoginResponse?>(
                 new Error(
-                    "User.LockedOut",
-                    "Your account is temporarily locked."));
+                    "Role.NotFound",
+                    "User role was not found."));
         }
 
-        // --------------------------------------------------------
-        // 2.7 Invalid credentials
-        // --------------------------------------------------------
+        // 7. Generate JWT
+        var roles = new List<string> { role.Name! };
 
-        return Result.Failure<AuthResponse?>(
-            UserErrors.InvalidCredentials!);
+        var (token, expiresIn) =
+            _jwtProvider.GenerateToken(user, roles);
+
+        // 8. Build authentication response
+        var response = new LoginResponse(
+                                            user.Id,
+                                            user.Email!,
+                                            user.UserName!,
+                                            user.FirstName,
+                                            user.LastName,
+                                            token,
+                                            DateTime.UtcNow.AddMinutes(expiresIn),
+                                            role.Name!
+                                            );
+
+        // 9. Return success
+        return Result.Success<LoginResponse?>(response);
     }
 
-    // 3. FORGOT PASSWORD
-    public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request)
+    /// 2. LOGIN Method
+    //public async Task<Result<AuthResponse?>> GetTokenAsync(
+    //    string email,
+    //    string password,
+    //    CancellationToken cancellationToken = default)
+    //{
+    //    // --------------------------------------------------------
+    //    // 2.1 Find the user by email
+    //    // --------------------------------------------------------
+    //    var user = await _userManager.FindByEmailAsync(email);
+    //    if (user is null)
+    //    {
+    //        return Result.Failure<AuthResponse?>(
+    //            UserErrors.InvalidCredentials!);
+    //    }
+    //    // --------------------------------------------------------
+    //    // 2.3 Check password + Identity sign-in rules
+    //    // --------------------------------------------------------
+    //    var signInResult = await _signInManager.PasswordSignInAsync(
+    //                            user,
+    //                            password,
+    //                            isPersistent: false,
+    //                            lockoutOnFailure: false);
+    //    // 2.4 Password and Identity checks succeeded
+    //    if (signInResult.Succeeded)
+    //    {
+    //        // 2.4.1 Get user's roles
+    //        var roles = await _userManager.GetRolesAsync(user);
+    //        // 2.4.2 Generate JWT
+    //        var (token, expiresIn) =
+    //            _jwtProvider.GenerateToken(user, roles);
+    //        // 2.4.3 Build response
+    //        var response = new AuthResponse(
+    //            Id: user.Id,
+    //            Email: user.Email!,
+    //            Username: user.UserName!,
+    //            FirstName: user.FirstName,
+    //            LastName: user.LastName,
+    //            Address: user.Address,
+    //            DateOfBirth: user.DateOfBirth,
+    //            SchoolId: user.SchoolId,
+    //            GradeId: user.GradeId,
+    //            Token: token,
+    //            IsAuthenticated: true,
+    //            ExpiresIn: DateTime.UtcNow.AddMinutes(expiresIn),
+    //            Role: roles.FirstOrDefault() ?? string.Empty
+    //        );
+
+    //        return Result.Success<AuthResponse?>(response);
+    //    }
+    //    // --------------------------------------------------------
+    //    // 2.5 Email has not been confirmed
+    //    // --------------------------------------------------------
+    //    if (signInResult.IsNotAllowed)
+    //    {
+    //        return Result.Failure<AuthResponse?>(
+    //            UserErrors.EmailNotConfirmed);
+    //    }
+    //    // --------------------------------------------------------
+    //    // 2.6 Account is locked out
+    //    // --------------------------------------------------------
+    //    if (signInResult.IsLockedOut)
+    //    {
+    //        return Result.Failure<AuthResponse?>(
+    //            new Error(
+    //                "User.LockedOut",
+    //                "Your account is temporarily locked."));
+    //    }
+    //    // --------------------------------------------------------
+    //    // 2.7 Invalid credentials
+    //    // --------------------------------------------------------
+    //    return Result.Failure<AuthResponse?>(
+    //        UserErrors.InvalidCredentials!);
+    //}
+
+    public async Task<Result<string>> ForgotPasswordAsync(
+    ForgotPasswordRequest request,
+    CancellationToken cancellationToken = default)
     {
-        // --------------------------------------------------------
-        // 3.1 Find the user
-        // --------------------------------------------------------
+        const string genericMessage =
+            "If this email is registered, a reset link has been sent.";
 
-        var user =
-            await _userManager.FindByEmailAsync(request.Email);
+        // 1. Normalize email
+        var email = request.Email.Trim().ToLowerInvariant();
 
-        // --------------------------------------------------------
-        // 3.2 Do NOT reveal whether the email exists
-        // --------------------------------------------------------
-        // This prevents user enumeration attacks.
+        // 2. Find user//the context tracks it with Id = X.
+        var user = await _unitOfWork.UserRepository
+            .FirstOrDefaultAsync(
+                u => u.Email == email,
+                cancellationToken);
 
+        // 3. Do not reveal whether the email exists
         if (user is null)
+            return Result.Success(genericMessage);
+
+        // 4. Revoke previous unused reset tokens
+        var now = DateTime.UtcNow;
+
+        var previousTokens = await _unitOfWork.PasswordResetTokenRepository.GetAllAsync(t => t.UserId == user.Id &&
+                                                                                            t.UsedAt == null &&
+                                                                                            t.RevokedAt == null,
+                                                                                            cancellationToken);
+
+        foreach (var previousToken in previousTokens)
         {
-            return Result.Success(
-                "If this email is registered, a reset link has been sent.");
+            previousToken.RevokedAt = now;
         }
 
-        // --------------------------------------------------------
-        // 3.3 Generate password reset token
-        // --------------------------------------------------------
+        // 5. Generate a cryptographically secure token
+        var rawToken = WebEncoders.Base64UrlEncode(
+            RandomNumberGenerator.GetBytes(32));
 
-        var resetToken =
-            await _userManager.GeneratePasswordResetTokenAsync(user);
+        // DEV ONLY: log the raw token so you can test reset-password without email
+        if (_environment.IsDevelopment())
+        {
+            _logger.LogInformation("DEV ONLY - Password reset token for {Email}: {Token}",
+                user.Email, rawToken);
+        }
 
-        Console.WriteLine($"Raw token      : {resetToken}");
+        // 6. Store only the token hash
+        var resetToken = new PasswordResetToken
+        {
+            UserId = user.Id,
+            TokenHash = HashToken(rawToken),
+            ExpiresAt = now.Add(ResetTokenLifetime),
+            CreatedAt = now
+        };
+        Console.WriteLine($"Raw token      : {resetToken.TokenHash}");
 
-        // 4. Encode token so it can safely travel inside a URL
-        var encodedToken = WebEncoders.Base64UrlEncode(
-            Encoding.UTF8.GetBytes(resetToken));
+        await _unitOfWork.PasswordResetTokenRepository
+            .AddAsync(resetToken, cancellationToken);
 
-        // 5. Create reset password URL
+        // 7. Save token before sending email
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // 8. Build reset URL
+        var frontendUrl = _configuration["Frontend:ConfirmationUrl"];
+
+        if (string.IsNullOrWhiteSpace(frontendUrl))
+        {
+            _logger.LogError("Frontend URL is not configured.");
+            return Result.Success(genericMessage);
+        }
+
         var resetUrl =
-            $"https://localhost:4200/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(encodedToken)}";
+            $"{frontendUrl.TrimEnd('/')}/reset-password" +
+            $"?email={Uri.EscapeDataString(user.Email!)}" +
+            $"&token={Uri.EscapeDataString(rawToken)}";
 
-        // 6. Send email
-
+        // 9. Send reset email
         try
         {
             await _emailService.SendAsync(
                 user.Email!,
                 "Reset Your Password",
                 $"""
-                        <h2>Reset Your Password</h2>
+            <h2>Reset Your Password</h2>
 
-                        <p>Click the link below to reset your password:</p>
+            <p>We received a request to reset your password.</p>
 
-                        <a href="{resetUrl}">Reset Password</a>
-                        """);
+            <p>
+                <a href="{resetUrl}">Reset Your Password</a>
+            </p>
+
+            <p>This link expires in 15 minutes.</p>
+
+            <p>If you did not request this, you can ignore this email.</p>
+            """);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"EMAIL ERROR: {ex}");
-            throw;
+            // Never log the raw token or reset URL.
+            _logger.LogError(
+                ex,
+                "Failed to send password reset email for user {UserId}.",
+                user.Id);
         }
-        // --------------------------------------------------------
-        // 3.7 Return generic response
-        // --------------------------------------------------------
 
-        return Result.Success(
-            "If this email is registered, a reset link has been sent.");
+        // 10. Always return the same public response
+        return Result.Success(genericMessage);
     }
 
-    // 4. RESET PASSWORD
-    public async Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request)
+    // 3. FORGOT PASSWORD
+    //public async Task<Result<string>> ForgotPasswordAsync(ForgotPasswordRequest request)
+    //{
+    //    // --------------------------------------------------------
+    //    // 3.1 Find the user
+    //    // --------------------------------------------------------
+    //    var user =
+    //        await _userManager.FindByEmailAsync(request.Email);
+    //    // 3.2 Do NOT reveal whether the email exists
+    //    if (user is null)
+    //        return Result.Success(
+    //            "If this email is registered, a reset link has been sent.");
+    //    // 3.3 Generate password reset token
+    //    var resetToken =
+    //        await _userManager.GeneratePasswordResetTokenAsync(user);
+    //    Console.WriteLine($"Raw token      : {resetToken}");
+    //    // 4. Encode token so it can safely travel inside a URL
+    //    var encodedToken = WebEncoders.Base64UrlEncode(
+    //        Encoding.UTF8.GetBytes(resetToken));
+    //    // 5. Create reset password URL
+    //    var resetUrl =
+    //        $"https://localhost:4200/reset-password?email={Uri.EscapeDataString(user.Email!)}&token={Uri.EscapeDataString(encodedToken)}";
+    //    // 6. Send email
+    //    try
+    //    {
+    //        await _emailService.SendAsync(
+    //            user.Email!,
+    //            "Reset Your Password",
+    //            $"""
+    //                    <h2>Reset Your Password</h2>
+    //                    <p>Click the link below to reset your password:</p>
+    //                    <a href="{resetUrl}">Reset Password</a>
+    //                    """);
+    //    }
+    //    catch (Exception ex)
+    //    {
+    //        Console.WriteLine($"EMAIL ERROR: {ex}");
+    //        throw;
+    //    }
+    //    // --------------------------------------------------------
+    //    // 3.7 Return generic response
+    //    // --------------------------------------------------------
+    //    return Result.Success(
+    //        "If this email is registered, a reset link has been sent.");
+    //}
+
+    //4. Reset Password
+
+    public async Task<Result<bool>> ResetPasswordAsync(
+     ResetPasswordRequest request,
+     CancellationToken cancellationToken = default)
     {
-        // 4.1 Find the user
-        var user =
-            await _userManager.FindByEmailAsync(request.Email);
+        // 1. Basic input check
+        if (string.IsNullOrWhiteSpace(request.Email) ||
+            string.IsNullOrWhiteSpace(request.Token))
+            return Result.Failure<bool>(UserErrors.InvalidResetToken);
+
+        // 2. Find the user (case-insensitive, matches how ForgotPasswordAsync looks it up)
+        var email = request.Email.Trim().ToLowerInvariant();
+
+        var user = await _unitOfWork.UserRepository
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email, cancellationToken);
 
         if (user is null)
+            return Result.Failure<bool>(UserErrors.InvalidResetToken);
+
+        // 3. Find the stored token by its hash
+        var tokenHash = HashToken(request.Token.Trim());
+
+        var resetToken = await _unitOfWork.PasswordResetTokenRepository
+            .FirstOrDefaultAsync(
+                t => t.UserId == user.Id && t.TokenHash == tokenHash,
+                cancellationToken);
+
+        var now = DateTime.UtcNow;
+
+        // 4. Validate: exists, not used, not revoked, not expired
+        if (resetToken is null ||
+            resetToken.UsedAt != null ||
+            resetToken.RevokedAt != null ||
+            resetToken.ExpiresAt <= now)
         {
-            _logger.LogWarning("ResetPassword: no user found for email {Email}", request.Email);
-
-            return Result.Failure<bool>(
-                UserErrors.InvalidResetToken);
+            return Result.Failure<bool>(UserErrors.InvalidResetToken);
         }
-        else
 
-            if (string.IsNullOrWhiteSpace(request.Token))
-                return Result.Failure<bool>(UserErrors.InvalidResetToken);
+        // 5. Validate the new password
+        if (!IsStrongPassword(request.NewPassword))
+            return Result.Failure<bool>(UserErrors.WeakPassword);
 
-        // 4.2 Decode the token received from the frontend
-        string resetToken = request.Token.Trim();
+        // 6. Set the new password and rotate stamps
+        user.PasswordHash = _passwordHasher.HashPassword(user, request.NewPassword);
+        user.SecurityStamp = Guid.NewGuid().ToString();
+        user.ConcurrencyStamp = Guid.NewGuid().ToString();
+        user.ModifiedAt = now;
 
-        // 4.3 Ask Identity to validate the token
-        // and reset the password
-        var result =
-                     await _userManager.ResetPasswordAsync(
-                         user,
-                         resetToken,
-                         request.NewPassword);
+        // 7. Burn this token (single use)
+        resetToken.UsedAt = now;
 
-        // 4.4 Handle Identity errors
-        if (!result.Succeeded)
-        {
-            var firstError = result.Errors.First();
+        // 8. Revoke any other active reset tokens for this user
+        var otherTokens = await _unitOfWork.PasswordResetTokenRepository.GetAllAsync(
+            t => t.UserId == user.Id &&
+                 t.Id != resetToken.Id &&
+                 t.UsedAt == null &&
+                 t.RevokedAt == null,
+            cancellationToken);
 
-            var error = firstError.Code switch
-            {
-                "InvalidToken" =>
-                    UserErrors.InvalidResetToken,
+        foreach (var other in otherTokens)
+            other.RevokedAt = now;
 
-                "PasswordTooShort" =>
-                    UserErrors.WeakPassword,
-
-                "PasswordRequiresDigit" =>
-                    UserErrors.WeakPassword,
-
-                "PasswordRequiresUpper" =>
-                    UserErrors.WeakPassword,
-
-                "PasswordRequiresLower" =>
-                    UserErrors.WeakPassword,
-
-                "PasswordRequiresNonAlphanumeric" =>
-                    UserErrors.WeakPassword,
-
-                _ =>
-                    new Error(
-                        "User.ResetPasswordFailed",
-                        firstError.Description)
-            };
-
-            return Result.Failure<bool>(error);
-        }
+        // 9. Save everything in one go (no Update() calls, entities are tracked)
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(true);
     }
 
+    private static bool IsStrongPassword(string password)
+    {
+        if (string.IsNullOrEmpty(password) || password.Length < 8)
+            return false;
+
+        bool hasDigit = false, hasUpper = false, hasLower = false, hasSymbol = false;
+
+        foreach (var ch in password)
+        {
+            if (char.IsDigit(ch)) hasDigit = true;
+            else if (char.IsUpper(ch)) hasUpper = true;
+            else if (char.IsLower(ch)) hasLower = true;
+            else if (!char.IsLetterOrDigit(ch)) hasSymbol = true;
+        }
+
+        return hasDigit && hasUpper && hasLower && hasSymbol;
+    }
+
+    // 4. RESET PASSWORD
+
+    //public async Task<Result<bool>> ResetPasswordAsync(ResetPasswordRequest request)
+    //{
+    //    // 4.1 Find the user
+    //    var user =
+    //        await _userManager.FindByEmailAsync(request.Email);
+    //    if (user is null)
+    //    {
+    //        _logger.LogWarning("ResetPassword: no user found for email {Email}", request.Email);
+    //        return Result.Failure<bool>(
+    //            UserErrors.InvalidResetToken);
+    //    }
+    //    else
+    //        if (string.IsNullOrWhiteSpace(request.Token))
+    //            return Result.Failure<bool>(UserErrors.InvalidResetToken);
+    //    // 4.2 Decode the token received from the frontend
+    //    string resetToken = request.Token.Trim();
+    //    // 4.3 Ask Identity to validate the token
+    //    // and reset the password
+    //    var result =
+    //                 await _userManager.ResetPasswordAsync(
+    //                     user,
+    //                     resetToken,
+    //                     request.NewPassword);
+    //    // 4.4 Handle Identity errors
+    //    if (!result.Succeeded)
+    //    {
+    //        var firstError = result.Errors.First();
+    //        var error = firstError.Code switch
+    //        {
+    //            "InvalidToken" =>
+    //                UserErrors.InvalidResetToken,
+    //            "PasswordTooShort" =>
+    //                UserErrors.WeakPassword,
+    //            "PasswordRequiresDigit" =>
+    //                UserErrors.WeakPassword,
+    //            "PasswordRequiresUpper" =>
+    //                UserErrors.WeakPassword,
+    //            "PasswordRequiresLower" =>
+    //                UserErrors.WeakPassword,
+    //            "PasswordRequiresNonAlphanumeric" =>
+    //                UserErrors.WeakPassword,
+    //            _ =>
+    //                new Error(
+    //                    "User.ResetPasswordFailed",
+    //                    firstError.Description)
+    //        };
+    //        return Result.Failure<bool>(error);
+    //    }
+    //    return Result.Success(true);
+    //}
+
     // 5. CHANGE PASSWORD
+
     public async Task<Result<string>> ChangePasswordAsync(string userId, ChangePasswordRequest request)
     {
         // --------------------------------------------------------
@@ -824,10 +1041,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //    // --------------------------------------------------------
     //    // 6.1 Find the user
     //    // --------------------------------------------------------
-
     //    var user =
     //        await _userManager.FindByIdAsync(request.UserId);
-
     //    if (user is null)
     //    {
     //        return Result.Failure(
@@ -835,11 +1050,9 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //                "User.NotFound",
     //                "User not found."));
     //    }
-
     //    // --------------------------------------------------------
     //    // 6.2 Check whether the email is already confirmed
     //    // --------------------------------------------------------
-
     //    if (user.EmailConfirmed)
     //    {
     //        return Result.Failure(
@@ -847,7 +1060,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //                "User.EmailAlreadyConfirmed",
     //                "Email is already confirmed."));
     //    }
-
     //    // --------------------------------------------------------
     //    // 6.3 Decode the Base64Url token
     //    // --------------------------------------------------------
@@ -861,9 +1073,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //    // Base64UrlEncode
     //    //
     //    // Here we perform the reverse operation.
-
     //    string token;
-
     //    try
     //    {
     //        token = Encoding.UTF8.GetString(
@@ -877,7 +1087,6 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //                "User.InvalidToken",
     //                "Invalid confirmation token."));
     //    }
-
     //    // --------------------------------------------------------
     //    // 6.4 Ask ASP.NET Identity to validate the token
     //    // --------------------------------------------------------
@@ -887,29 +1096,24 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //    //
     //    // request.Token = encoded token
     //    // token         = original Identity token
-
     //    var result =
     //        await _userManager.ConfirmEmailAsync(
     //            user,
     //            token);
-
     //    // --------------------------------------------------------
     //    // 6.5 Check Identity result
     //    // --------------------------------------------------------
-
     //    if (!result.Succeeded)
     //    {
     //        var errors =
     //            string.Join(
     //                ", ",
     //                result.Errors.Select(e => e.Description));
-
     //        return Result.Failure(
     //            new Error(
     //                "User.ConfirmEmailFailed",
     //                errors));
     //    }
-
     //    // --------------------------------------------------------
     //    // 6.6 Email confirmation succeeded
     //    // --------------------------------------------------------
@@ -923,67 +1127,168 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     //    //
     //    // to:
     //    // true
-
     //    return Result.Success();
     //}
 
-    //7. RESEND CONFIRMATION EMAIL
-    public async Task<string> ResendConfirmationEmailAsync(ResendConfirmationEmailRequest request)
+    // 7. Resenf ConfirmationEmail
+
+    public async Task<string> ResendConfirmationEmailAsync(
+                                ResendConfirmationEmailRequest request,
+                                CancellationToken cancellationToken = default)
     {
-        // 1. find the user by email
-        var user = await _userManager.FindByEmailAsync(request.Email);
+        const string genericMessage =
+            "If this email exists and is not confirmed, a confirmation email has been sent.";
 
-        // 2. Don't reveal whether the email exists
-        // This prevents user/account enumeration.
+        // 1. Normalize email
+        var email = request.Email?.Trim().ToLowerInvariant();
+
+        if (string.IsNullOrWhiteSpace(email))
+            return genericMessage;
+
+        // 2. Find user by email
+        var user = await unitOfWork.UserRepository.FirstOrDefaultAsync(
+            u => u.Email == email,
+            cancellationToken);
+
+        // 3. Don't reveal whether the account exists
         if (user is null)
-            return "If this email exists, a confirmation email has been sent.";
+            return genericMessage;
 
-        // 3. Check if the email is already confirmed
+        // 4. Check whether email is already confirmed
         if (user.EmailConfirmed)
-            return "Email is already confirmed.";
+            return genericMessage;
 
-        // 4. Generate a new email confirmation token
-        var confirmationToken =
-            await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var now = DateTime.UtcNow;
 
-        // 5. Encode the token so it can safely be placed inside a URL
-        var encodedToken = WebEncoders.Base64UrlEncode(
-            Encoding.UTF8.GetBytes(confirmationToken));
+        // 5. Find previous unused confirmation tokens
+        var previousTokens = await unitOfWork.EmailConfirmationTokenRepository.GetAllAsync(
+                                    t => t.UserId == user.Id && t.UsedAt == null,
+                                    cancellationToken);
 
-        // 6. Get frontend confirmation URL from configuration
-        var confirmationUrl = _configuration["Frontend:ConfirmationUrl"];
-
-        if (string.IsNullOrWhiteSpace(confirmationUrl))
+        // 6. Invalidate previous tokens
+        foreach (var previousToken in previousTokens)
         {
-            throw new InvalidOperationException(
-                "Frontend:ConfirmationUrl is not configured.");
+            previousToken.UsedAt = now;
         }
 
-        // 7. Build confirmation link
+        // 7. Generate a new secure random token
+        var rawToken = WebEncoders.Base64UrlEncode(
+            RandomNumberGenerator.GetBytes(32));
+
+        // 8. Hash the token
+        var tokenHash = HashToken(rawToken);
+
+        // 9. Create a new confirmation token record
+        var confirmationToken = new EmailConfirmationToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            TokenHash = tokenHash,
+            ExpiresAt = now.Add(ConfirmationTokenLifetime),
+            CreatedAt = now
+        };
+
+        // 10. Save the new token and invalidate previous tokens
+        await unitOfWork.EmailConfirmationTokenRepository.AddAsync(confirmationToken, cancellationToken);
+
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // 11. Build confirmation link
+        var frontendUrl = _configuration["Frontend:ConfirmationUrl"];
+
+        if (string.IsNullOrWhiteSpace(frontendUrl))
+        {
+            _logger.LogError("App:FrontendUrl is not configured.");
+
+            throw new InvalidOperationException(
+                "App:FrontendUrl is not configured.");
+        }
+
         var confirmationLink =
-            $"{confirmationUrl}?userId={user.Id}&token={encodedToken}";
+            $"{frontendUrl.TrimEnd('/')}/confirm-email" +
+            $"?userId={Uri.EscapeDataString(user.Id.ToString())}" +
+            $"&token={Uri.EscapeDataString(rawToken)}";
 
-        // 8. Send confirmation email
-        await _emailService.SendAsync(
-            user.Email!,
-            "Confirm your email",
-            $"""
-            Hello {user.UserName},
+        // 12. Send confirmation email
+        try
+        {
+            await _emailService.SendAsync(
+                user.Email!,
+                "Confirm your email",
+                $"""
+            <h2>Hello {WebUtility.HtmlEncode(user.FirstName)}!</h2>
 
-            Please confirm your email by clicking the following link:
+            <p>Please confirm your email by clicking the link below:</p>
 
-            {confirmationLink}
+            <p>
+                <a href="{confirmationLink}">Confirm Email</a>
+            </p>
 
-            If you did not create this account, you can ignore this email.
+            <p>This link expires in {ConfirmationTokenLifetime.TotalHours:0} hours.</p>
+
+            <p>If you did not request this email, you can ignore it.</p>
             """);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to resend confirmation email for UserId {UserId}",
+                user.Id);
 
-        // 9. Return success message
-        return "If this email exists, a confirmation email has been sent.";
+            return genericMessage;
+        }
+
+        // 13. Return generic response
+        return genericMessage;
     }
+
+    //7. RESEND CONFIRMATION EMAIL
+    //public async Task<string> ResendConfirmationEmailAsync(ResendConfirmationEmailRequest request)
+    //{
+    //    // 1. find the user by email
+    //    var user = await _userManager.FindByEmailAsync(request.Email);
+    //    // 2. Don't reveal whether the email exists
+    //    // This prevents user/account enumeration.
+    //    if (user is null)
+    //        return "If this email exists, a confirmation email has been sent.";
+    //    // 3. Check if the email is already confirmed
+    //    if (user.EmailConfirmed)
+    //        return "Email is already confirmed.";
+    //    // 4. Generate a new email confirmation token
+    //    var confirmationToken =
+    //        await _userManager.GenerateEmailConfirmationTokenAsync(user);
+    //    // 5. Encode the token so it can safely be placed inside a URL
+    //    var encodedToken = WebEncoders.Base64UrlEncode(
+    //        Encoding.UTF8.GetBytes(confirmationToken));
+    //    // 6. Get frontend confirmation URL from configuration
+    //    var confirmationUrl = _configuration["Frontend:ConfirmationUrl"];
+    //    if (string.IsNullOrWhiteSpace(confirmationUrl))
+    //    {
+    //        throw new InvalidOperationException(
+    //            "Frontend:ConfirmationUrl is not configured.");
+    //    }
+    //    // 7. Build confirmation link
+    //    var confirmationLink =
+    //        $"{confirmationUrl}?userId={user.Id}&token={encodedToken}";
+    //    // 8. Send confirmation email
+    //    await _emailService.SendAsync(
+    //        user.Email!,
+    //        "Confirm your email",
+    //        $"""
+    //        Hello {user.UserName},
+    //        Please confirm your email by clicking the following link:
+    //        {confirmationLink}
+    //        If you did not create this account, you can ignore this email.
+    //        """);
+    //    // 9. Return success message
+    //    return "If this email exists, a confirmation email has been sent.";
+    //}
 
     // ============================================================
     // HELPERS
     // ============================================================
+
     private static bool IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email) || email.Length > 254) return false;
@@ -991,13 +1296,19 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     }
 
     // Replaces Identity's PasswordOptions (same rules as the Identity defaults, minus the symbol requirement).
-    private static bool IsStrongPassword(string password) =>
-        password.Length >= 8
-        && Encoding.UTF8.GetByteCount(password) <= 72   // bcrypt ignores anything after 72 bytes
-        && password.Any(char.IsUpper)
-        && password.Any(char.IsLower)
-        && password.Any(char.IsDigit);
+    //private static bool IsStrongPassword(string password) =>
+    //    password.Length >= 8
+    //    && Encoding.UTF8.GetByteCount(password) <= 72   // bcrypt ignores anything after 72 bytes
+    //    && password.Any(char.IsUpper)
+    //    && password.Any(char.IsLower)
+    //    && password.Any(char.IsDigit);
 
-    public static string HashToken(string rawToken) =>
-        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
+    //public static string HashToken(string rawToken) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken)));
+    private static string HashToken(string rawToken)
+    {
+        var tokenBytes = Encoding.UTF8.GetBytes(rawToken);
+        var hashBytes = SHA256.HashData(tokenBytes);
+
+        return Convert.ToHexString(hashBytes);
+    }
 }

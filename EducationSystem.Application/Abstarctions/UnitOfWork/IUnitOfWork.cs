@@ -21,6 +21,7 @@ public interface IUnitOfWork : IDisposable
 
     IGenericRepository<UserSubject> UserSubjectRepository { get; }
     IGenericRepository<EmailConfirmationToken> EmailConfirmationTokenRepository { get; }
+    IGenericRepository<PasswordResetToken> PasswordResetTokenRepository { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default); // save All changes in DB
 }

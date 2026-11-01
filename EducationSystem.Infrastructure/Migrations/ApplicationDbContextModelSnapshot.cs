@@ -283,6 +283,53 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.ToTable("Organisations");
                 });
 
+            modelBuilder.Entity("EducationSystem.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<Guid?>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LastModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ModifiedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTime?>("UsedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordResetToken");
+                });
+
             modelBuilder.Entity("EducationSystem.Domain.Entities.School", b =>
                 {
                     b.Property<Guid>("Id")
@@ -531,6 +578,17 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.Navigation("OrganisationAdmin");
                 });
 
+            modelBuilder.Entity("EducationSystem.Domain.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("EducationSystem.Domain.Entities.ApplicationUser", "User")
+                        .WithMany("PasswordResetTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EducationSystem.Domain.Entities.School", b =>
                 {
                     b.HasOne("EducationSystem.Domain.Entities.Organisation", "Organisation")
@@ -623,6 +681,8 @@ namespace EducationSystem.Infrastructure.Migrations
                     b.Navigation("ManagedOrganisation");
 
                     b.Navigation("ManagedSchool");
+
+                    b.Navigation("PasswordResetTokens");
 
                     b.Navigation("TeacherGrades");
 

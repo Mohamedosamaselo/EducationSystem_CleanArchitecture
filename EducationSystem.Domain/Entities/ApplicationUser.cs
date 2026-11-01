@@ -53,6 +53,7 @@ public class ApplicationUser : IBaseAuditableEntity
     public virtual ICollection<UserSubject> UserSubjects { get; set; } = new List<UserSubject>();
 
     public virtual ICollection<EmailConfirmationToken> EmailConfirmationTokens { get; set; } = new List<EmailConfirmationToken>();
+    public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 
     // ---- IBaseAuditableEntity Implementation ----
     public Guid Id { get; set; }

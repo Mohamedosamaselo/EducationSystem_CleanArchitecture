@@ -23,7 +23,7 @@ public static class DataSeeder
 
         //await SeedUsersAsync(userManager, roleManager);
 
-        await SeedRoleClaimsAsync(roleManager);
+        // await SeedRoleClaimsAsync(roleManager);
     }
 
     private static async Task SeedOrganizationAsync(ApplicationDbContext context)

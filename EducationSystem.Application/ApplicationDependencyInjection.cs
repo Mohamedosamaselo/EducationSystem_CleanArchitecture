@@ -2,7 +2,9 @@
 using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Services;
+using EducationSystem.Domain.Entities;
 using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NETCore.MailKit.Extensions;
@@ -27,6 +29,8 @@ public static class ApplicationDependencyInjection
         services.AddScoped<ITeacherService, TeacherService>();
 
         services.AddScoped<ISubjectService, SubjectService>();
+
+        services.AddScoped<IPasswordHasher<ApplicationUser>, PasswordHasher<ApplicationUser>>();
 
         services.AddScoped<ISchoolUserService, SchoolUserService>();
 
