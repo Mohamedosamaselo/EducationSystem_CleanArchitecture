@@ -3,7 +3,6 @@ using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Teacher;
 using EducationSystem.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 
 public sealed class TeacherService(IUnitOfWork unitOfWork) : ITeacherService
 {

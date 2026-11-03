@@ -1,5 +1,4 @@
 ﻿using EducationSystem.Application.Abstarctions.Services;
-using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;

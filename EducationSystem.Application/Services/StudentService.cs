@@ -1,9 +1,6 @@
 ﻿using EducationSystem.Application.Abstarctions.HandlingError;
 using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.Student;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace EducationSystem.Application.Abstarctions.Services;
 

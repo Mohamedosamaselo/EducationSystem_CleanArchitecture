@@ -2,7 +2,7 @@
 using EducationSystem.Application.Abstarctions.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-//using NETCore.MailKit.Core;
+
 using System.Security.Claims;
 
 using EducationSystem.Application.Abstarctions.Services;
@@ -25,7 +25,6 @@ public class AuthController(IAuthService authService, IEmailService emailService
 
         var result = await _authService.RegisterAsync(registerdata);
         return result.IsSuccess ? Ok(result.Value) : result.ToActionResult(this);
-        //return result.IsSuccess ? Ok(result.Value) : Unauthorized(new { code = result.Error.Code, description = result.Error.Description });
     }
 
     [HttpPost("Login")]

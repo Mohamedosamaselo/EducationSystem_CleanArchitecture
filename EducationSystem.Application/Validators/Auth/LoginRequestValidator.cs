@@ -1,7 +1,5 @@
 ﻿using EducationSystem.Application.Dtos.Auth;
-using EducationSystem.Domain.Entities;
 using FluentValidation;
-using Microsoft.AspNetCore.Identity;
 
 namespace EducationSystem.Application.Validators.Auth;
 

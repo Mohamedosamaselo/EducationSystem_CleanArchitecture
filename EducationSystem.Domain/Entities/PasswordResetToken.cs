@@ -1,8 +1,4 @@
-﻿using EducationSystem.Domain.Entities.Common;
-using EducationSystem.Domain.Interfaces.Common;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using EducationSystem.Domain.Interfaces.Common;
 
 namespace EducationSystem.Domain.Entities;
 

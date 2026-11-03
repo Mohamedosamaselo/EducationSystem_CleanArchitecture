@@ -5,9 +5,6 @@ using EducationSystem.Application.Abstarctions.UnitOfWork;
 using EducationSystem.Application.Dtos.School;
 using EducationSystem.Domain.Entities;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.WebUtilities;
-using System.Text;
 
 namespace EducationSystem.Application.Services;
 

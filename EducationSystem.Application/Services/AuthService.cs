@@ -15,8 +15,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualBasic;
-using System.Data;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Cryptography;
@@ -29,7 +27,7 @@ using Error = EducationSystem.Application.Abstarctions.HandlingError.Error;
 namespace EducationSystem.Application.Services;
 
 public class AuthService(UserManager<ApplicationUser> userManager,
-                            SignInManager<ApplicationUser> signInManager,
+                            //SignInManager<ApplicationUser> signInManager,
                             //RoleManager<ApplicationRole> roleManager,
                             IWebHostEnvironment environment,
                             IUnitOfWork unitOfWork,
@@ -48,8 +46,8 @@ public class AuthService(UserManager<ApplicationUser> userManager,
     private static readonly TimeSpan ConfirmationTokenLifetime = TimeSpan.FromHours(24);
     private static readonly TimeSpan ResetTokenLifetime = TimeSpan.FromMinutes(15);
 
-    private readonly UserManager<ApplicationUser> _userManager = userManager;
-    private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
+    //private readonly UserManager<ApplicationUser> _userManager = userManager;
+    //private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
     private readonly IWebHostEnvironment _environment = environment;
 
     //private readonly RoleManager<ApplicationRole> _roleManager = roleManager;
@@ -623,8 +621,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         };
         Console.WriteLine($"Raw token      : {resetToken.TokenHash}");
 
-        await _unitOfWork.PasswordResetTokenRepository
-            .AddAsync(resetToken, cancellationToken);
+        await _unitOfWork.PasswordResetTokenRepository.AddAsync(resetToken, cancellationToken);
 
         // 7. Save token before sending email
         await _unitOfWork.SaveChangesAsync(cancellationToken);
@@ -746,9 +743,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         var tokenHash = HashToken(request.Token.Trim());
 
         var resetToken = await _unitOfWork.PasswordResetTokenRepository
-            .FirstOrDefaultAsync(
-                t => t.UserId == user.Id && t.TokenHash == tokenHash,
-                cancellationToken);
+                                .FirstOrDefaultAsync(t => t.UserId == user.Id && t.TokenHash == tokenHash, cancellationToken);
 
         var now = DateTime.UtcNow;
 
@@ -773,8 +768,7 @@ public class AuthService(UserManager<ApplicationUser> userManager,
         resetToken.UsedAt = now;
 
         // 8. Revoke any other active reset tokens for this user
-        var otherTokens = await _unitOfWork.PasswordResetTokenRepository.GetAllAsync(
-                                                                                        t => t.UserId == user.Id &&
+        var otherTokens = await _unitOfWork.PasswordResetTokenRepository.GetAllAsync(t => t.UserId == user.Id &&
                                                                                              t.Id != resetToken.Id &&
                                                                                              t.UsedAt == null &&
                                                                                              t.RevokedAt == null,

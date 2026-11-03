@@ -1,5 +1,4 @@
 ﻿using EducationSystem.Application.Abstarctions.Identity;
-using EducationSystem.Application.Abstarctions.Persistence.Repositories;
 using EducationSystem.Application.Abstarctions.Services;
 using EducationSystem.Application.Services;
 using EducationSystem.Domain.Entities;

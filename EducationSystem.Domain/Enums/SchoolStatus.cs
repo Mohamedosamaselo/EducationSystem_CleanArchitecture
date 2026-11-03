@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace EducationSystem.Domain.Enums;
+﻿namespace EducationSystem.Domain.Enums;
 
 //[JsonConverter(typeof(JsonStringEnumConverter))]
 public enum SchoolStatus
